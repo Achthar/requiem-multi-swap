@@ -27,23 +27,26 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "baseFormula()": FunctionFragment;
     "burn(address)": FunctionFragment;
     "decimals()": FunctionFragment;
     "factory()": FunctionFragment;
-    "formula()": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
+    "getLastInvariant()": FunctionFragment;
+    "getNormalizedWeights()": FunctionFragment;
     "getReserves()": FunctionFragment;
     "getSwapFee()": FunctionFragment;
+    "getSwapFeePercentage()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
-    "initialize(address,address,uint32,uint32)": FunctionFragment;
+    "initialize(address,address,uint256,uint32)": FunctionFragment;
     "mint(address)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
+    "onSwap((uint8,address,address,uint256,address,address),uint256,uint256)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "price0CumulativeLast()": FunctionFragment;
     "price1CumulativeLast()": FunctionFragment;
     "skim(address)": FunctionFragment;
-    "swap(uint256,uint256,address,bytes)": FunctionFragment;
     "symbol()": FunctionFragment;
     "sync()": FunctionFragment;
     "token0()": FunctionFragment;
@@ -74,12 +77,23 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "baseFormula",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "burn", values: [string]): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
-  encodeFunctionData(functionFragment: "formula", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getCollectedFees",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLastInvariant",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getNormalizedWeights",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -88,6 +102,10 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getSwapFee",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSwapFeePercentage",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -101,6 +119,21 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "mint", values: [string]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "onSwap",
+    values: [
+      {
+        kind: BigNumberish;
+        tokenIn: string;
+        tokenOut: string;
+        amount: BigNumberish;
+        from: string;
+        to: string;
+      },
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
   encodeFunctionData(
     functionFragment: "permit",
     values: [
@@ -122,10 +155,6 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "skim", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "swap",
-    values: [BigNumberish, BigNumberish, string, BytesLike]
-  ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "sync", values?: undefined): string;
   encodeFunctionData(functionFragment: "token0", values?: undefined): string;
@@ -158,12 +187,23 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "baseFormula",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "formula", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCollectedFees",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLastInvariant",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getNormalizedWeights",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -172,6 +212,10 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getSwapFee", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getSwapFeePercentage",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getTokenWeights",
     data: BytesLike
   ): Result;
@@ -179,6 +223,7 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "onSwap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "price0CumulativeLast",
@@ -189,7 +234,6 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "skim", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sync", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
@@ -208,9 +252,10 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
     "Approval(address,address,uint256)": EventFragment;
     "Burn(address,uint256,uint256,address)": EventFragment;
     "Mint(address,uint256,uint256)": EventFragment;
-    "PaidProtocolFee(uint112,uint112)": EventFragment;
+    "PaidProtocolFee(uint256,uint256)": EventFragment;
     "Swap(address,uint256,uint256,uint256,uint256,address)": EventFragment;
-    "Sync(uint112,uint112)": EventFragment;
+    "SwapFeePercentageChanged(uint256)": EventFragment;
+    "Sync(uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
@@ -219,6 +264,7 @@ interface Requiem2PoolInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PaidProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Swap"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SwapFeePercentageChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Sync"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
@@ -264,6 +310,10 @@ export type SwapEvent = TypedEvent<
     amount1Out: BigNumber;
     to: string;
   }
+>;
+
+export type SwapFeePercentageChangedEvent = TypedEvent<
+  [BigNumber] & { swapFeePercentage: BigNumber }
 >;
 
 export type SyncEvent = TypedEvent<
@@ -338,6 +388,8 @@ export class Requiem2Pool extends BaseContract {
 
     balanceOf(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    baseFormula(overrides?: CallOverrides): Promise<[string]>;
+
     burn(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -347,8 +399,6 @@ export class Requiem2Pool extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<[string]>;
 
-    formula(overrides?: CallOverrides): Promise<[string]>;
-
     getCollectedFees(
       overrides?: CallOverrides
     ): Promise<
@@ -357,6 +407,10 @@ export class Requiem2Pool extends BaseContract {
         _collectedFee1: BigNumber;
       }
     >;
+
+    getLastInvariant(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getNormalizedWeights(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     getReserves(
       overrides?: CallOverrides
@@ -372,17 +426,22 @@ export class Requiem2Pool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[number] & { _swapFee: number }>;
 
+    getSwapFeePercentage(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getTokenWeights(
       overrides?: CallOverrides
     ): Promise<
-      [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+      [BigNumber, BigNumber] & {
+        _tokenWeight0: BigNumber;
+        _tokenWeight1: BigNumber;
+      }
     >;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
+      token0: string,
+      token1: string,
+      normalizedWeight0: BigNumberish,
+      swapFeePercentage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -394,6 +453,20 @@ export class Requiem2Pool extends BaseContract {
     name(overrides?: CallOverrides): Promise<[string]>;
 
     nonces(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    onSwap(
+      request: {
+        kind: BigNumberish;
+        tokenIn: string;
+        tokenOut: string;
+        amount: BigNumberish;
+        from: string;
+        to: string;
+      },
+      balanceTokenIn: BigNumberish,
+      balanceTokenOut: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     permit(
       owner: string,
@@ -412,14 +485,6 @@ export class Requiem2Pool extends BaseContract {
 
     skim(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -469,6 +534,8 @@ export class Requiem2Pool extends BaseContract {
 
   balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  baseFormula(overrides?: CallOverrides): Promise<string>;
+
   burn(
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -478,8 +545,6 @@ export class Requiem2Pool extends BaseContract {
 
   factory(overrides?: CallOverrides): Promise<string>;
 
-  formula(overrides?: CallOverrides): Promise<string>;
-
   getCollectedFees(
     overrides?: CallOverrides
   ): Promise<
@@ -488,6 +553,10 @@ export class Requiem2Pool extends BaseContract {
       _collectedFee1: BigNumber;
     }
   >;
+
+  getLastInvariant(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getNormalizedWeights(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   getReserves(
     overrides?: CallOverrides
@@ -501,17 +570,22 @@ export class Requiem2Pool extends BaseContract {
 
   getSwapFee(overrides?: CallOverrides): Promise<number>;
 
+  getSwapFeePercentage(overrides?: CallOverrides): Promise<BigNumber>;
+
   getTokenWeights(
     overrides?: CallOverrides
   ): Promise<
-    [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+    [BigNumber, BigNumber] & {
+      _tokenWeight0: BigNumber;
+      _tokenWeight1: BigNumber;
+    }
   >;
 
   initialize(
-    _token0: string,
-    _token1: string,
-    _tokenWeight0: BigNumberish,
-    _swapFee: BigNumberish,
+    token0: string,
+    token1: string,
+    normalizedWeight0: BigNumberish,
+    swapFeePercentage: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -523,6 +597,20 @@ export class Requiem2Pool extends BaseContract {
   name(overrides?: CallOverrides): Promise<string>;
 
   nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  onSwap(
+    request: {
+      kind: BigNumberish;
+      tokenIn: string;
+      tokenOut: string;
+      amount: BigNumberish;
+      from: string;
+      to: string;
+    },
+    balanceTokenIn: BigNumberish,
+    balanceTokenOut: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   permit(
     owner: string,
@@ -541,14 +629,6 @@ export class Requiem2Pool extends BaseContract {
 
   skim(
     to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  swap(
-    amount0Out: BigNumberish,
-    amount1Out: BigNumberish,
-    to: string,
-    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -598,6 +678,8 @@ export class Requiem2Pool extends BaseContract {
 
     balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    baseFormula(overrides?: CallOverrides): Promise<string>;
+
     burn(
       to: string,
       overrides?: CallOverrides
@@ -609,8 +691,6 @@ export class Requiem2Pool extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<string>;
 
-    formula(overrides?: CallOverrides): Promise<string>;
-
     getCollectedFees(
       overrides?: CallOverrides
     ): Promise<
@@ -619,6 +699,10 @@ export class Requiem2Pool extends BaseContract {
         _collectedFee1: BigNumber;
       }
     >;
+
+    getLastInvariant(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getNormalizedWeights(overrides?: CallOverrides): Promise<BigNumber[]>;
 
     getReserves(
       overrides?: CallOverrides
@@ -632,17 +716,22 @@ export class Requiem2Pool extends BaseContract {
 
     getSwapFee(overrides?: CallOverrides): Promise<number>;
 
+    getSwapFeePercentage(overrides?: CallOverrides): Promise<BigNumber>;
+
     getTokenWeights(
       overrides?: CallOverrides
     ): Promise<
-      [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+      [BigNumber, BigNumber] & {
+        _tokenWeight0: BigNumber;
+        _tokenWeight1: BigNumber;
+      }
     >;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
+      token0: string,
+      token1: string,
+      normalizedWeight0: BigNumberish,
+      swapFeePercentage: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -651,6 +740,20 @@ export class Requiem2Pool extends BaseContract {
     name(overrides?: CallOverrides): Promise<string>;
 
     nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    onSwap(
+      request: {
+        kind: BigNumberish;
+        tokenIn: string;
+        tokenOut: string;
+        amount: BigNumberish;
+        from: string;
+        to: string;
+      },
+      balanceTokenIn: BigNumberish,
+      balanceTokenOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     permit(
       owner: string,
@@ -668,14 +771,6 @@ export class Requiem2Pool extends BaseContract {
     price1CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
 
     skim(to: string, overrides?: CallOverrides): Promise<void>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -758,7 +853,7 @@ export class Requiem2Pool extends BaseContract {
       { sender: string; amount0: BigNumber; amount1: BigNumber }
     >;
 
-    "PaidProtocolFee(uint112,uint112)"(
+    "PaidProtocolFee(uint256,uint256)"(
       collectedFee0?: null,
       collectedFee1?: null
     ): TypedEventFilter<
@@ -812,7 +907,15 @@ export class Requiem2Pool extends BaseContract {
       }
     >;
 
-    "Sync(uint112,uint112)"(
+    "SwapFeePercentageChanged(uint256)"(
+      swapFeePercentage?: null
+    ): TypedEventFilter<[BigNumber], { swapFeePercentage: BigNumber }>;
+
+    SwapFeePercentageChanged(
+      swapFeePercentage?: null
+    ): TypedEventFilter<[BigNumber], { swapFeePercentage: BigNumber }>;
+
+    "Sync(uint256,uint256)"(
       reserve0?: null,
       reserve1?: null
     ): TypedEventFilter<
@@ -868,6 +971,8 @@ export class Requiem2Pool extends BaseContract {
 
     balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    baseFormula(overrides?: CallOverrides): Promise<BigNumber>;
+
     burn(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -877,21 +982,25 @@ export class Requiem2Pool extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    formula(overrides?: CallOverrides): Promise<BigNumber>;
-
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLastInvariant(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getNormalizedWeights(overrides?: CallOverrides): Promise<BigNumber>;
 
     getReserves(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSwapFee(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getSwapFeePercentage(overrides?: CallOverrides): Promise<BigNumber>;
+
     getTokenWeights(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
+      token0: string,
+      token1: string,
+      normalizedWeight0: BigNumberish,
+      swapFeePercentage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -903,6 +1012,20 @@ export class Requiem2Pool extends BaseContract {
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    onSwap(
+      request: {
+        kind: BigNumberish;
+        tokenIn: string;
+        tokenOut: string;
+        amount: BigNumberish;
+        from: string;
+        to: string;
+      },
+      balanceTokenIn: BigNumberish,
+      balanceTokenOut: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     permit(
       owner: string,
@@ -921,14 +1044,6 @@ export class Requiem2Pool extends BaseContract {
 
     skim(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -982,6 +1097,8 @@ export class Requiem2Pool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    baseFormula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     burn(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -991,21 +1108,29 @@ export class Requiem2Pool extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    formula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLastInvariant(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getNormalizedWeights(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getSwapFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getSwapFeePercentage(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getTokenWeights(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
+      token0: string,
+      token1: string,
+      normalizedWeight0: BigNumberish,
+      swapFeePercentage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1019,6 +1144,20 @@ export class Requiem2Pool extends BaseContract {
     nonces(
       arg0: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    onSwap(
+      request: {
+        kind: BigNumberish;
+        tokenIn: string;
+        tokenOut: string;
+        amount: BigNumberish;
+        from: string;
+        to: string;
+      },
+      balanceTokenIn: BigNumberish,
+      balanceTokenOut: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     permit(
@@ -1042,14 +1181,6 @@ export class Requiem2Pool extends BaseContract {
 
     skim(
       to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

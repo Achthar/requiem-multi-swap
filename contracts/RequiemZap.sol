@@ -237,10 +237,10 @@ contract RequiemZap is ReentrancyGuard {
 
     function _approveTokenIfNeeded(address token) private {
         if (IERC20(token).allowance(address(this), address(uniRouter)) == 0) {
-            IERC20(token).safeApprove(address(uniRouter), type(uint).max);
+            IERC20(token).approve(address(uniRouter), type(uint).max);
         }
         if (IERC20(token).allowance(address(this), address(requiemRouter)) == 0) {
-            IERC20(token).safeApprove(address(requiemRouter), type(uint).max);
+            IERC20(token).approve(address(requiemRouter), type(uint).max);
         }
     }
 

@@ -14,6 +14,7 @@
 
 pragma solidity ^0.8.10;
 
+import "./RequiemErrors.sol";
 import "../../interfaces/ITemporarilyPausable.sol";
 
 /**
@@ -45,8 +46,8 @@ abstract contract TemporarilyPausable is ITemporarilyPausable {
     bool private _paused;
 
     constructor(uint256 pauseWindowDuration, uint256 bufferPeriodDuration) {
-        require(pauseWindowDuration <= _MAX_PAUSE_WINDOW_DURATION, "MAX_PAUSE_WINDOW_DURATION");
-        require(bufferPeriodDuration <= _MAX_BUFFER_PERIOD_DURATION, "MAX_BUFFER_PERIOD_DURATION");
+        RequiemErrors._require(pauseWindowDuration <= _MAX_PAUSE_WINDOW_DURATION, Errors.MAX_PAUSE_WINDOW_DURATION);
+        RequiemErrors._require(bufferPeriodDuration <= _MAX_BUFFER_PERIOD_DURATION, Errors.MAX_BUFFER_PERIOD_DURATION);
 
         uint256 pauseWindowEndTime = block.timestamp + pauseWindowDuration;
 
@@ -89,9 +90,9 @@ abstract contract TemporarilyPausable is ITemporarilyPausable {
      */
     function _setPaused(bool paused) internal {
         if (paused) {
-            require(block.timestamp < _getPauseWindowEndTime(), "PAUSE_WINDOW_EXPIRED");
+            RequiemErrors._require(block.timestamp < _getPauseWindowEndTime(), Errors.PAUSE_WINDOW_EXPIRED);
         } else {
-            require(block.timestamp < _getBufferPeriodEndTime(), "BUFFER_PERIOD_EXPIRED");
+            RequiemErrors._require(block.timestamp < _getBufferPeriodEndTime(), Errors.BUFFER_PERIOD_EXPIRED);
         }
 
         _paused = paused;
@@ -102,14 +103,14 @@ abstract contract TemporarilyPausable is ITemporarilyPausable {
      * @dev Reverts if the contract is paused.
      */
     function _ensureNotPaused() internal view {
-        require(_isNotPaused(), "PAUSED");
+        RequiemErrors._require(_isNotPaused(), Errors.PAUSED);
     }
 
     /**
      * @dev Reverts if the contract is not paused.
      */
     function _ensurePaused() internal view {
-        require(!_isNotPaused(), "NOT_PAUSED");
+        RequiemErrors._require(!_isNotPaused(), Errors.NOT_PAUSED);
     }
 
     /**

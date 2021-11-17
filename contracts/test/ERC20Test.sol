@@ -177,7 +177,7 @@ contract ERC20Test is IERC20 {
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] - addedValue);
         return true;
     }
 
@@ -223,13 +223,13 @@ contract ERC20Test is IERC20 {
         address recipient,
         uint256 amount
     ) internal virtual {
-        _require(sender != address(0), Errors.ERC20_TRANSFER_FROM_ZERO_ADDRESS);
-        _require(recipient != address(0), Errors.ERC20_TRANSFER_TO_ZERO_ADDRESS);
+        RequiemErrors._require(sender != address(0), Errors.ERC20_TRANSFER_FROM_ZERO_ADDRESS);
+        RequiemErrors._require(recipient != address(0), Errors.ERC20_TRANSFER_TO_ZERO_ADDRESS);
 
         _beforeTokenTransfer(sender, recipient, amount);
 
         _balances[sender] = _balances[sender].sub(amount, Errors.ERC20_TRANSFER_EXCEEDS_BALANCE);
-        _balances[recipient] = _balances[recipient].add(amount);
+        _balances[recipient] = _balances[recipient] + amount;
         emit Transfer(sender, recipient, amount);
     }
 
@@ -245,8 +245,8 @@ contract ERC20Test is IERC20 {
     function _mint(address account, uint256 amount) internal virtual {
         _beforeTokenTransfer(address(0), account, amount);
 
-        _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
+        _totalSupply = _totalSupply + amount;
+        _balances[account] = _balances[account] + amount;
         emit Transfer(address(0), account, amount);
     }
 
@@ -262,12 +262,12 @@ contract ERC20Test is IERC20 {
      * - `account` must have at least `amount` tokens.
      */
     function _burn(address account, uint256 amount) internal virtual {
-        _require(account != address(0), Errors.ERC20_BURN_FROM_ZERO_ADDRESS);
+        RequiemErrors._require(account != address(0), Errors.ERC20_BURN_FROM_ZERO_ADDRESS);
 
         _beforeTokenTransfer(account, address(0), amount);
 
         _balances[account] = _balances[account].sub(amount, Errors.ERC20_BURN_EXCEEDS_ALLOWANCE);
-        _totalSupply = _totalSupply.sub(amount);
+        _totalSupply = _totalSupply - amount;
         emit Transfer(account, address(0), amount);
     }
 

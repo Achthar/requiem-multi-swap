@@ -29,6 +29,8 @@ interface IRequiemRouterInterface extends ethers.utils.Interface {
     "createPairETH(address,uint256,uint32,uint32,address)": FunctionFragment;
     "factory()": FunctionFragment;
     "formula()": FunctionFragment;
+    "multihopBatchSwapExactIn(tuple[][],address,address,uint256,uint256,uint256)": FunctionFragment;
+    "multihopBatchSwapExactOut(tuple[][],address,address,uint256,uint256)": FunctionFragment;
     "removeLiquidity(address,address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
     "removeLiquidityETH(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
     "removeLiquidityETHSupportingFeeOnTransferTokens(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
@@ -91,6 +93,41 @@ interface IRequiemRouterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(functionFragment: "formula", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "multihopBatchSwapExactIn",
+    values: [
+      {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "multihopBatchSwapExactOut",
+    values: [
+      {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      string,
+      string,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidity",
     values: [
@@ -254,6 +291,14 @@ interface IRequiemRouterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "formula", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "multihopBatchSwapExactIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "multihopBatchSwapExactOut",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidity",
     data: BytesLike
@@ -423,6 +468,39 @@ export class IRequiemRouter extends BaseContract {
     factory(overrides?: CallOverrides): Promise<[string]>;
 
     formula(overrides?: CallOverrides): Promise<[string]>;
+
+    multihopBatchSwapExactIn(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      totalAmountIn: BigNumberish,
+      minTotalAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    multihopBatchSwapExactOut(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      maxTotalAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     removeLiquidity(
       pair: string,
@@ -644,6 +722,39 @@ export class IRequiemRouter extends BaseContract {
   factory(overrides?: CallOverrides): Promise<string>;
 
   formula(overrides?: CallOverrides): Promise<string>;
+
+  multihopBatchSwapExactIn(
+    swapSequences: {
+      pool: string;
+      tokenIn: string;
+      tokenOut: string;
+      swapAmount: BigNumberish;
+      limitReturnAmount: BigNumberish;
+      maxPrice: BigNumberish;
+    }[][],
+    tokenIn: string,
+    tokenOut: string,
+    totalAmountIn: BigNumberish,
+    minTotalAmountOut: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  multihopBatchSwapExactOut(
+    swapSequences: {
+      pool: string;
+      tokenIn: string;
+      tokenOut: string;
+      swapAmount: BigNumberish;
+      limitReturnAmount: BigNumberish;
+      maxPrice: BigNumberish;
+    }[][],
+    tokenIn: string,
+    tokenOut: string,
+    maxTotalAmountIn: BigNumberish,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   removeLiquidity(
     pair: string,
@@ -877,6 +988,39 @@ export class IRequiemRouter extends BaseContract {
     factory(overrides?: CallOverrides): Promise<string>;
 
     formula(overrides?: CallOverrides): Promise<string>;
+
+    multihopBatchSwapExactIn(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      totalAmountIn: BigNumberish,
+      minTotalAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    multihopBatchSwapExactOut(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      maxTotalAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     removeLiquidity(
       pair: string,
@@ -1128,6 +1272,39 @@ export class IRequiemRouter extends BaseContract {
 
     formula(overrides?: CallOverrides): Promise<BigNumber>;
 
+    multihopBatchSwapExactIn(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      totalAmountIn: BigNumberish,
+      minTotalAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    multihopBatchSwapExactOut(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      maxTotalAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     removeLiquidity(
       pair: string,
       tokenA: string,
@@ -1349,6 +1526,39 @@ export class IRequiemRouter extends BaseContract {
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     formula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    multihopBatchSwapExactIn(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      totalAmountIn: BigNumberish,
+      minTotalAmountOut: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    multihopBatchSwapExactOut(
+      swapSequences: {
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+        swapAmount: BigNumberish;
+        limitReturnAmount: BigNumberish;
+        maxPrice: BigNumberish;
+      }[][],
+      tokenIn: string,
+      tokenOut: string,
+      maxTotalAmountIn: BigNumberish,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     removeLiquidity(
       pair: string,

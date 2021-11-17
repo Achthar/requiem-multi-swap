@@ -4666,7 +4666,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4709,7 +4709,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4757,7 +4757,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4800,7 +4800,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4843,7 +4843,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4886,7 +4886,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4934,7 +4934,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4977,7 +4977,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5022,7 +5022,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5067,15 +5067,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/SafeMath.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "2759cafb828e03cd4ceec448285b0703",
+      "lastModificationDate": 1637150814702,
+      "contentHash": "5dca973b5d6415159c1ea8a77fd7cbde",
       "sourceName": "contracts/libraries/SafeMath.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5112,15 +5112,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/RequiemErrors.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "1ad08c7df45cf3ae9c059f75e4aa5c82",
+      "lastModificationDate": 1637158328282,
+      "contentHash": "d50395a66c2ab9609cdcff0abb051c5a",
       "sourceName": "contracts/libraries/helpers/RequiemErrors.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5151,7 +5151,8 @@
         "^0.8.10"
       ],
       "artifacts": [
-        "Errors"
+        "Errors",
+        "RequiemErrors"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/stakePool/IStakePoolController.sol": {
@@ -5163,7 +5164,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5206,7 +5207,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5247,7 +5248,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5288,7 +5289,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5329,7 +5330,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5381,7 +5382,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5424,7 +5425,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5468,7 +5469,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5520,7 +5521,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5568,7 +5569,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5620,7 +5621,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5663,7 +5664,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5708,7 +5709,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5744,15 +5745,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/test/ERC20Test.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "70dabf7dcbbceae10f7f2d5e8ee8cda5",
+      "lastModificationDate": 1637151036865,
+      "contentHash": "fd17e47f47a76988f1c625fc7114a32b",
       "sourceName": "contracts/test/ERC20Test.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5799,7 +5800,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5846,7 +5847,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5884,15 +5885,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/AccessControl.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "2e1a3f719a5ebc4af9b73a2a977be259",
+      "lastModificationDate": 1637150890154,
+      "contentHash": "0948db2565b766e917bc4c53e53baa92",
       "sourceName": "contracts/libraries/AccessControl.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5938,7 +5939,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5985,7 +5986,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6030,7 +6031,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6065,15 +6066,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/EnumerableSet.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "9fc0dfa57a30ef9c2f2ae8f819817114",
+      "lastModificationDate": 1637150860246,
+      "contentHash": "84a00b51104198e5a97c173ab26020f0",
       "sourceName": "contracts/libraries/EnumerableSet.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6110,15 +6111,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/SafeCast.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "ec3d40691f37b49d00ae02a2ddeb2293",
+      "lastModificationDate": 1637150925022,
+      "contentHash": "d23cf77a4a91c6e86f4cc6b3330136b4",
       "sourceName": "contracts/libraries/SafeCast.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6155,15 +6156,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/SignaturesValidator.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "d7ccf446f2e708d46ee5aa147af07cd3",
+      "lastModificationDate": 1637150991610,
+      "contentHash": "4b3523413bc20394c5b0e0e6f0b565d9",
       "sourceName": "contracts/libraries/helpers/SignaturesValidator.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6210,7 +6211,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6253,7 +6254,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6296,7 +6297,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6343,7 +6344,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6386,7 +6387,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6423,15 +6424,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/Authentication.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "b34f608b92f3397890526b120e4122ae",
+      "lastModificationDate": 1637150958090,
+      "contentHash": "91f832e9b94d84caebdc24846b04be0a",
       "sourceName": "contracts/libraries/helpers/Authentication.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6477,7 +6478,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6512,15 +6513,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/EnumerableMap.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "e9bfda4355db48cd3cf1fb3d260d36e9",
+      "lastModificationDate": 1637150858406,
+      "contentHash": "c3d68980bdc3f25815610bb2c8632dc4",
       "sourceName": "contracts/libraries/EnumerableMap.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6566,7 +6567,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6603,15 +6604,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemZap.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "a6d4b5f2c5ce39284f3761df0237ef90",
+      "lastModificationDate": 1637151358245,
+      "contentHash": "ebd6cb467e5ede5a3cf5f4480f65255d",
       "sourceName": "contracts/RequiemZap.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6666,7 +6667,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6701,15 +6702,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/SafeERC20.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "76d3596f910bd5e7dba795c99766e819",
+      "lastModificationDate": 1637151190173,
+      "contentHash": "25438666af6a050f84ce8e952cc8fe32",
       "sourceName": "contracts/libraries/SafeERC20.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6736,8 +6737,8 @@
         }
       },
       "imports": [
-        "../interfaces/ERC20/IERC20.sol",
-        "./Address.sol"
+        "./helpers/RequiemErrors.sol",
+        "../interfaces/ERC20/IERC20.sol"
       ],
       "versionPragmas": [
         "^0.8.10"
@@ -6755,7 +6756,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6800,7 +6801,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6843,7 +6844,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6886,7 +6887,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6929,7 +6930,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6974,7 +6975,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7017,7 +7018,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7052,15 +7053,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/Address.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "4ed7702b5631372059ebe2a5d4e77980",
+      "lastModificationDate": 1637150909506,
+      "contentHash": "1b438824f0e2f4786f53c04869d941eb",
       "sourceName": "contracts/libraries/Address.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7086,7 +7087,9 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "./helpers/RequiemErrors.sol"
+      ],
       "versionPragmas": [
         "^0.8.10"
       ],
@@ -7103,7 +7106,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7146,7 +7149,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7191,7 +7194,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7228,101 +7231,6 @@
         "UniswapV2OracleLibrary"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/RequiemRouterDev.sol": {
-      "lastModificationDate": 1637146415185,
-      "contentHash": "16cb3e086632bde6b1c88c003779be6e",
-      "sourceName": "contracts/RequiemRouterDev.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./interfaces/IRequiemFactory.sol",
-        "./interfaces/IRequiemFormula.sol",
-        "./interfaces/IRequiemPair.sol",
-        "./libraries/TransferHelper.sol",
-        "./interfaces/ERC20/IERC20.sol",
-        "./interfaces/IRequiemRouterDev.sol",
-        "./libraries/SafeMath.sol",
-        "./interfaces/IWETH.sol"
-      ],
-      "versionPragmas": [
-        ">=0.8.9"
-      ],
-      "artifacts": [
-        "RequiemParaRouter"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemRouterDev.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "d23210d5395e9dec83cee36b496c9bbd",
-      "sourceName": "contracts/interfaces/IRequiemRouterDev.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IRequiemParaRouter"
-      ]
-    },
     "/home/achthar/requiem-multi-swap/contracts/RequiemRouter.sol": {
       "lastModificationDate": 1637146415189,
       "contentHash": "edf968f0cee9326ba7e59511a29a1e28",
@@ -7332,7 +7240,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7384,7 +7292,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7427,7 +7335,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7472,7 +7380,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7524,7 +7432,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7572,7 +7480,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7624,7 +7532,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7670,7 +7578,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7713,7 +7621,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7756,7 +7664,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7791,15 +7699,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/Requiem2Pool.sol": {
-      "lastModificationDate": 1637146415185,
-      "contentHash": "b49b21bfab6d7c3205eacc2f715e668b",
+      "lastModificationDate": 1637162598893,
+      "contentHash": "8635bd6a628774d7d90d26c3b4db876b",
       "sourceName": "contracts/Requiem2Pool.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7827,12 +7735,15 @@
       },
       "imports": [
         "./interfaces/IRequiem2Pool.sol",
-        "./interfaces/IRequiemFormula.sol",
+        "./interfaces/IRequiemPoolFormula.sol",
         "./RequiemERC20.sol",
-        "./libraries/Math.sol",
+        "./interfaces/pool/IFormulaProvider.sol",
+        "./interfaces/pool/IRequiemWeightedMath.sol",
         "./libraries/UQ112x112.sol",
-        "./interfaces/ERC20/IERC20.sol",
-        "./interfaces/IRequiemFactory.sol",
+        "./libraries/math/Math.sol",
+        "./libraries/math/FixedPoint.sol",
+        "./interfaces/ERC20/IERC20Metadata.sol",
+        "./interfaces/IRequiem2PoolFactory.sol",
         "./interfaces/IUniswapV2Callee.sol"
       ],
       "versionPragmas": [
@@ -7843,15 +7754,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiem2Pool.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "05e921f27aee21b0e3c743563630fa77",
+      "lastModificationDate": 1637162505093,
+      "contentHash": "07e82759ef9bc8b13375c2f6bdc40f16",
       "sourceName": "contracts/interfaces/IRequiem2Pool.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7878,7 +7789,8 @@
         }
       },
       "imports": [
-        "./IRequiemERC20.sol"
+        "./IRequiemERC20.sol",
+        "./IMinimalSwapInfo.sol"
       ],
       "versionPragmas": [
         "^0.8.10"
@@ -7896,7 +7808,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7941,7 +7853,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -7986,7 +7898,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8032,7 +7944,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8069,7 +7981,7 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemFactory.sol": {
-      "lastModificationDate": 1637146415185,
+      "lastModificationDate": 1637161242540,
       "contentHash": "1a18a9e45761ea4679b8e823423ab473",
       "sourceName": "contracts/RequiemFactory.sol",
       "solcConfig": {
@@ -8077,7 +7989,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8123,7 +8035,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8170,7 +8082,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8217,7 +8129,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8262,7 +8174,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8307,7 +8219,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8352,7 +8264,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8397,7 +8309,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8440,7 +8352,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8475,15 +8387,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/TemporarilyPausable.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "3896edb24c7178b07247a9da48a821ab",
+      "lastModificationDate": 1637151001358,
+      "contentHash": "47c51989c82bd7f41d90b060e400c975",
       "sourceName": "contracts/libraries/helpers/TemporarilyPausable.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8510,6 +8422,7 @@
         }
       },
       "imports": [
+        "./RequiemErrors.sol",
         "../../interfaces/ITemporarilyPausable.sol"
       ],
       "versionPragmas": [
@@ -8528,7 +8441,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8571,7 +8484,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8620,7 +8533,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8663,7 +8576,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8706,7 +8619,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8752,7 +8665,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8800,7 +8713,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8843,7 +8756,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8888,7 +8801,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8931,7 +8844,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -8976,7 +8889,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9021,7 +8934,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9056,15 +8969,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/math/Math.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "86066c835b7817fa33f18774e1bc245a",
+      "lastModificationDate": 1637153170120,
+      "contentHash": "b7c8d0dc52046f04f5e69367aa7d6797",
       "sourceName": "contracts/libraries/math/Math.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9107,7 +9020,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9150,7 +9063,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9193,7 +9106,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9236,7 +9149,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9279,7 +9192,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -9311,6 +9224,550 @@
       ],
       "artifacts": [
         "WETH9"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IMinimalSwapInfo.sol": {
+      "lastModificationDate": 1637150442217,
+      "contentHash": "e8e83b169e97edee7cd4ee187ff230d7",
+      "sourceName": "contracts/interfaces/IMinimalSwapInfo.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IMinimalSwapInfo"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IPoolSwapStructs.sol": {
+      "lastModificationDate": 1637148343256,
+      "contentHash": "a9386e3001ea19c64f7773232645f271",
+      "sourceName": "contracts/interfaces/IPoolSwapStructs.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IPoolSwapStructs"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/weighted/RequiemWeightedMath.sol": {
+      "lastModificationDate": 1637160089614,
+      "contentHash": "842dcde5e68b1644de5ccab0a2fb4f3a",
+      "sourceName": "contracts/libraries/weighted/RequiemWeightedMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./../math/FixedPoint.sol",
+        "./../math/Math.sol",
+        "../helpers/InputHelpers.sol",
+        "../helpers/RequiemErrors.sol",
+        "../../interfaces/pool/IRequiemWeightedMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "RequiemWeightedMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/RequiemMultiRouter.sol": {
+      "lastModificationDate": 1637150137316,
+      "contentHash": "2a21a5c0df6ab77496aa579badcf56a7",
+      "sourceName": "contracts/RequiemMultiRouter.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IRequiemFactory.sol",
+        "./interfaces/IRequiemFormula.sol",
+        "./interfaces/IRequiemPair.sol",
+        "./libraries/TransferHelper.sol",
+        "./interfaces/ERC20/IERC20.sol",
+        "./interfaces/IRequiemMultiRouter.sol",
+        "./libraries/SafeMath.sol",
+        "./interfaces/IWETH.sol"
+      ],
+      "versionPragmas": [
+        ">=0.8.9"
+      ],
+      "artifacts": [
+        "RequiemMultiRouter"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemMultiRouter.sol": {
+      "lastModificationDate": 1637149937384,
+      "contentHash": "b6d5d53d4da68f94c25948feddaa6627",
+      "sourceName": "contracts/interfaces/IRequiemMultiRouter.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IRequiemMultiRouter"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/pool/IFormulaProvider.sol": {
+      "lastModificationDate": 1637157653604,
+      "contentHash": "be600bf4dc250eaeebaf164df2cee585",
+      "sourceName": "contracts/interfaces/pool/IFormulaProvider.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IFormulaProvider"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/pool/IRequiemWeightedMath.sol": {
+      "lastModificationDate": 1637158178065,
+      "contentHash": "6c53044a45e1baff562d764616803e23",
+      "sourceName": "contracts/interfaces/pool/IRequiemWeightedMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IRequiemWeightedMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/Requiem2PoolFactory.sol": {
+      "lastModificationDate": 1637162730178,
+      "contentHash": "271290592f21e41b7aab4c364d7895fd",
+      "sourceName": "contracts/Requiem2PoolFactory.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IRequiem2PoolFactory.sol",
+        "./Requiem2Pool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Requiem2PoolFactory"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiem2PoolFactory.sol": {
+      "lastModificationDate": 1637161955736,
+      "contentHash": "15f7de4e1daa8fc7a01881b06dbc88b8",
+      "sourceName": "contracts/interfaces/IRequiem2PoolFactory.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IRequiem2PoolFactory"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/test/TestWETH.sol": {
+      "lastModificationDate": 1637155750908,
+      "contentHash": "bf6da8d04d36ea7f50da15eb51c46d0b",
+      "sourceName": "contracts/test/TestWETH.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IWETH.sol",
+        "../libraries/AccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "TestWETH"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/RequiemPoolFormula.sol": {
+      "lastModificationDate": 1637159245660,
+      "contentHash": "b683fad49d0a7330c4600ffd89899f2e",
+      "sourceName": "contracts/RequiemPoolFormula.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IRequiemFormula.sol",
+        "./interfaces/IRequiemPair.sol",
+        "./interfaces/IRequiemFactory.sol",
+        "./libraries/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "RequiemPoolFormula"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemPoolFormula.sol": {
+      "lastModificationDate": 1637159272416,
+      "contentHash": "e716f740d5ea33d3ea98f766500c92a0",
+      "sourceName": "contracts/interfaces/IRequiemPoolFormula.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.5.16"
+      ],
+      "artifacts": [
+        "IRequiemFormula"
       ]
     }
   }

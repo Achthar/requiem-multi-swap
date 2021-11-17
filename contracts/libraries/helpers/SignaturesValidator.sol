@@ -51,7 +51,7 @@ abstract contract SignaturesValidator is ISignaturesValidator, EIP712 {
      */
     function _validateSignature(address user, uint256 errorCode) internal {
         uint256 nextNonce = _nextNonce[user]++;
-        _require(_isSignatureValid(user, nextNonce), errorCode);
+        RequiemErrors._require(_isSignatureValid(user, nextNonce), errorCode);
     }
 
     function _isSignatureValid(address user, uint256 nonce) private view returns (bool) {

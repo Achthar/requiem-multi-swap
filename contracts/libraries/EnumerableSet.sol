@@ -129,7 +129,7 @@ library EnumerableSet {
      * - `index` must be strictly less than {length}.
      */
     function at(AddressSet storage set, uint256 index) internal view returns (address) {
-        _require(set._values.length > index, Errors.OUT_OF_BOUNDS);
+        RequiemErrors._require(set._values.length > index, Errors.OUT_OF_BOUNDS);
         return unchecked_at(set, index);
     }
 
@@ -239,7 +239,7 @@ library EnumerableSet {
      * - `index` must be strictly less than {length}.
      */
     function at(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
-        _require(set._values.length > index, Errors.OUT_OF_BOUNDS);
+        RequiemErrors._require(set._values.length > index, Errors.OUT_OF_BOUNDS);
         return unchecked_at(set, index);
     }
 

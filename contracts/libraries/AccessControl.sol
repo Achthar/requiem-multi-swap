@@ -132,7 +132,7 @@ abstract contract AccessControl {
      * - the caller must have ``role``'s admin role.
      */
     function grantRole(bytes32 role, address account) public virtual {
-        _require(hasRole(_roles[role].adminRole, msg.sender), Errors.GRANT_SENDER_NOT_ADMIN);
+        RequiemErrors._require(hasRole(_roles[role].adminRole, msg.sender), Errors.GRANT_SENDER_NOT_ADMIN);
 
         _grantRole(role, account);
     }
@@ -147,7 +147,7 @@ abstract contract AccessControl {
      * - the caller must have ``role``'s admin role.
      */
     function revokeRole(bytes32 role, address account) public virtual {
-        _require(hasRole(_roles[role].adminRole, msg.sender), Errors.REVOKE_SENDER_NOT_ADMIN);
+        RequiemErrors._require(hasRole(_roles[role].adminRole, msg.sender), Errors.REVOKE_SENDER_NOT_ADMIN);
 
         _revokeRole(role, account);
     }
@@ -167,7 +167,7 @@ abstract contract AccessControl {
      * - the caller must be `account`.
      */
     function renounceRole(bytes32 role, address account) public virtual {
-        _require(account == msg.sender, Errors.RENOUNCE_SENDER_NOT_ALLOWED);
+        RequiemErrors._require(account == msg.sender, Errors.RENOUNCE_SENDER_NOT_ALLOWED);
 
         _revokeRole(role, account);
     }

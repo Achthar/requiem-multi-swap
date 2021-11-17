@@ -56,14 +56,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightIn",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightOut",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
         "internalType": "uint32",
@@ -100,14 +100,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightIn",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightOut",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
         "internalType": "uint32",
@@ -308,14 +308,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightA",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightB",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
         "internalType": "uint32",
@@ -439,14 +439,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightA",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeightB",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
         "internalType": "uint32",
@@ -499,34 +499,34 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "reserve0",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "reserve1",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeight0",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "tokenWeight1",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "collectedFee0",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "collectedFee1",
-        "type": "uint112"
+        "type": "uint256"
       }
     ],
     "name": "mintLiquidityFee",

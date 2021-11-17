@@ -13,6 +13,7 @@ import 'hardhat-spdx-license-identifier';
 import '@typechain/hardhat';
 import 'hardhat-watcher';
 import 'solidity-coverage';
+import "hardhat-contract-sizer";
 // import {accounts} from './utils/networks';
 
 //import './tasks';
@@ -62,6 +63,9 @@ const config: HardhatUserConfig = {
       'bsc-testnet': '0x10E38dFfFCfdBaaf590D5A9958B01C9cfcF6A63B', //'0x333132d4FCbe1B7F34198AD545672BbA95c5882b',
       kovan: '0x10E38dFfFCfdBaaf590D5A9958B01C9cfcF6A63B', //'0x333132d4FCbe1B7F34198AD545672BbA95c5882b',
       mumbai: '0x10E38dFfFCfdBaaf590D5A9958B01C9cfcF6A63B', //'0x333132d4FCbe1B7F34198AD545672BbA95c5882b',
+    },
+    localhost: {
+      default: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',//'0x10E38dFfFCfdBaaf590D5A9958B01C9cfcF6A63B', //'0x333132d4FCbe1B7F34198AD545672BbA95c5882b',
     },
     user: {
       default: '0xf67c17F9eB5CB0eB71628714E2bA0bDe8d92d5CC',//'0x10E38dFfFCfdBaaf590D5A9958B01C9cfcF6A63B', //'0x333132d4FCbe1B7F34198AD545672BbA95c5882b',
@@ -237,10 +241,10 @@ const config: HardhatUserConfig = {
       chainId: 43113,
       live: true,
       saveDeployments: true,
-      tags: ['staging'],
-      gasMultiplier: 3,
-      gas: 8000000,
-      gasPrice: 250000000000,
+      // tags: ['staging'],
+      // gasMultiplier: 4,
+      gas: 800000000,
+      gasPrice: 2500000000000,
     },
     harmony: {
       url: 'https://api.s0.t.hmny.io',
@@ -367,7 +371,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 1,
           },
           evmVersion: 'london',
         },

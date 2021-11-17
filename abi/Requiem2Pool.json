@@ -90,15 +90,15 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "collectedFee0",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "collectedFee1",
-        "type": "uint112"
+        "type": "uint256"
       }
     ],
     "name": "PaidProtocolFee",
@@ -152,15 +152,28 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint112",
+        "internalType": "uint256",
+        "name": "swapFeePercentage",
+        "type": "uint256"
+      }
+    ],
+    "name": "SwapFeePercentageChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "reserve0",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "reserve1",
-        "type": "uint112"
+        "type": "uint256"
       }
     ],
     "name": "Sync",
@@ -298,6 +311,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "baseFormula",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -349,12 +375,17 @@
   },
   {
     "inputs": [],
-    "name": "formula",
+    "name": "getCollectedFees",
     "outputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_collectedFee0",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_collectedFee1",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -362,17 +393,25 @@
   },
   {
     "inputs": [],
-    "name": "getCollectedFees",
+    "name": "getLastInvariant",
     "outputs": [
       {
-        "internalType": "uint112",
-        "name": "_collectedFee0",
-        "type": "uint112"
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getNormalizedWeights",
+    "outputs": [
       {
-        "internalType": "uint112",
-        "name": "_collectedFee1",
-        "type": "uint112"
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -383,14 +422,14 @@
     "name": "getReserves",
     "outputs": [
       {
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "_reserve0",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
-        "internalType": "uint112",
+        "internalType": "uint256",
         "name": "_reserve1",
-        "type": "uint112"
+        "type": "uint256"
       },
       {
         "internalType": "uint32",
@@ -416,17 +455,30 @@
   },
   {
     "inputs": [],
+    "name": "getSwapFeePercentage",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getTokenWeights",
     "outputs": [
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "_tokenWeight0",
-        "type": "uint32"
+        "type": "uint256"
       },
       {
-        "internalType": "uint32",
+        "internalType": "uint256",
         "name": "_tokenWeight1",
-        "type": "uint32"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -436,22 +488,22 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_token0",
+        "name": "token0",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_token1",
+        "name": "token1",
         "type": "address"
       },
       {
-        "internalType": "uint32",
-        "name": "_tokenWeight0",
-        "type": "uint32"
+        "internalType": "uint256",
+        "name": "normalizedWeight0",
+        "type": "uint256"
       },
       {
         "internalType": "uint32",
-        "name": "_swapFee",
+        "name": "swapFeePercentage",
         "type": "uint32"
       }
     ],
@@ -509,6 +561,67 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IMinimalSwapInfo.SwapKind",
+            "name": "kind",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IMinimalSwapInfo.SwapRequest",
+        "name": "request",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "balanceTokenIn",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "balanceTokenOut",
+        "type": "uint256"
+      }
+    ],
+    "name": "onSwap",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -589,34 +702,6 @@
       }
     ],
     "name": "skim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount0Out",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount1Out",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      }
-    ],
-    "name": "swap",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

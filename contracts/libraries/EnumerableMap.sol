@@ -170,7 +170,7 @@ library EnumerableMap {
      * - `index` must be strictly less than {length}.
      */
     function at(IERC20ToBytes32Map storage map, uint256 index) internal view returns (IERC20, bytes32) {
-        _require(map._length > index, Errors.OUT_OF_BOUNDS);
+        RequiemErrors._require(map._length > index, Errors.OUT_OF_BOUNDS);
         return unchecked_at(map, index);
     }
 
@@ -207,7 +207,7 @@ library EnumerableMap {
         uint256 errorCode
     ) internal view returns (bytes32) {
         uint256 index = map._indexes[key];
-        _require(index > 0, errorCode);
+        RequiemErrors._require(index > 0, errorCode);
         return unchecked_valueAt(map, index - 1);
     }
 
@@ -224,7 +224,7 @@ library EnumerableMap {
         uint256 errorCode
     ) internal view returns (uint256) {
         uint256 uncheckedIndex = unchecked_indexOf(map, key);
-        _require(uncheckedIndex != 0, errorCode);
+        RequiemErrors._require(uncheckedIndex != 0, errorCode);
         return uncheckedIndex - 1;
     }
 
@@ -365,7 +365,7 @@ library EnumerableMap {
      * - `index` must be strictly less than {length}.
      */
     function at(IERC20ToUint256Map storage map, uint256 index) internal view returns (IERC20, uint256) {
-        _require(map._length > index, Errors.OUT_OF_BOUNDS);
+        RequiemErrors._require(map._length > index, Errors.OUT_OF_BOUNDS);
         return unchecked_at(map, index);
     }
 
@@ -402,7 +402,7 @@ library EnumerableMap {
         uint256 errorCode
     ) internal view returns (uint256) {
         uint256 index = map._indexes[key];
-        _require(index > 0, errorCode);
+        RequiemErrors._require(index > 0, errorCode);
         return unchecked_valueAt(map, index - 1);
     }
 
@@ -419,7 +419,7 @@ library EnumerableMap {
         uint256 errorCode
     ) internal view returns (uint256) {
         uint256 uncheckedIndex = unchecked_indexOf(map, key);
-        _require(uncheckedIndex != 0, errorCode);
+        RequiemErrors._require(uncheckedIndex != 0, errorCode);
         return uncheckedIndex - 1;
     }
 
