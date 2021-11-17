@@ -1,0 +1,2718 @@
+{
+  "id": "75f217eb0ca4d4d2f6308bfc62614e0f",
+  "_format": "hh-sol-build-info-1",
+  "solcVersion": "0.8.10",
+  "solcLongVersion": "0.8.10+commit.fc410830",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/interfaces/ITemporarilyPausable.sol": {
+        "content": "// SPDX-License-Identifier: GPL-3.0-or-later\n// This program is free software: you can redistribute it and/or modify\n// it under the terms of the GNU General Public License as published by\n// the Free Software Foundation, either version 3 of the License, or\n// (at your option) any later version.\n\n// This program is distributed in the hope that it will be useful,\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n// GNU General Public License for more details.\n\n// You should have received a copy of the GNU General Public License\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\npragma solidity ^0.8.10;\n\n/**\n * @dev Interface for the TemporarilyPausable helper.\n */\ninterface ITemporarilyPausable {\n    /**\n     * @dev Emitted every time the pause state changes by `_setPaused`.\n     */\n    event PausedStateChanged(bool paused);\n\n    /**\n     * @dev Returns the current paused state.\n     */\n    function getPausedState()\n        external\n        view\n        returns (\n            bool paused,\n            uint256 pauseWindowEndTime,\n            uint256 bufferPeriodEndTime\n        );\n}\n"
+      },
+      "contracts/libraries/helpers/TemporarilyPausable.sol": {
+        "content": "// SPDX-License-Identifier: GPL-3.0-or-later\n// This program is free software: you can redistribute it and/or modify\n// it under the terms of the GNU General Public License as published by\n// the Free Software Foundation, either version 3 of the License, or\n// (at your option) any later version.\n\n// This program is distributed in the hope that it will be useful,\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n// GNU General Public License for more details.\n\n// You should have received a copy of the GNU General Public License\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\npragma solidity ^0.8.10;\n\nimport \"../../interfaces/ITemporarilyPausable.sol\";\n\n/**\n * @dev Allows for a contract to be paused during an initial period after deployment, disabling functionality. Can be\n * used as an emergency switch in case a security vulnerability or threat is identified.\n *\n * The contract can only be paused during the Pause Window, a period that starts at deployment. It can also be\n * unpaused and repaused any number of times during this period. This is intended to serve as a safety measure: it lets\n * system managers react quickly to potentially dangerous situations, knowing that this action is reversible if careful\n * analysis later determines there was a false alarm.\n *\n * If the contract is paused when the Pause Window finishes, it will remain in the paused state through an additional\n * Buffer Period, after which it will be automatically unpaused forever. This is to ensure there is always enough time\n * to react to an emergency, even if the threat is discovered shortly before the Pause Window expires.\n *\n * Note that since the contract can only be paused within the Pause Window, unpausing during the Buffer Period is\n * irreversible.\n */\nabstract contract TemporarilyPausable is ITemporarilyPausable {\n    // The Pause Window and Buffer Period are timestamp-based: they should not be relied upon for sub-minute accuracy.\n    // solhint-disable not-rely-on-time\n\n    uint256 private constant _MAX_PAUSE_WINDOW_DURATION = 90 days;\n    uint256 private constant _MAX_BUFFER_PERIOD_DURATION = 30 days;\n\n    uint256 private immutable _pauseWindowEndTime;\n    uint256 private immutable _bufferPeriodEndTime;\n\n    bool private _paused;\n\n    constructor(uint256 pauseWindowDuration, uint256 bufferPeriodDuration) {\n        require(pauseWindowDuration <= _MAX_PAUSE_WINDOW_DURATION, \"MAX_PAUSE_WINDOW_DURATION\");\n        require(bufferPeriodDuration <= _MAX_BUFFER_PERIOD_DURATION, \"MAX_BUFFER_PERIOD_DURATION\");\n\n        uint256 pauseWindowEndTime = block.timestamp + pauseWindowDuration;\n\n        _pauseWindowEndTime = pauseWindowEndTime;\n        _bufferPeriodEndTime = pauseWindowEndTime + bufferPeriodDuration;\n    }\n\n    /**\n     * @dev Reverts if the contract is paused.\n     */\n    modifier whenNotPaused() {\n        _ensureNotPaused();\n        _;\n    }\n\n    /**\n     * @dev Returns the current contract pause status, as well as the end times of the Pause Window and Buffer\n     * Period.\n     */\n    function getPausedState()\n        external\n        view\n        override\n        returns (\n            bool paused,\n            uint256 pauseWindowEndTime,\n            uint256 bufferPeriodEndTime\n        )\n    {\n        paused = !_isNotPaused();\n        pauseWindowEndTime = _getPauseWindowEndTime();\n        bufferPeriodEndTime = _getBufferPeriodEndTime();\n    }\n\n    /**\n     * @dev Sets the pause state to `paused`. The contract can only be paused until the end of the Pause Window, and\n     * unpaused until the end of the Buffer Period.\n     *\n     * Once the Buffer Period expires, this function reverts unconditionally.\n     */\n    function _setPaused(bool paused) internal {\n        if (paused) {\n            require(block.timestamp < _getPauseWindowEndTime(), \"PAUSE_WINDOW_EXPIRED\");\n        } else {\n            require(block.timestamp < _getBufferPeriodEndTime(), \"BUFFER_PERIOD_EXPIRED\");\n        }\n\n        _paused = paused;\n        emit PausedStateChanged(paused);\n    }\n\n    /**\n     * @dev Reverts if the contract is paused.\n     */\n    function _ensureNotPaused() internal view {\n        require(_isNotPaused(), \"PAUSED\");\n    }\n\n    /**\n     * @dev Reverts if the contract is not paused.\n     */\n    function _ensurePaused() internal view {\n        require(!_isNotPaused(), \"NOT_PAUSED\");\n    }\n\n    /**\n     * @dev Returns true if the contract is unpaused.\n     *\n     * Once the Buffer Period expires, the gas cost of calling this function is reduced dramatically, as storage is no\n     * longer accessed.\n     */\n    function _isNotPaused() internal view returns (bool) {\n        // After the Buffer Period, the (inexpensive) timestamp check short-circuits the storage access.\n        return block.timestamp > _getBufferPeriodEndTime() || !_paused;\n    }\n\n    // These getters lead to reduced bytecode size by inlining the immutable variables in a single place.\n\n    function _getPauseWindowEndTime() private view returns (uint256) {\n        return _pauseWindowEndTime;\n    }\n\n    function _getBufferPeriodEndTime() private view returns (uint256) {\n        return _bufferPeriodEndTime;\n    }\n}\n"
+      }
+    },
+    "settings": {
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "evmVersion": "london",
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata",
+            "devdoc",
+            "userdoc",
+            "storageLayout",
+            "evm.gasEstimates"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      },
+      "metadata": {
+        "useLiteralContent": true
+      }
+    }
+  },
+  "output": {
+    "contracts": {
+      "contracts/interfaces/ITemporarilyPausable.sol": {
+        "ITemporarilyPausable": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bool",
+                  "name": "paused",
+                  "type": "bool"
+                }
+              ],
+              "name": "PausedStateChanged",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "getPausedState",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "paused",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pauseWindowEndTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "bufferPeriodEndTime",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          "devdoc": {
+            "details": "Interface for the TemporarilyPausable helper.",
+            "events": {
+              "PausedStateChanged(bool)": {
+                "details": "Emitted every time the pause state changes by `_setPaused`."
+              }
+            },
+            "kind": "dev",
+            "methods": {
+              "getPausedState()": {
+                "details": "Returns the current paused state."
+              }
+            },
+            "version": 1
+          },
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "gasEstimates": null,
+            "methodIdentifiers": {
+              "getPausedState()": "1c0de051"
+            }
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.10+commit.fc410830\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\"}],\"name\":\"PausedStateChanged\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getPausedState\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"pauseWindowEndTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"bufferPeriodEndTime\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interface for the TemporarilyPausable helper.\",\"events\":{\"PausedStateChanged(bool)\":{\"details\":\"Emitted every time the pause state changes by `_setPaused`.\"}},\"kind\":\"dev\",\"methods\":{\"getPausedState()\":{\"details\":\"Returns the current paused state.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/interfaces/ITemporarilyPausable.sol\":\"ITemporarilyPausable\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/interfaces/ITemporarilyPausable.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0-or-later\\n// This program is free software: you can redistribute it and/or modify\\n// it under the terms of the GNU General Public License as published by\\n// the Free Software Foundation, either version 3 of the License, or\\n// (at your option) any later version.\\n\\n// This program is distributed in the hope that it will be useful,\\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n// GNU General Public License for more details.\\n\\n// You should have received a copy of the GNU General Public License\\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n\\npragma solidity ^0.8.10;\\n\\n/**\\n * @dev Interface for the TemporarilyPausable helper.\\n */\\ninterface ITemporarilyPausable {\\n    /**\\n     * @dev Emitted every time the pause state changes by `_setPaused`.\\n     */\\n    event PausedStateChanged(bool paused);\\n\\n    /**\\n     * @dev Returns the current paused state.\\n     */\\n    function getPausedState()\\n        external\\n        view\\n        returns (\\n            bool paused,\\n            uint256 pauseWindowEndTime,\\n            uint256 bufferPeriodEndTime\\n        );\\n}\\n\",\"keccak256\":\"0xc8ed355b31fc6bf3c558a325d598b69f6e4df2c379bb4fdcb462edfaa549d681\",\"license\":\"GPL-3.0-or-later\"}},\"version\":1}",
+          "storageLayout": {
+            "storage": [],
+            "types": null
+          },
+          "userdoc": {
+            "kind": "user",
+            "methods": {},
+            "version": 1
+          }
+        }
+      },
+      "contracts/libraries/helpers/TemporarilyPausable.sol": {
+        "TemporarilyPausable": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bool",
+                  "name": "paused",
+                  "type": "bool"
+                }
+              ],
+              "name": "PausedStateChanged",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "getPausedState",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "paused",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pauseWindowEndTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "bufferPeriodEndTime",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          "devdoc": {
+            "details": "Allows for a contract to be paused during an initial period after deployment, disabling functionality. Can be used as an emergency switch in case a security vulnerability or threat is identified. The contract can only be paused during the Pause Window, a period that starts at deployment. It can also be unpaused and repaused any number of times during this period. This is intended to serve as a safety measure: it lets system managers react quickly to potentially dangerous situations, knowing that this action is reversible if careful analysis later determines there was a false alarm. If the contract is paused when the Pause Window finishes, it will remain in the paused state through an additional Buffer Period, after which it will be automatically unpaused forever. This is to ensure there is always enough time to react to an emergency, even if the threat is discovered shortly before the Pause Window expires. Note that since the contract can only be paused within the Pause Window, unpausing during the Buffer Period is irreversible.",
+            "kind": "dev",
+            "methods": {
+              "getPausedState()": {
+                "details": "Returns the current contract pause status, as well as the end times of the Pause Window and Buffer Period."
+              }
+            },
+            "version": 1
+          },
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "gasEstimates": null,
+            "methodIdentifiers": {
+              "getPausedState()": "1c0de051"
+            }
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.10+commit.fc410830\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\"}],\"name\":\"PausedStateChanged\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"getPausedState\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"pauseWindowEndTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"bufferPeriodEndTime\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Allows for a contract to be paused during an initial period after deployment, disabling functionality. Can be used as an emergency switch in case a security vulnerability or threat is identified. The contract can only be paused during the Pause Window, a period that starts at deployment. It can also be unpaused and repaused any number of times during this period. This is intended to serve as a safety measure: it lets system managers react quickly to potentially dangerous situations, knowing that this action is reversible if careful analysis later determines there was a false alarm. If the contract is paused when the Pause Window finishes, it will remain in the paused state through an additional Buffer Period, after which it will be automatically unpaused forever. This is to ensure there is always enough time to react to an emergency, even if the threat is discovered shortly before the Pause Window expires. Note that since the contract can only be paused within the Pause Window, unpausing during the Buffer Period is irreversible.\",\"kind\":\"dev\",\"methods\":{\"getPausedState()\":{\"details\":\"Returns the current contract pause status, as well as the end times of the Pause Window and Buffer Period.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/libraries/helpers/TemporarilyPausable.sol\":\"TemporarilyPausable\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/interfaces/ITemporarilyPausable.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0-or-later\\n// This program is free software: you can redistribute it and/or modify\\n// it under the terms of the GNU General Public License as published by\\n// the Free Software Foundation, either version 3 of the License, or\\n// (at your option) any later version.\\n\\n// This program is distributed in the hope that it will be useful,\\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n// GNU General Public License for more details.\\n\\n// You should have received a copy of the GNU General Public License\\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n\\npragma solidity ^0.8.10;\\n\\n/**\\n * @dev Interface for the TemporarilyPausable helper.\\n */\\ninterface ITemporarilyPausable {\\n    /**\\n     * @dev Emitted every time the pause state changes by `_setPaused`.\\n     */\\n    event PausedStateChanged(bool paused);\\n\\n    /**\\n     * @dev Returns the current paused state.\\n     */\\n    function getPausedState()\\n        external\\n        view\\n        returns (\\n            bool paused,\\n            uint256 pauseWindowEndTime,\\n            uint256 bufferPeriodEndTime\\n        );\\n}\\n\",\"keccak256\":\"0xc8ed355b31fc6bf3c558a325d598b69f6e4df2c379bb4fdcb462edfaa549d681\",\"license\":\"GPL-3.0-or-later\"},\"contracts/libraries/helpers/TemporarilyPausable.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0-or-later\\n// This program is free software: you can redistribute it and/or modify\\n// it under the terms of the GNU General Public License as published by\\n// the Free Software Foundation, either version 3 of the License, or\\n// (at your option) any later version.\\n\\n// This program is distributed in the hope that it will be useful,\\n// but WITHOUT ANY WARRANTY; without even the implied warranty of\\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n// GNU General Public License for more details.\\n\\n// You should have received a copy of the GNU General Public License\\n// along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n\\npragma solidity ^0.8.10;\\n\\nimport \\\"../../interfaces/ITemporarilyPausable.sol\\\";\\n\\n/**\\n * @dev Allows for a contract to be paused during an initial period after deployment, disabling functionality. Can be\\n * used as an emergency switch in case a security vulnerability or threat is identified.\\n *\\n * The contract can only be paused during the Pause Window, a period that starts at deployment. It can also be\\n * unpaused and repaused any number of times during this period. This is intended to serve as a safety measure: it lets\\n * system managers react quickly to potentially dangerous situations, knowing that this action is reversible if careful\\n * analysis later determines there was a false alarm.\\n *\\n * If the contract is paused when the Pause Window finishes, it will remain in the paused state through an additional\\n * Buffer Period, after which it will be automatically unpaused forever. This is to ensure there is always enough time\\n * to react to an emergency, even if the threat is discovered shortly before the Pause Window expires.\\n *\\n * Note that since the contract can only be paused within the Pause Window, unpausing during the Buffer Period is\\n * irreversible.\\n */\\nabstract contract TemporarilyPausable is ITemporarilyPausable {\\n    // The Pause Window and Buffer Period are timestamp-based: they should not be relied upon for sub-minute accuracy.\\n    // solhint-disable not-rely-on-time\\n\\n    uint256 private constant _MAX_PAUSE_WINDOW_DURATION = 90 days;\\n    uint256 private constant _MAX_BUFFER_PERIOD_DURATION = 30 days;\\n\\n    uint256 private immutable _pauseWindowEndTime;\\n    uint256 private immutable _bufferPeriodEndTime;\\n\\n    bool private _paused;\\n\\n    constructor(uint256 pauseWindowDuration, uint256 bufferPeriodDuration) {\\n        require(pauseWindowDuration <= _MAX_PAUSE_WINDOW_DURATION, \\\"MAX_PAUSE_WINDOW_DURATION\\\");\\n        require(bufferPeriodDuration <= _MAX_BUFFER_PERIOD_DURATION, \\\"MAX_BUFFER_PERIOD_DURATION\\\");\\n\\n        uint256 pauseWindowEndTime = block.timestamp + pauseWindowDuration;\\n\\n        _pauseWindowEndTime = pauseWindowEndTime;\\n        _bufferPeriodEndTime = pauseWindowEndTime + bufferPeriodDuration;\\n    }\\n\\n    /**\\n     * @dev Reverts if the contract is paused.\\n     */\\n    modifier whenNotPaused() {\\n        _ensureNotPaused();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns the current contract pause status, as well as the end times of the Pause Window and Buffer\\n     * Period.\\n     */\\n    function getPausedState()\\n        external\\n        view\\n        override\\n        returns (\\n            bool paused,\\n            uint256 pauseWindowEndTime,\\n            uint256 bufferPeriodEndTime\\n        )\\n    {\\n        paused = !_isNotPaused();\\n        pauseWindowEndTime = _getPauseWindowEndTime();\\n        bufferPeriodEndTime = _getBufferPeriodEndTime();\\n    }\\n\\n    /**\\n     * @dev Sets the pause state to `paused`. The contract can only be paused until the end of the Pause Window, and\\n     * unpaused until the end of the Buffer Period.\\n     *\\n     * Once the Buffer Period expires, this function reverts unconditionally.\\n     */\\n    function _setPaused(bool paused) internal {\\n        if (paused) {\\n            require(block.timestamp < _getPauseWindowEndTime(), \\\"PAUSE_WINDOW_EXPIRED\\\");\\n        } else {\\n            require(block.timestamp < _getBufferPeriodEndTime(), \\\"BUFFER_PERIOD_EXPIRED\\\");\\n        }\\n\\n        _paused = paused;\\n        emit PausedStateChanged(paused);\\n    }\\n\\n    /**\\n     * @dev Reverts if the contract is paused.\\n     */\\n    function _ensureNotPaused() internal view {\\n        require(_isNotPaused(), \\\"PAUSED\\\");\\n    }\\n\\n    /**\\n     * @dev Reverts if the contract is not paused.\\n     */\\n    function _ensurePaused() internal view {\\n        require(!_isNotPaused(), \\\"NOT_PAUSED\\\");\\n    }\\n\\n    /**\\n     * @dev Returns true if the contract is unpaused.\\n     *\\n     * Once the Buffer Period expires, the gas cost of calling this function is reduced dramatically, as storage is no\\n     * longer accessed.\\n     */\\n    function _isNotPaused() internal view returns (bool) {\\n        // After the Buffer Period, the (inexpensive) timestamp check short-circuits the storage access.\\n        return block.timestamp > _getBufferPeriodEndTime() || !_paused;\\n    }\\n\\n    // These getters lead to reduced bytecode size by inlining the immutable variables in a single place.\\n\\n    function _getPauseWindowEndTime() private view returns (uint256) {\\n        return _pauseWindowEndTime;\\n    }\\n\\n    function _getBufferPeriodEndTime() private view returns (uint256) {\\n        return _bufferPeriodEndTime;\\n    }\\n}\\n\",\"keccak256\":\"0xc2fc670c935e6b0177a22070d09c78fe72b23fef7413ea9837cb84968f1581ae\",\"license\":\"GPL-3.0-or-later\"}},\"version\":1}",
+          "storageLayout": {
+            "storage": [
+              {
+                "astId": 36,
+                "contract": "contracts/libraries/helpers/TemporarilyPausable.sol:TemporarilyPausable",
+                "label": "_paused",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_bool"
+              }
+            ],
+            "types": {
+              "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+              }
+            }
+          },
+          "userdoc": {
+            "kind": "user",
+            "methods": {},
+            "version": 1
+          }
+        }
+      }
+    },
+    "sources": {
+      "contracts/interfaces/ITemporarilyPausable.sol": {
+        "ast": {
+          "absolutePath": "contracts/interfaces/ITemporarilyPausable.sol",
+          "exportedSymbols": {
+            "ITemporarilyPausable": [
+              18
+            ]
+          },
+          "id": 19,
+          "license": "GPL-3.0-or-later",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                "^",
+                "0.8",
+                ".10"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "688:24:0"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "ITemporarilyPausable",
+              "contractDependencies": [],
+              "contractKind": "interface",
+              "documentation": {
+                "id": 2,
+                "nodeType": "StructuredDocumentation",
+                "src": "714:61:0",
+                "text": " @dev Interface for the TemporarilyPausable helper."
+              },
+              "fullyImplemented": false,
+              "id": 18,
+              "linearizedBaseContracts": [
+                18
+              ],
+              "name": "ITemporarilyPausable",
+              "nameLocation": "786:20:0",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 3,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "813:83:0",
+                    "text": " @dev Emitted every time the pause state changes by `_setPaused`."
+                  },
+                  "id": 7,
+                  "name": "PausedStateChanged",
+                  "nameLocation": "907:18:0",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 6,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 5,
+                        "indexed": false,
+                        "mutability": "mutable",
+                        "name": "paused",
+                        "nameLocation": "931:6:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 7,
+                        "src": "926:11:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 4,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "926:4:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "925:13:0"
+                  },
+                  "src": "901:38:0"
+                },
+                {
+                  "documentation": {
+                    "id": 8,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "945:57:0",
+                    "text": " @dev Returns the current paused state."
+                  },
+                  "functionSelector": "1c0de051",
+                  "id": 17,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "getPausedState",
+                  "nameLocation": "1016:14:0",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 9,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "1030:2:0"
+                  },
+                  "returnParameters": {
+                    "id": 16,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 11,
+                        "mutability": "mutable",
+                        "name": "paused",
+                        "nameLocation": "1098:6:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 17,
+                        "src": "1093:11:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 10,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1093:4:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 13,
+                        "mutability": "mutable",
+                        "name": "pauseWindowEndTime",
+                        "nameLocation": "1126:18:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 17,
+                        "src": "1118:26:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 12,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1118:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 15,
+                        "mutability": "mutable",
+                        "name": "bufferPeriodEndTime",
+                        "nameLocation": "1166:19:0",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 17,
+                        "src": "1158:27:0",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 14,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "1158:7:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "1079:116:0"
+                  },
+                  "scope": 18,
+                  "src": "1007:189:0",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                }
+              ],
+              "scope": 19,
+              "src": "776:422:0",
+              "usedErrors": []
+            }
+          ],
+          "src": "688:511:0"
+        },
+        "id": 0
+      },
+      "contracts/libraries/helpers/TemporarilyPausable.sol": {
+        "ast": {
+          "absolutePath": "contracts/libraries/helpers/TemporarilyPausable.sol",
+          "exportedSymbols": {
+            "ITemporarilyPausable": [
+              18
+            ],
+            "TemporarilyPausable": [
+              204
+            ]
+          },
+          "id": 205,
+          "license": "GPL-3.0-or-later",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 20,
+              "literals": [
+                "solidity",
+                "^",
+                "0.8",
+                ".10"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "688:24:1"
+            },
+            {
+              "absolutePath": "contracts/interfaces/ITemporarilyPausable.sol",
+              "file": "../../interfaces/ITemporarilyPausable.sol",
+              "id": 21,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 205,
+              "sourceUnit": 19,
+              "src": "714:51:1",
+              "symbolAliases": [],
+              "unitAlias": ""
+            },
+            {
+              "abstract": true,
+              "baseContracts": [
+                {
+                  "baseName": {
+                    "id": 23,
+                    "name": "ITemporarilyPausable",
+                    "nodeType": "IdentifierPath",
+                    "referencedDeclaration": 18,
+                    "src": "1908:20:1"
+                  },
+                  "id": 24,
+                  "nodeType": "InheritanceSpecifier",
+                  "src": "1908:20:1"
+                }
+              ],
+              "canonicalName": "TemporarilyPausable",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "documentation": {
+                "id": 22,
+                "nodeType": "StructuredDocumentation",
+                "src": "767:1099:1",
+                "text": " @dev Allows for a contract to be paused during an initial period after deployment, disabling functionality. Can be\n used as an emergency switch in case a security vulnerability or threat is identified.\n The contract can only be paused during the Pause Window, a period that starts at deployment. It can also be\n unpaused and repaused any number of times during this period. This is intended to serve as a safety measure: it lets\n system managers react quickly to potentially dangerous situations, knowing that this action is reversible if careful\n analysis later determines there was a false alarm.\n If the contract is paused when the Pause Window finishes, it will remain in the paused state through an additional\n Buffer Period, after which it will be automatically unpaused forever. This is to ensure there is always enough time\n to react to an emergency, even if the threat is discovered shortly before the Pause Window expires.\n Note that since the contract can only be paused within the Pause Window, unpausing during the Buffer Period is\n irreversible."
+              },
+              "fullyImplemented": true,
+              "id": 204,
+              "linearizedBaseContracts": [
+                204,
+                18
+              ],
+              "name": "TemporarilyPausable",
+              "nameLocation": "1885:19:1",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "constant": true,
+                  "id": 27,
+                  "mutability": "constant",
+                  "name": "_MAX_PAUSE_WINDOW_DURATION",
+                  "nameLocation": "2120:26:1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 204,
+                  "src": "2095:61:1",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2095:7:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": {
+                    "hexValue": "3930",
+                    "id": 26,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "number",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "2149:7:1",
+                    "subdenomination": "days",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_rational_7776000_by_1",
+                      "typeString": "int_const 7776000"
+                    },
+                    "value": "90"
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "constant": true,
+                  "id": 30,
+                  "mutability": "constant",
+                  "name": "_MAX_BUFFER_PERIOD_DURATION",
+                  "nameLocation": "2187:27:1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 204,
+                  "src": "2162:62:1",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 28,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2162:7:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": {
+                    "hexValue": "3330",
+                    "id": 29,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "number",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "2217:7:1",
+                    "subdenomination": "days",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_rational_2592000_by_1",
+                      "typeString": "int_const 2592000"
+                    },
+                    "value": "30"
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "constant": false,
+                  "id": 32,
+                  "mutability": "immutable",
+                  "name": "_pauseWindowEndTime",
+                  "nameLocation": "2257:19:1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 204,
+                  "src": "2231:45:1",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 31,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2231:7:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "constant": false,
+                  "id": 34,
+                  "mutability": "immutable",
+                  "name": "_bufferPeriodEndTime",
+                  "nameLocation": "2308:20:1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 204,
+                  "src": "2282:46:1",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 33,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2282:7:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "constant": false,
+                  "id": 36,
+                  "mutability": "mutable",
+                  "name": "_paused",
+                  "nameLocation": "2348:7:1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 204,
+                  "src": "2335:20:1",
+                  "stateVariable": true,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 35,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2335:4:1",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "private"
+                },
+                {
+                  "body": {
+                    "id": 74,
+                    "nodeType": "Block",
+                    "src": "2433:406:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "arguments": [
+                            {
+                              "commonType": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              },
+                              "id": 46,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "id": 44,
+                                "name": "pauseWindowDuration",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 38,
+                                "src": "2451:19:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "<=",
+                              "rightExpression": {
+                                "id": 45,
+                                "name": "_MAX_PAUSE_WINDOW_DURATION",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 27,
+                                "src": "2474:26:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "src": "2451:49:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "hexValue": "4d41585f50415553455f57494e444f575f4455524154494f4e",
+                              "id": 47,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "2502:27:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_8425c0348fc5edb40ed313a7c2b73a436a988c6ebae8b597f6c760db9fb86227",
+                                "typeString": "literal_string \"MAX_PAUSE_WINDOW_DURATION\""
+                              },
+                              "value": "MAX_PAUSE_WINDOW_DURATION"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_8425c0348fc5edb40ed313a7c2b73a436a988c6ebae8b597f6c760db9fb86227",
+                                "typeString": "literal_string \"MAX_PAUSE_WINDOW_DURATION\""
+                              }
+                            ],
+                            "id": 43,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "2443:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 48,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "2443:87:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 49,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2443:87:1"
+                      },
+                      {
+                        "expression": {
+                          "arguments": [
+                            {
+                              "commonType": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              },
+                              "id": 53,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "id": 51,
+                                "name": "bufferPeriodDuration",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 40,
+                                "src": "2548:20:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "<=",
+                              "rightExpression": {
+                                "id": 52,
+                                "name": "_MAX_BUFFER_PERIOD_DURATION",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 30,
+                                "src": "2572:27:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "src": "2548:51:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "hexValue": "4d41585f4255464645525f504552494f445f4455524154494f4e",
+                              "id": 54,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "2601:28:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_b8ecd74c7bb4dc4e1767e8391bb9216d6249d2eba6a060e168853cbc0faf967b",
+                                "typeString": "literal_string \"MAX_BUFFER_PERIOD_DURATION\""
+                              },
+                              "value": "MAX_BUFFER_PERIOD_DURATION"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_b8ecd74c7bb4dc4e1767e8391bb9216d6249d2eba6a060e168853cbc0faf967b",
+                                "typeString": "literal_string \"MAX_BUFFER_PERIOD_DURATION\""
+                              }
+                            ],
+                            "id": 50,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "2540:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 55,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "2540:90:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 56,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2540:90:1"
+                      },
+                      {
+                        "assignments": [
+                          58
+                        ],
+                        "declarations": [
+                          {
+                            "constant": false,
+                            "id": 58,
+                            "mutability": "mutable",
+                            "name": "pauseWindowEndTime",
+                            "nameLocation": "2649:18:1",
+                            "nodeType": "VariableDeclaration",
+                            "scope": 74,
+                            "src": "2641:26:1",
+                            "stateVariable": false,
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            },
+                            "typeName": {
+                              "id": 57,
+                              "name": "uint256",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "2641:7:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "visibility": "internal"
+                          }
+                        ],
+                        "id": 63,
+                        "initialValue": {
+                          "commonType": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          },
+                          "id": 62,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "expression": {
+                              "id": 59,
+                              "name": "block",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": -4,
+                              "src": "2670:5:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_magic_block",
+                                "typeString": "block"
+                              }
+                            },
+                            "id": 60,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "timestamp",
+                            "nodeType": "MemberAccess",
+                            "src": "2670:15:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "+",
+                          "rightExpression": {
+                            "id": 61,
+                            "name": "pauseWindowDuration",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 38,
+                            "src": "2688:19:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "2670:37:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "VariableDeclarationStatement",
+                        "src": "2641:66:1"
+                      },
+                      {
+                        "expression": {
+                          "id": 66,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "id": 64,
+                            "name": "_pauseWindowEndTime",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 32,
+                            "src": "2718:19:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "id": 65,
+                            "name": "pauseWindowEndTime",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 58,
+                            "src": "2740:18:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "2718:40:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 67,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2718:40:1"
+                      },
+                      {
+                        "expression": {
+                          "id": 72,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "id": 68,
+                            "name": "_bufferPeriodEndTime",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 34,
+                            "src": "2768:20:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "commonType": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            },
+                            "id": 71,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "leftExpression": {
+                              "id": 69,
+                              "name": "pauseWindowEndTime",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 58,
+                              "src": "2791:18:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "nodeType": "BinaryOperation",
+                            "operator": "+",
+                            "rightExpression": {
+                              "id": 70,
+                              "name": "bufferPeriodDuration",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 40,
+                              "src": "2812:20:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "src": "2791:41:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "2768:64:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 73,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2768:64:1"
+                      }
+                    ]
+                  },
+                  "id": 75,
+                  "implemented": true,
+                  "kind": "constructor",
+                  "modifiers": [],
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 41,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 38,
+                        "mutability": "mutable",
+                        "name": "pauseWindowDuration",
+                        "nameLocation": "2382:19:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 75,
+                        "src": "2374:27:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 37,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2374:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 40,
+                        "mutability": "mutable",
+                        "name": "bufferPeriodDuration",
+                        "nameLocation": "2411:20:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 75,
+                        "src": "2403:28:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 39,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2403:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "2373:59:1"
+                  },
+                  "returnParameters": {
+                    "id": 42,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "2433:0:1"
+                  },
+                  "scope": 204,
+                  "src": "2362:477:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 82,
+                    "nodeType": "Block",
+                    "src": "2933:46:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "arguments": [],
+                          "expression": {
+                            "argumentTypes": [],
+                            "id": 78,
+                            "name": "_ensureNotPaused",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 159,
+                            "src": "2943:16:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_view$__$returns$__$",
+                              "typeString": "function () view"
+                            }
+                          },
+                          "id": 79,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "2943:18:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 80,
+                        "nodeType": "ExpressionStatement",
+                        "src": "2943:18:1"
+                      },
+                      {
+                        "id": 81,
+                        "nodeType": "PlaceholderStatement",
+                        "src": "2971:1:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 76,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2845:58:1",
+                    "text": " @dev Reverts if the contract is paused."
+                  },
+                  "id": 83,
+                  "name": "whenNotPaused",
+                  "nameLocation": "2917:13:1",
+                  "nodeType": "ModifierDefinition",
+                  "parameters": {
+                    "id": 77,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "2930:2:1"
+                  },
+                  "src": "2908:71:1",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "baseFunctions": [
+                    17
+                  ],
+                  "body": {
+                    "id": 110,
+                    "nodeType": "Block",
+                    "src": "3337:153:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "id": 98,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "id": 94,
+                            "name": "paused",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 88,
+                            "src": "3347:6:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "id": 97,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "UnaryOperation",
+                            "operator": "!",
+                            "prefix": true,
+                            "src": "3356:15:1",
+                            "subExpression": {
+                              "arguments": [],
+                              "expression": {
+                                "argumentTypes": [],
+                                "id": 95,
+                                "name": "_isNotPaused",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 187,
+                                "src": "3357:12:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_function_internal_view$__$returns$_t_bool_$",
+                                  "typeString": "function () view returns (bool)"
+                                }
+                              },
+                              "id": 96,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "kind": "functionCall",
+                              "lValueRequested": false,
+                              "names": [],
+                              "nodeType": "FunctionCall",
+                              "src": "3357:14:1",
+                              "tryCall": false,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "src": "3347:24:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "id": 99,
+                        "nodeType": "ExpressionStatement",
+                        "src": "3347:24:1"
+                      },
+                      {
+                        "expression": {
+                          "id": 103,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "id": 100,
+                            "name": "pauseWindowEndTime",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 90,
+                            "src": "3381:18:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "arguments": [],
+                            "expression": {
+                              "argumentTypes": [],
+                              "id": 101,
+                              "name": "_getPauseWindowEndTime",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 195,
+                              "src": "3402:22:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                                "typeString": "function () view returns (uint256)"
+                              }
+                            },
+                            "id": 102,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "kind": "functionCall",
+                            "lValueRequested": false,
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "3402:24:1",
+                            "tryCall": false,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "3381:45:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 104,
+                        "nodeType": "ExpressionStatement",
+                        "src": "3381:45:1"
+                      },
+                      {
+                        "expression": {
+                          "id": 108,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "id": 105,
+                            "name": "bufferPeriodEndTime",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 92,
+                            "src": "3436:19:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "arguments": [],
+                            "expression": {
+                              "argumentTypes": [],
+                              "id": 106,
+                              "name": "_getBufferPeriodEndTime",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 203,
+                              "src": "3458:23:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                                "typeString": "function () view returns (uint256)"
+                              }
+                            },
+                            "id": 107,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "kind": "functionCall",
+                            "lValueRequested": false,
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "3458:25:1",
+                            "tryCall": false,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "src": "3436:47:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "id": 109,
+                        "nodeType": "ExpressionStatement",
+                        "src": "3436:47:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 84,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2985:137:1",
+                    "text": " @dev Returns the current contract pause status, as well as the end times of the Pause Window and Buffer\n Period."
+                  },
+                  "functionSelector": "1c0de051",
+                  "id": 111,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "getPausedState",
+                  "nameLocation": "3136:14:1",
+                  "nodeType": "FunctionDefinition",
+                  "overrides": {
+                    "id": 86,
+                    "nodeType": "OverrideSpecifier",
+                    "overrides": [],
+                    "src": "3191:8:1"
+                  },
+                  "parameters": {
+                    "id": 85,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "3150:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 93,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 88,
+                        "mutability": "mutable",
+                        "name": "paused",
+                        "nameLocation": "3235:6:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 111,
+                        "src": "3230:11:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 87,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3230:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 90,
+                        "mutability": "mutable",
+                        "name": "pauseWindowEndTime",
+                        "nameLocation": "3263:18:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 111,
+                        "src": "3255:26:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 89,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3255:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 92,
+                        "mutability": "mutable",
+                        "name": "bufferPeriodEndTime",
+                        "nameLocation": "3303:19:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 111,
+                        "src": "3295:27:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 91,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3295:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "3216:116:1"
+                  },
+                  "scope": 204,
+                  "src": "3127:363:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "body": {
+                    "id": 147,
+                    "nodeType": "Block",
+                    "src": "3808:304:1",
+                    "statements": [
+                      {
+                        "condition": {
+                          "id": 117,
+                          "name": "paused",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 114,
+                          "src": "3822:6:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "falseBody": {
+                          "id": 137,
+                          "nodeType": "Block",
+                          "src": "3936:102:1",
+                          "statements": [
+                            {
+                              "expression": {
+                                "arguments": [
+                                  {
+                                    "commonType": {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    },
+                                    "id": 133,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": false,
+                                    "lValueRequested": false,
+                                    "leftExpression": {
+                                      "expression": {
+                                        "id": 129,
+                                        "name": "block",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": -4,
+                                        "src": "3958:5:1",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_magic_block",
+                                          "typeString": "block"
+                                        }
+                                      },
+                                      "id": 130,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": false,
+                                      "lValueRequested": false,
+                                      "memberName": "timestamp",
+                                      "nodeType": "MemberAccess",
+                                      "src": "3958:15:1",
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                      }
+                                    },
+                                    "nodeType": "BinaryOperation",
+                                    "operator": "<",
+                                    "rightExpression": {
+                                      "arguments": [],
+                                      "expression": {
+                                        "argumentTypes": [],
+                                        "id": 131,
+                                        "name": "_getBufferPeriodEndTime",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 203,
+                                        "src": "3976:23:1",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                                          "typeString": "function () view returns (uint256)"
+                                        }
+                                      },
+                                      "id": 132,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": false,
+                                      "kind": "functionCall",
+                                      "lValueRequested": false,
+                                      "names": [],
+                                      "nodeType": "FunctionCall",
+                                      "src": "3976:25:1",
+                                      "tryCall": false,
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                      }
+                                    },
+                                    "src": "3958:43:1",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_bool",
+                                      "typeString": "bool"
+                                    }
+                                  },
+                                  {
+                                    "hexValue": "4255464645525f504552494f445f45585049524544",
+                                    "id": 134,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": true,
+                                    "kind": "string",
+                                    "lValueRequested": false,
+                                    "nodeType": "Literal",
+                                    "src": "4003:23:1",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_stringliteral_1f2cdbebb2f17b40a9cd5246178739b1f2d96cd4bab9ae78e9c3e6143c1f1c7a",
+                                      "typeString": "literal_string \"BUFFER_PERIOD_EXPIRED\""
+                                    },
+                                    "value": "BUFFER_PERIOD_EXPIRED"
+                                  }
+                                ],
+                                "expression": {
+                                  "argumentTypes": [
+                                    {
+                                      "typeIdentifier": "t_bool",
+                                      "typeString": "bool"
+                                    },
+                                    {
+                                      "typeIdentifier": "t_stringliteral_1f2cdbebb2f17b40a9cd5246178739b1f2d96cd4bab9ae78e9c3e6143c1f1c7a",
+                                      "typeString": "literal_string \"BUFFER_PERIOD_EXPIRED\""
+                                    }
+                                  ],
+                                  "id": 128,
+                                  "name": "require",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [
+                                    -18,
+                                    -18
+                                  ],
+                                  "referencedDeclaration": -18,
+                                  "src": "3950:7:1",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                                    "typeString": "function (bool,string memory) pure"
+                                  }
+                                },
+                                "id": 135,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "functionCall",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "3950:77:1",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_tuple$__$",
+                                  "typeString": "tuple()"
+                                }
+                              },
+                              "id": 136,
+                              "nodeType": "ExpressionStatement",
+                              "src": "3950:77:1"
+                            }
+                          ]
+                        },
+                        "id": 138,
+                        "nodeType": "IfStatement",
+                        "src": "3818:220:1",
+                        "trueBody": {
+                          "id": 127,
+                          "nodeType": "Block",
+                          "src": "3830:100:1",
+                          "statements": [
+                            {
+                              "expression": {
+                                "arguments": [
+                                  {
+                                    "commonType": {
+                                      "typeIdentifier": "t_uint256",
+                                      "typeString": "uint256"
+                                    },
+                                    "id": 123,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": false,
+                                    "lValueRequested": false,
+                                    "leftExpression": {
+                                      "expression": {
+                                        "id": 119,
+                                        "name": "block",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": -4,
+                                        "src": "3852:5:1",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_magic_block",
+                                          "typeString": "block"
+                                        }
+                                      },
+                                      "id": 120,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": false,
+                                      "lValueRequested": false,
+                                      "memberName": "timestamp",
+                                      "nodeType": "MemberAccess",
+                                      "src": "3852:15:1",
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                      }
+                                    },
+                                    "nodeType": "BinaryOperation",
+                                    "operator": "<",
+                                    "rightExpression": {
+                                      "arguments": [],
+                                      "expression": {
+                                        "argumentTypes": [],
+                                        "id": 121,
+                                        "name": "_getPauseWindowEndTime",
+                                        "nodeType": "Identifier",
+                                        "overloadedDeclarations": [],
+                                        "referencedDeclaration": 195,
+                                        "src": "3870:22:1",
+                                        "typeDescriptions": {
+                                          "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                                          "typeString": "function () view returns (uint256)"
+                                        }
+                                      },
+                                      "id": 122,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": false,
+                                      "kind": "functionCall",
+                                      "lValueRequested": false,
+                                      "names": [],
+                                      "nodeType": "FunctionCall",
+                                      "src": "3870:24:1",
+                                      "tryCall": false,
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                      }
+                                    },
+                                    "src": "3852:42:1",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_bool",
+                                      "typeString": "bool"
+                                    }
+                                  },
+                                  {
+                                    "hexValue": "50415553455f57494e444f575f45585049524544",
+                                    "id": 124,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": true,
+                                    "kind": "string",
+                                    "lValueRequested": false,
+                                    "nodeType": "Literal",
+                                    "src": "3896:22:1",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_stringliteral_aabfbfa5459962b18bdb4afd4592ef48235c3b14e2287f0bc8fb4371efec8bb4",
+                                      "typeString": "literal_string \"PAUSE_WINDOW_EXPIRED\""
+                                    },
+                                    "value": "PAUSE_WINDOW_EXPIRED"
+                                  }
+                                ],
+                                "expression": {
+                                  "argumentTypes": [
+                                    {
+                                      "typeIdentifier": "t_bool",
+                                      "typeString": "bool"
+                                    },
+                                    {
+                                      "typeIdentifier": "t_stringliteral_aabfbfa5459962b18bdb4afd4592ef48235c3b14e2287f0bc8fb4371efec8bb4",
+                                      "typeString": "literal_string \"PAUSE_WINDOW_EXPIRED\""
+                                    }
+                                  ],
+                                  "id": 118,
+                                  "name": "require",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [
+                                    -18,
+                                    -18
+                                  ],
+                                  "referencedDeclaration": -18,
+                                  "src": "3844:7:1",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                                    "typeString": "function (bool,string memory) pure"
+                                  }
+                                },
+                                "id": 125,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "functionCall",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "3844:75:1",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_tuple$__$",
+                                  "typeString": "tuple()"
+                                }
+                              },
+                              "id": 126,
+                              "nodeType": "ExpressionStatement",
+                              "src": "3844:75:1"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "expression": {
+                          "id": 141,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "id": 139,
+                            "name": "_paused",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 36,
+                            "src": "4048:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "id": 140,
+                            "name": "paused",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 114,
+                            "src": "4058:6:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "src": "4048:16:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "id": 142,
+                        "nodeType": "ExpressionStatement",
+                        "src": "4048:16:1"
+                      },
+                      {
+                        "eventCall": {
+                          "arguments": [
+                            {
+                              "id": 144,
+                              "name": "paused",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 114,
+                              "src": "4098:6:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            ],
+                            "id": 143,
+                            "name": "PausedStateChanged",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 7,
+                            "src": "4079:18:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_event_nonpayable$_t_bool_$returns$__$",
+                              "typeString": "function (bool)"
+                            }
+                          },
+                          "id": 145,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "4079:26:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 146,
+                        "nodeType": "EmitStatement",
+                        "src": "4074:31:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 112,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "3496:265:1",
+                    "text": " @dev Sets the pause state to `paused`. The contract can only be paused until the end of the Pause Window, and\n unpaused until the end of the Buffer Period.\n Once the Buffer Period expires, this function reverts unconditionally."
+                  },
+                  "id": 148,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_setPaused",
+                  "nameLocation": "3775:10:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 115,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 114,
+                        "mutability": "mutable",
+                        "name": "paused",
+                        "nameLocation": "3791:6:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 148,
+                        "src": "3786:11:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 113,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3786:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "3785:13:1"
+                  },
+                  "returnParameters": {
+                    "id": 116,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "3808:0:1"
+                  },
+                  "scope": 204,
+                  "src": "3766:346:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 158,
+                    "nodeType": "Block",
+                    "src": "4223:50:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "arguments": [
+                            {
+                              "arguments": [],
+                              "expression": {
+                                "argumentTypes": [],
+                                "id": 153,
+                                "name": "_isNotPaused",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 187,
+                                "src": "4241:12:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_function_internal_view$__$returns$_t_bool_$",
+                                  "typeString": "function () view returns (bool)"
+                                }
+                              },
+                              "id": 154,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "kind": "functionCall",
+                              "lValueRequested": false,
+                              "names": [],
+                              "nodeType": "FunctionCall",
+                              "src": "4241:14:1",
+                              "tryCall": false,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "hexValue": "504155534544",
+                              "id": 155,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "4257:8:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_03d87756d0359861a8ed751161c405747027362fc6301ef3fdd73959fc4cb597",
+                                "typeString": "literal_string \"PAUSED\""
+                              },
+                              "value": "PAUSED"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_03d87756d0359861a8ed751161c405747027362fc6301ef3fdd73959fc4cb597",
+                                "typeString": "literal_string \"PAUSED\""
+                              }
+                            ],
+                            "id": 152,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "4233:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 156,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "4233:33:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 157,
+                        "nodeType": "ExpressionStatement",
+                        "src": "4233:33:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 149,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4118:58:1",
+                    "text": " @dev Reverts if the contract is paused."
+                  },
+                  "id": 159,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_ensureNotPaused",
+                  "nameLocation": "4190:16:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 150,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4206:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 151,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4223:0:1"
+                  },
+                  "scope": 204,
+                  "src": "4181:92:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 170,
+                    "nodeType": "Block",
+                    "src": "4385:55:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "arguments": [
+                            {
+                              "id": 166,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "nodeType": "UnaryOperation",
+                              "operator": "!",
+                              "prefix": true,
+                              "src": "4403:15:1",
+                              "subExpression": {
+                                "arguments": [],
+                                "expression": {
+                                  "argumentTypes": [],
+                                  "id": 164,
+                                  "name": "_isNotPaused",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 187,
+                                  "src": "4404:12:1",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_function_internal_view$__$returns$_t_bool_$",
+                                    "typeString": "function () view returns (bool)"
+                                  }
+                                },
+                                "id": 165,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "functionCall",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "4404:14:1",
+                                "tryCall": false,
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bool",
+                                  "typeString": "bool"
+                                }
+                              },
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "hexValue": "4e4f545f504155534544",
+                              "id": 167,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "4420:12:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_db044e7bffdc7bd40d290c864d22cbd033c8d36dd6bf5f7b93d273470287ece3",
+                                "typeString": "literal_string \"NOT_PAUSED\""
+                              },
+                              "value": "NOT_PAUSED"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_db044e7bffdc7bd40d290c864d22cbd033c8d36dd6bf5f7b93d273470287ece3",
+                                "typeString": "literal_string \"NOT_PAUSED\""
+                              }
+                            ],
+                            "id": 163,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              -18,
+                              -18
+                            ],
+                            "referencedDeclaration": -18,
+                            "src": "4395:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 168,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "4395:38:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 169,
+                        "nodeType": "ExpressionStatement",
+                        "src": "4395:38:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 160,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4279:62:1",
+                    "text": " @dev Reverts if the contract is not paused."
+                  },
+                  "id": 171,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_ensurePaused",
+                  "nameLocation": "4355:13:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 161,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4368:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 162,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4385:0:1"
+                  },
+                  "scope": 204,
+                  "src": "4346:94:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 186,
+                    "nodeType": "Block",
+                    "src": "4719:184:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "commonType": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          },
+                          "id": 184,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "commonType": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            },
+                            "id": 181,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "leftExpression": {
+                              "expression": {
+                                "id": 177,
+                                "name": "block",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": -4,
+                                "src": "4841:5:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_magic_block",
+                                  "typeString": "block"
+                                }
+                              },
+                              "id": 178,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "memberName": "timestamp",
+                              "nodeType": "MemberAccess",
+                              "src": "4841:15:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "nodeType": "BinaryOperation",
+                            "operator": ">",
+                            "rightExpression": {
+                              "arguments": [],
+                              "expression": {
+                                "argumentTypes": [],
+                                "id": 179,
+                                "name": "_getBufferPeriodEndTime",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 203,
+                                "src": "4859:23:1",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_function_internal_view$__$returns$_t_uint256_$",
+                                  "typeString": "function () view returns (uint256)"
+                                }
+                              },
+                              "id": 180,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "kind": "functionCall",
+                              "lValueRequested": false,
+                              "names": [],
+                              "nodeType": "FunctionCall",
+                              "src": "4859:25:1",
+                              "tryCall": false,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_uint256",
+                                "typeString": "uint256"
+                              }
+                            },
+                            "src": "4841:43:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "||",
+                          "rightExpression": {
+                            "id": 183,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "UnaryOperation",
+                            "operator": "!",
+                            "prefix": true,
+                            "src": "4888:8:1",
+                            "subExpression": {
+                              "id": 182,
+                              "name": "_paused",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 36,
+                              "src": "4889:7:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "src": "4841:55:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "functionReturnParameters": 176,
+                        "id": 185,
+                        "nodeType": "Return",
+                        "src": "4834:62:1"
+                      }
+                    ]
+                  },
+                  "documentation": {
+                    "id": 172,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4446:215:1",
+                    "text": " @dev Returns true if the contract is unpaused.\n Once the Buffer Period expires, the gas cost of calling this function is reduced dramatically, as storage is no\n longer accessed."
+                  },
+                  "id": 187,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_isNotPaused",
+                  "nameLocation": "4675:12:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 173,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4687:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 176,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 175,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nameLocation": "-1:-1:-1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 187,
+                        "src": "4713:4:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 174,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4713:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4712:6:1"
+                  },
+                  "scope": 204,
+                  "src": "4666:237:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "internal"
+                },
+                {
+                  "body": {
+                    "id": 194,
+                    "nodeType": "Block",
+                    "src": "5081:43:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "id": 192,
+                          "name": "_pauseWindowEndTime",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 32,
+                          "src": "5098:19:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "functionReturnParameters": 191,
+                        "id": 193,
+                        "nodeType": "Return",
+                        "src": "5091:26:1"
+                      }
+                    ]
+                  },
+                  "id": 195,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_getPauseWindowEndTime",
+                  "nameLocation": "5025:22:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 188,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "5047:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 191,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 190,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nameLocation": "-1:-1:-1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 195,
+                        "src": "5072:7:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 189,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5072:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5071:9:1"
+                  },
+                  "scope": 204,
+                  "src": "5016:108:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "private"
+                },
+                {
+                  "body": {
+                    "id": 202,
+                    "nodeType": "Block",
+                    "src": "5196:44:1",
+                    "statements": [
+                      {
+                        "expression": {
+                          "id": 200,
+                          "name": "_bufferPeriodEndTime",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 34,
+                          "src": "5213:20:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "functionReturnParameters": 199,
+                        "id": 201,
+                        "nodeType": "Return",
+                        "src": "5206:27:1"
+                      }
+                    ]
+                  },
+                  "id": 203,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "_getBufferPeriodEndTime",
+                  "nameLocation": "5139:23:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 196,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "5162:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 199,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 198,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nameLocation": "-1:-1:-1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 203,
+                        "src": "5187:7:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 197,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5187:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5186:9:1"
+                  },
+                  "scope": 204,
+                  "src": "5130:110:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "private"
+                }
+              ],
+              "scope": 205,
+              "src": "1867:3375:1",
+              "usedErrors": []
+            }
+          ],
+          "src": "688:4555:1"
+        },
+        "id": 1
+      }
+    }
+  }
+}
