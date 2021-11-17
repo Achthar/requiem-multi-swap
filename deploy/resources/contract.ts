@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 import { Contract } from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
 import { Artifacts } from 'hardhat/internal/artifacts';
 import { Artifact } from 'hardhat/types';

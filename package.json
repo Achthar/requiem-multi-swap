@@ -17,7 +17,7 @@
     "solidity"
   ],
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@0.3.0-beta.10",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^4.2.0",
@@ -82,6 +82,7 @@
     "@uniswap/lib": "^4.0.1-alpha",
     "@uniswap/v2-core": "^1.0.1",
     "decimal.js": "^10.3.1",
+    "ethereum-waffle": "^3.0.0",
     "hardhat-abi-exporter": "^2.2.1",
     "hardhat-deploy-ethers": "^0.3.0-beta.10",
     "hardhat-preprocessor": "^0.1.4",

@@ -26,7 +26,6 @@ import { removeConsoleLog } from 'hardhat-preprocessor';
 
 const accounts = {
   mnemonic:
-    process.env.MNEMONIC ||
     'test test test test test test test test test test test junk',
   accountsBalance: "990000000000000000000",
 };
@@ -90,7 +89,7 @@ const config: HardhatUserConfig = {
       live: false,
       saveDeployments: true,
       tags: ['local'],
-      accounts: [pk_local],
+      accounts
     },
     hardhat: {
       forking: {

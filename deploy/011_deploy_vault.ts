@@ -61,13 +61,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	await execute('T4', { from: user }, 'approve', router.address, ethers.constants.MaxInt256);
 
-	const factoryContract = await ethers.getContract('RequiemFactory');
+	const factoryContract = await ethers.getContractAt('RequiemFactory', factory.address);
 	console.log("--- create t1 t2 pair ----")
 	// await factoryContract.createPair(t1.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
 	console.log("--- get t1 t2 pair ----")
 	const pair = await factoryContract.getPair(t1.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
 	console.log("pair:", pair)
-	const routerContract = await ethers.getContract('RequiemRouter');
 
 	const liq = await execute('RequiemRouter', { from: user }, 'addLiquidity', pair, t1.address, t2.address,
 		parseUnits('10', 6),

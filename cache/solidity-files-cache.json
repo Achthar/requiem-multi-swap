@@ -6110,10 +6110,10 @@
         "EnumerableSet"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/SafeCast.sol": {
-      "lastModificationDate": 1637150925022,
-      "contentHash": "d23cf77a4a91c6e86f4cc6b3330136b4",
-      "sourceName": "contracts/libraries/SafeCast.sol",
+    "/home/achthar/requiem-multi-swap/contracts/test/TestWETH.sol": {
+      "lastModificationDate": 1637155750908,
+      "contentHash": "bf6da8d04d36ea7f50da15eb51c46d0b",
+      "sourceName": "contracts/test/TestWETH.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -6146,152 +6146,20 @@
         }
       },
       "imports": [
-        "./helpers/RequiemErrors.sol"
+        "../interfaces/IWETH.sol",
+        "../libraries/AccessControl.sol"
       ],
       "versionPragmas": [
         "^0.8.10"
       ],
       "artifacts": [
-        "SafeCast"
+        "TestWETH"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/SignaturesValidator.sol": {
-      "lastModificationDate": 1637150991610,
-      "contentHash": "4b3523413bc20394c5b0e0e6f0b565d9",
-      "sourceName": "contracts/libraries/helpers/SignaturesValidator.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./RequiemErrors.sol",
-        "../../interfaces/ISignaturesValidator.sol",
-        "../EIP712.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "SignaturesValidator"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/ISignaturesValidator.sol": {
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IWETH.sol": {
       "lastModificationDate": 1637146415189,
-      "contentHash": "e13d752093e353cb17bdfe0c23004b3a",
-      "sourceName": "contracts/interfaces/ISignaturesValidator.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "ISignaturesValidator"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/EIP712.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "c0f204670ccbf4e43ccb67d56f2197ef",
-      "sourceName": "contracts/libraries/EIP712.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "EIP712"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/ERC20Permit.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "c03f8d54498322ce89981b9f20fd04eb",
-      "sourceName": "contracts/libraries/ERC20Permit.sol",
+      "contentHash": "e574bed52d313692102b4749397d2b73",
+      "sourceName": "contracts/interfaces/IWETH.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -6324,283 +6192,13 @@
         }
       },
       "imports": [
-        "./ERC20.sol",
-        "../interfaces/ERC20/IERC20Permit.sol",
-        "./EIP712.sol"
+        "./ERC20/IERC20.sol"
       ],
       "versionPragmas": [
         "^0.8.10"
       ],
       "artifacts": [
-        "ERC20Permit"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/ERC20/IERC20Permit.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "5f4e0d44ad1dbae059c14fe92e5ec423",
-      "sourceName": "contracts/interfaces/ERC20/IERC20Permit.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IERC20Permit"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/mocks/MockERC20.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "95b924a819197fa97d1e6f1c4fe25df9",
-      "sourceName": "contracts/mocks/MockERC20.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../libraries/ERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "MockERC20"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/Authentication.sol": {
-      "lastModificationDate": 1637150958090,
-      "contentHash": "91f832e9b94d84caebdc24846b04be0a",
-      "sourceName": "contracts/libraries/helpers/Authentication.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./RequiemErrors.sol",
-        "./IAuthentication.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "Authentication"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/IAuthentication.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "9f6ac3b82580f570c172e57f82b5a5af",
-      "sourceName": "contracts/libraries/helpers/IAuthentication.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IAuthentication"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/EnumerableMap.sol": {
-      "lastModificationDate": 1637150858406,
-      "contentHash": "c3d68980bdc3f25815610bb2c8632dc4",
-      "sourceName": "contracts/libraries/EnumerableMap.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../interfaces/ERC20/IERC20.sol",
-        "./helpers/RequiemErrors.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "EnumerableMap"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/test/DeflatingERC20.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "7548882531b0701efd27b37742c20ed9",
-      "sourceName": "contracts/test/DeflatingERC20.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../libraries/SafeMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "DeflatingERC20"
+        "IWETH"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemZap.sol": {
@@ -6745,51 +6343,6 @@
       ],
       "artifacts": [
         "SafeERC20"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IWETH.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "e574bed52d313692102b4749397d2b73",
-      "sourceName": "contracts/interfaces/IWETH.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./ERC20/IERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IWETH"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/IUniswapV2Router.sol": {
@@ -7050,51 +6603,6 @@
       ],
       "artifacts": [
         "Babylonian"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/Address.sol": {
-      "lastModificationDate": 1637150909506,
-      "contentHash": "1b438824f0e2f4786f53c04869d941eb",
-      "sourceName": "contracts/libraries/Address.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./helpers/RequiemErrors.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "Address"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemERC20.sol": {
@@ -7371,10 +6879,58 @@
         "RouterEventEmitter"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/RequiemParaSwap.sol": {
-      "lastModificationDate": 1637146415185,
-      "contentHash": "edf968f0cee9326ba7e59511a29a1e28",
-      "sourceName": "contracts/RequiemParaSwap.sol",
+    "/home/achthar/requiem-multi-swap/contracts/RequiemPoolFormula.sol": {
+      "lastModificationDate": 1637159245660,
+      "contentHash": "b683fad49d0a7330c4600ffd89899f2e",
+      "sourceName": "contracts/RequiemPoolFormula.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IRequiemFormula.sol",
+        "./interfaces/IRequiemPair.sol",
+        "./interfaces/IRequiemFactory.sol",
+        "./libraries/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "RequiemPoolFormula"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/RequiemMultiRouter.sol": {
+      "lastModificationDate": 1637150137316,
+      "contentHash": "2a21a5c0df6ab77496aa579badcf56a7",
+      "sourceName": "contracts/RequiemMultiRouter.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -7412,7 +6968,7 @@
         "./interfaces/IRequiemPair.sol",
         "./libraries/TransferHelper.sol",
         "./interfaces/ERC20/IERC20.sol",
-        "./interfaces/IRequiemRouter.sol",
+        "./interfaces/IRequiemMultiRouter.sol",
         "./libraries/SafeMath.sol",
         "./interfaces/IWETH.sol"
       ],
@@ -7420,7 +6976,50 @@
         ">=0.8.9"
       ],
       "artifacts": [
-        "RequiemRouter"
+        "RequiemMultiRouter"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemMultiRouter.sol": {
+      "lastModificationDate": 1637149937384,
+      "contentHash": "b6d5d53d4da68f94c25948feddaa6627",
+      "sourceName": "contracts/interfaces/IRequiemMultiRouter.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IRequiemMultiRouter"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemFormula.sol": {
@@ -7799,6 +7398,1434 @@
         "IRequiem2Pool"
       ]
     },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemPoolFormula.sol": {
+      "lastModificationDate": 1637159272416,
+      "contentHash": "e716f740d5ea33d3ea98f766500c92a0",
+      "sourceName": "contracts/interfaces/IRequiemPoolFormula.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.5.16"
+      ],
+      "artifacts": [
+        "IRequiemFormula"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/pool/IFormulaProvider.sol": {
+      "lastModificationDate": 1637157653604,
+      "contentHash": "be600bf4dc250eaeebaf164df2cee585",
+      "sourceName": "contracts/interfaces/pool/IFormulaProvider.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IFormulaProvider"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/pool/IRequiemWeightedMath.sol": {
+      "lastModificationDate": 1637158178065,
+      "contentHash": "6c53044a45e1baff562d764616803e23",
+      "sourceName": "contracts/interfaces/pool/IRequiemWeightedMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IRequiemWeightedMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/math/Math.sol": {
+      "lastModificationDate": 1637153170120,
+      "contentHash": "b7c8d0dc52046f04f5e69367aa7d6797",
+      "sourceName": "contracts/libraries/math/Math.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Math"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/math/FixedPoint.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "571bbbdf2cdc5a732d18ecee534ef32b",
+      "sourceName": "contracts/libraries/math/FixedPoint.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./LogExpMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "FixedPoint"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiem2PoolFactory.sol": {
+      "lastModificationDate": 1637161955736,
+      "contentHash": "15f7de4e1daa8fc7a01881b06dbc88b8",
+      "sourceName": "contracts/interfaces/IRequiem2PoolFactory.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IRequiem2PoolFactory"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IMinimalSwapInfo.sol": {
+      "lastModificationDate": 1637150442217,
+      "contentHash": "e8e83b169e97edee7cd4ee187ff230d7",
+      "sourceName": "contracts/interfaces/IMinimalSwapInfo.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IMinimalSwapInfo"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/math/LogExpMath.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "c84c9a2bf19b312dd7db63f255565a07",
+      "sourceName": "contracts/libraries/math/LogExpMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "LogExpMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/Requiem2PoolFactory.sol": {
+      "lastModificationDate": 1637162730178,
+      "contentHash": "271290592f21e41b7aab4c364d7895fd",
+      "sourceName": "contracts/Requiem2PoolFactory.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IRequiem2PoolFactory.sol",
+        "./Requiem2Pool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Requiem2PoolFactory"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/mocks/MockERC20.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "95b924a819197fa97d1e6f1c4fe25df9",
+      "sourceName": "contracts/mocks/MockERC20.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../libraries/ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "MockERC20"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/ERC20Permit.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "c03f8d54498322ce89981b9f20fd04eb",
+      "sourceName": "contracts/libraries/ERC20Permit.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./ERC20.sol",
+        "../interfaces/ERC20/IERC20Permit.sol",
+        "./EIP712.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "ERC20Permit"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/ERC20/IERC20Permit.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "5f4e0d44ad1dbae059c14fe92e5ec423",
+      "sourceName": "contracts/interfaces/ERC20/IERC20Permit.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IERC20Permit"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/EIP712.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "c0f204670ccbf4e43ccb67d56f2197ef",
+      "sourceName": "contracts/libraries/EIP712.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "EIP712"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/SignaturesValidator.sol": {
+      "lastModificationDate": 1637150991610,
+      "contentHash": "4b3523413bc20394c5b0e0e6f0b565d9",
+      "sourceName": "contracts/libraries/helpers/SignaturesValidator.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./RequiemErrors.sol",
+        "../../interfaces/ISignaturesValidator.sol",
+        "../EIP712.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "SignaturesValidator"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/ISignaturesValidator.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "e13d752093e353cb17bdfe0c23004b3a",
+      "sourceName": "contracts/interfaces/ISignaturesValidator.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "ISignaturesValidator"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/weighted/RequiemWeightedMath.sol": {
+      "lastModificationDate": 1637160089614,
+      "contentHash": "842dcde5e68b1644de5ccab0a2fb4f3a",
+      "sourceName": "contracts/libraries/weighted/RequiemWeightedMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./../math/FixedPoint.sol",
+        "./../math/Math.sol",
+        "../helpers/InputHelpers.sol",
+        "../helpers/RequiemErrors.sol",
+        "../../interfaces/pool/IRequiemWeightedMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "RequiemWeightedMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/InputHelpers.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "8dbf9e7eb210c4a3c8226532e1a05d60",
+      "sourceName": "contracts/libraries/helpers/InputHelpers.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../interfaces/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "InputHelpers"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/LogCompression.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "98a6da8e37de96398beb577d6b78e80e",
+      "sourceName": "contracts/libraries/LogCompression.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./math/LogExpMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "LogCompression"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/QueryProcessor.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "1baba84c0cda5d365e10c83a994903cd",
+      "sourceName": "contracts/libraries/oracle/QueryProcessor.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../LogCompression.sol",
+        "../../interfaces/oracle/IPriceOracle.sol",
+        "./Buffer.sol",
+        "./Samples.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "QueryProcessor"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/oracle/IPriceOracle.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "60acd51abc51a68ccc1eaad98f6fd8d5",
+      "sourceName": "contracts/interfaces/oracle/IPriceOracle.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IPriceOracle"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/Buffer.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "2a00a74f70e344342fe77c0ecfb1e74a",
+      "sourceName": "contracts/libraries/oracle/Buffer.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Buffer"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/Samples.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "cc4fdb59716c9bc90efb226954d6f725",
+      "sourceName": "contracts/libraries/oracle/Samples.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../helpers/WordCodec.sol",
+        "../../interfaces/oracle/IPriceOracle.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Samples"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/WordCodec.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "ef716f379ebbe61ef3d9f357cdbeaf30",
+      "sourceName": "contracts/libraries/helpers/WordCodec.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "WordCodec"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/PoolPriceOracle.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "ba92227b271cd0c5129b694b4832a168",
+      "sourceName": "contracts/libraries/oracle/PoolPriceOracle.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../interfaces/oracle/IPriceOracle.sol",
+        "../../interfaces/oracle/IPoolPriceOracle.sol",
+        "./Buffer.sol",
+        "./Samples.sol",
+        "./QueryProcessor.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "PoolPriceOracle"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/oracle/IPoolPriceOracle.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "e17fbaac16c15747d5cc93018255cb80",
+      "sourceName": "contracts/interfaces/oracle/IPoolPriceOracle.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IPoolPriceOracle"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/SafeCast.sol": {
+      "lastModificationDate": 1637150925022,
+      "contentHash": "d23cf77a4a91c6e86f4cc6b3330136b4",
+      "sourceName": "contracts/libraries/SafeCast.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./helpers/RequiemErrors.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "SafeCast"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/TemporarilyPausable.sol": {
+      "lastModificationDate": 1637151001358,
+      "contentHash": "47c51989c82bd7f41d90b060e400c975",
+      "sourceName": "contracts/libraries/helpers/TemporarilyPausable.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./RequiemErrors.sol",
+        "../../interfaces/ITemporarilyPausable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "TemporarilyPausable"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/ITemporarilyPausable.sol": {
+      "lastModificationDate": 1637146415189,
+      "contentHash": "13c8f47a769a583a7b058e8000b91b5b",
+      "sourceName": "contracts/interfaces/ITemporarilyPausable.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "ITemporarilyPausable"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/Authentication.sol": {
+      "lastModificationDate": 1637150958090,
+      "contentHash": "91f832e9b94d84caebdc24846b04be0a",
+      "sourceName": "contracts/libraries/helpers/Authentication.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./RequiemErrors.sol",
+        "./IAuthentication.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Authentication"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/IAuthentication.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "9f6ac3b82580f570c172e57f82b5a5af",
+      "sourceName": "contracts/libraries/helpers/IAuthentication.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IAuthentication"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/EnumerableMap.sol": {
+      "lastModificationDate": 1637150858406,
+      "contentHash": "c3d68980bdc3f25815610bb2c8632dc4",
+      "sourceName": "contracts/libraries/EnumerableMap.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/ERC20/IERC20.sol",
+        "./helpers/RequiemErrors.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "EnumerableMap"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/Address.sol": {
+      "lastModificationDate": 1637150909506,
+      "contentHash": "1b438824f0e2f4786f53c04869d941eb",
+      "sourceName": "contracts/libraries/Address.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./helpers/RequiemErrors.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Address"
+      ]
+    },
     "/home/achthar/requiem-multi-swap/contracts/test/UniswapV2ERC20Wrapper.sol": {
       "lastModificationDate": 1637146415193,
       "contentHash": "d762b9d1f8d601e5c06f8b99ccfbe3ba",
@@ -8073,6 +9100,51 @@
         "ProtocolFeeRemover"
       ]
     },
+    "/home/achthar/requiem-multi-swap/contracts/test/DeflatingERC20.sol": {
+      "lastModificationDate": 1637146415193,
+      "contentHash": "7548882531b0701efd27b37742c20ed9",
+      "sourceName": "contracts/test/DeflatingERC20.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../libraries/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "DeflatingERC20"
+      ]
+    },
     "/home/achthar/requiem-multi-swap/contracts/test/EpochControllerMock.sol": {
       "lastModificationDate": 1637146415193,
       "contentHash": "702b73046780c35b4476b1aa8fb35d8d",
@@ -8118,51 +9190,6 @@
       ],
       "artifacts": [
         "EpochControllerMock"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/InputHelpers.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "8dbf9e7eb210c4a3c8226532e1a05d60",
-      "sourceName": "contracts/libraries/helpers/InputHelpers.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../../interfaces/ERC20/IERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "InputHelpers"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/ISwapCreator.sol": {
@@ -8300,6 +9327,51 @@
         "IStableSwapFactory"
       ]
     },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IPoolSwapStructs.sol": {
+      "lastModificationDate": 1637148343256,
+      "contentHash": "a9386e3001ea19c64f7773232645f271",
+      "sourceName": "contracts/interfaces/IPoolSwapStructs.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "IPoolSwapStructs"
+      ]
+    },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/IOracle.sol": {
       "lastModificationDate": 1637146415189,
       "contentHash": "72b78a7d0cfb3131f8d4ae43e3329daf",
@@ -8341,543 +9413,6 @@
       ],
       "artifacts": [
         "IOracle"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/ITemporarilyPausable.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "13c8f47a769a583a7b058e8000b91b5b",
-      "sourceName": "contracts/interfaces/ITemporarilyPausable.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "ITemporarilyPausable"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/TemporarilyPausable.sol": {
-      "lastModificationDate": 1637151001358,
-      "contentHash": "47c51989c82bd7f41d90b060e400c975",
-      "sourceName": "contracts/libraries/helpers/TemporarilyPausable.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./RequiemErrors.sol",
-        "../../interfaces/ITemporarilyPausable.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "TemporarilyPausable"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/oracle/IPoolPriceOracle.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "e17fbaac16c15747d5cc93018255cb80",
-      "sourceName": "contracts/interfaces/oracle/IPoolPriceOracle.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IPoolPriceOracle"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/PoolPriceOracle.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "ba92227b271cd0c5129b694b4832a168",
-      "sourceName": "contracts/libraries/oracle/PoolPriceOracle.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../../interfaces/oracle/IPriceOracle.sol",
-        "../../interfaces/oracle/IPoolPriceOracle.sol",
-        "./Buffer.sol",
-        "./Samples.sol",
-        "./QueryProcessor.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "PoolPriceOracle"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/oracle/IPriceOracle.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "60acd51abc51a68ccc1eaad98f6fd8d5",
-      "sourceName": "contracts/interfaces/oracle/IPriceOracle.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IPriceOracle"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/Buffer.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "2a00a74f70e344342fe77c0ecfb1e74a",
-      "sourceName": "contracts/libraries/oracle/Buffer.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "Buffer"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/Samples.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "cc4fdb59716c9bc90efb226954d6f725",
-      "sourceName": "contracts/libraries/oracle/Samples.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../helpers/WordCodec.sol",
-        "../../interfaces/oracle/IPriceOracle.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "Samples"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/oracle/QueryProcessor.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "1baba84c0cda5d365e10c83a994903cd",
-      "sourceName": "contracts/libraries/oracle/QueryProcessor.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../LogCompression.sol",
-        "../../interfaces/oracle/IPriceOracle.sol",
-        "./Buffer.sol",
-        "./Samples.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "QueryProcessor"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/WordCodec.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "ef716f379ebbe61ef3d9f357cdbeaf30",
-      "sourceName": "contracts/libraries/helpers/WordCodec.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "WordCodec"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/LogCompression.sol": {
-      "lastModificationDate": 1637146415189,
-      "contentHash": "98a6da8e37de96398beb577d6b78e80e",
-      "sourceName": "contracts/libraries/LogCompression.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./math/LogExpMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "LogCompression"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/math/LogExpMath.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "c84c9a2bf19b312dd7db63f255565a07",
-      "sourceName": "contracts/libraries/math/LogExpMath.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "LogExpMath"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/math/FixedPoint.sol": {
-      "lastModificationDate": 1637146415193,
-      "contentHash": "571bbbdf2cdc5a732d18ecee534ef32b",
-      "sourceName": "contracts/libraries/math/FixedPoint.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./LogExpMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "FixedPoint"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/libraries/helpers/BaseSplitCodeFactory.sol": {
@@ -8966,49 +9501,6 @@
       ],
       "artifacts": [
         "CodeDeployer"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/math/Math.sol": {
-      "lastModificationDate": 1637153170120,
-      "contentHash": "b7c8d0dc52046f04f5e69367aa7d6797",
-      "sourceName": "contracts/libraries/math/Math.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "Math"
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/test/IOriginUniswapV2Factory.sol": {
@@ -9226,10 +9718,197 @@
         "WETH9"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IMinimalSwapInfo.sol": {
-      "lastModificationDate": 1637150442217,
-      "contentHash": "e8e83b169e97edee7cd4ee187ff230d7",
-      "sourceName": "contracts/interfaces/IMinimalSwapInfo.sol",
+    "/home/achthar/requiem-multi-swap/contracts/base/OwnerPausable.sol": {
+      "lastModificationDate": 1637170138444,
+      "contentHash": "37fd6d0dce6696982a5b181315b14a31",
+      "sourceName": "contracts/base/OwnerPausable.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../libraries/Ownable.sol",
+        "../libraries/Pausable.sol"
+      ],
+      "versionPragmas": [
+        "0.8.10"
+      ],
+      "artifacts": [
+        "OwnerPausable"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/Ownable.sol": {
+      "lastModificationDate": 1637169864656,
+      "contentHash": "1663aa3a703e3e676bc321432cc0fe6c",
+      "sourceName": "contracts/libraries/Ownable.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Ownable"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/Pausable.sol": {
+      "lastModificationDate": 1637169873296,
+      "contentHash": "9a321672d636cf6fde18daec6cea5e77",
+      "sourceName": "contracts/libraries/Pausable.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "Pausable"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/RequiemStableSwap.sol": {
+      "lastModificationDate": 1637170099880,
+      "contentHash": "4c559218ab9f72d69a186b5c6531ee60",
+      "sourceName": "contracts/RequiemStableSwap.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./libraries/ReentrancyGuard.sol",
+        "./libraries/Initializable.sol",
+        "./interfaces/ERC20/IERC20.sol",
+        "./libraries/SafeERC20.sol",
+        "./base/OwnerPausable.sol",
+        "./RequiemStableSwapLib.sol",
+        "./interfaces/IRequiemStableSwap.sol"
+      ],
+      "versionPragmas": [
+        "0.8.10"
+      ],
+      "artifacts": [
+        "RequiemStableSwap"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/Initializable.sol": {
+      "lastModificationDate": 1637169859756,
+      "contentHash": "5941e2d0ebfe858ff7b74082d5c56a52",
+      "sourceName": "contracts/libraries/Initializable.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -9263,16 +9942,63 @@
       },
       "imports": [],
       "versionPragmas": [
-        "^0.8.10"
+        "^0.8.0"
       ],
       "artifacts": [
-        "IMinimalSwapInfo"
+        "Initializable"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IPoolSwapStructs.sol": {
-      "lastModificationDate": 1637148343256,
-      "contentHash": "a9386e3001ea19c64f7773232645f271",
-      "sourceName": "contracts/interfaces/IPoolSwapStructs.sol",
+    "/home/achthar/requiem-multi-swap/contracts/RequiemStableSwapLib.sol": {
+      "lastModificationDate": 1637170053500,
+      "contentHash": "803f2900d26d2d858d285a186ba3aa44",
+      "sourceName": "contracts/RequiemStableSwapLib.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./tokens/LPToken.sol",
+        "./interfaces/ERC20/IERC20.sol",
+        "./libraries/SafeERC20.sol"
+      ],
+      "versionPragmas": [
+        "0.8.10"
+      ],
+      "artifacts": [
+        "RequiemStableSwapLib"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemStableSwap.sol": {
+      "lastModificationDate": 1637169984092,
+      "contentHash": "6f217fdbfe17c7c13f1b5e461fcf14dc",
+      "sourceName": "contracts/interfaces/IRequiemStableSwap.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -9308,16 +10034,16 @@
         "./ERC20/IERC20.sol"
       ],
       "versionPragmas": [
-        "^0.8.10"
+        "0.8.10"
       ],
       "artifacts": [
-        "IPoolSwapStructs"
+        "IRequiemStableSwap"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/libraries/weighted/RequiemWeightedMath.sol": {
-      "lastModificationDate": 1637160089614,
-      "contentHash": "842dcde5e68b1644de5ccab0a2fb4f3a",
-      "sourceName": "contracts/libraries/weighted/RequiemWeightedMath.sol",
+    "/home/achthar/requiem-multi-swap/contracts/tokens/LPToken.sol": {
+      "lastModificationDate": 1637170031552,
+      "contentHash": "242f0bc4b46300c3b41ee59a48fba8da",
+      "sourceName": "contracts/tokens/LPToken.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -9350,23 +10076,21 @@
         }
       },
       "imports": [
-        "./../math/FixedPoint.sol",
-        "./../math/Math.sol",
-        "../helpers/InputHelpers.sol",
-        "../helpers/RequiemErrors.sol",
-        "../../interfaces/pool/IRequiemWeightedMath.sol"
+        "../libraries/ERC20Burnable.sol",
+        "../libraries/Ownable.sol",
+        "../interfaces/IRequiemStableSwap.sol"
       ],
       "versionPragmas": [
         "^0.8.10"
       ],
       "artifacts": [
-        "RequiemWeightedMath"
+        "LPToken"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/RequiemMultiRouter.sol": {
-      "lastModificationDate": 1637150137316,
-      "contentHash": "2a21a5c0df6ab77496aa579badcf56a7",
-      "sourceName": "contracts/RequiemMultiRouter.sol",
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRewardToken.sol": {
+      "lastModificationDate": 1637170008512,
+      "contentHash": "af8232a8ae68bab7d664762c8d526701",
+      "sourceName": "contracts/interfaces/IRewardToken.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -9399,155 +10123,19 @@
         }
       },
       "imports": [
-        "./interfaces/IRequiemFactory.sol",
-        "./interfaces/IRequiemFormula.sol",
-        "./interfaces/IRequiemPair.sol",
-        "./libraries/TransferHelper.sol",
-        "./interfaces/ERC20/IERC20.sol",
-        "./interfaces/IRequiemMultiRouter.sol",
-        "./libraries/SafeMath.sol",
-        "./interfaces/IWETH.sol"
+        "./ERC20/IERC20.sol"
       ],
       "versionPragmas": [
-        ">=0.8.9"
+        "0.8.10"
       ],
       "artifacts": [
-        "RequiemMultiRouter"
+        "IRewardToken"
       ]
     },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemMultiRouter.sol": {
-      "lastModificationDate": 1637149937384,
-      "contentHash": "b6d5d53d4da68f94c25948feddaa6627",
-      "sourceName": "contracts/interfaces/IRequiemMultiRouter.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IRequiemMultiRouter"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/pool/IFormulaProvider.sol": {
-      "lastModificationDate": 1637157653604,
-      "contentHash": "be600bf4dc250eaeebaf164df2cee585",
-      "sourceName": "contracts/interfaces/pool/IFormulaProvider.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IFormulaProvider"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/pool/IRequiemWeightedMath.sol": {
-      "lastModificationDate": 1637158178065,
-      "contentHash": "6c53044a45e1baff562d764616803e23",
-      "sourceName": "contracts/interfaces/pool/IRequiemWeightedMath.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IRequiemWeightedMath"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/Requiem2PoolFactory.sol": {
-      "lastModificationDate": 1637162730178,
-      "contentHash": "271290592f21e41b7aab4c364d7895fd",
-      "sourceName": "contracts/Requiem2PoolFactory.sol",
+    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRewarder.sol": {
+      "lastModificationDate": 1637169994764,
+      "contentHash": "088a9c5dc400b2a8a84f7d3b9d6cf9a2",
+      "sourceName": "contracts/interfaces/IRewarder.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
@@ -9580,194 +10168,13 @@
         }
       },
       "imports": [
-        "./interfaces/IRequiem2PoolFactory.sol",
-        "./Requiem2Pool.sol"
+        "./ERC20/IERC20.sol"
       ],
       "versionPragmas": [
-        "^0.8.10"
+        "0.8.10"
       ],
       "artifacts": [
-        "Requiem2PoolFactory"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiem2PoolFactory.sol": {
-      "lastModificationDate": 1637161955736,
-      "contentHash": "15f7de4e1daa8fc7a01881b06dbc88b8",
-      "sourceName": "contracts/interfaces/IRequiem2PoolFactory.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "IRequiem2PoolFactory"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/test/TestWETH.sol": {
-      "lastModificationDate": 1637155750908,
-      "contentHash": "bf6da8d04d36ea7f50da15eb51c46d0b",
-      "sourceName": "contracts/test/TestWETH.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../interfaces/IWETH.sol",
-        "../libraries/AccessControl.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.10"
-      ],
-      "artifacts": [
-        "TestWETH"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/RequiemPoolFormula.sol": {
-      "lastModificationDate": 1637159245660,
-      "contentHash": "b683fad49d0a7330c4600ffd89899f2e",
-      "sourceName": "contracts/RequiemPoolFormula.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./interfaces/IRequiemFormula.sol",
-        "./interfaces/IRequiemPair.sol",
-        "./interfaces/IRequiemFactory.sol",
-        "./libraries/SafeMath.sol"
-      ],
-      "versionPragmas": [
-        ">=0.7.6"
-      ],
-      "artifacts": [
-        "RequiemPoolFormula"
-      ]
-    },
-    "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemPoolFormula.sol": {
-      "lastModificationDate": 1637159272416,
-      "contentHash": "e716f740d5ea33d3ea98f766500c92a0",
-      "sourceName": "contracts/interfaces/IRequiemPoolFormula.sol",
-      "solcConfig": {
-        "version": "0.8.10",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "evmVersion": "london",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.5.16"
-      ],
-      "artifacts": [
-        "IRequiemFormula"
+        "IRewarder"
       ]
     }
   }
