@@ -67,7 +67,7 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
 
     function getTokenWeights() public view returns (uint32 _tokenWeight0, uint32 _tokenWeight1) {
         _tokenWeight0 = tokenWeight0;
-        _tokenWeight1 = 100 - tokenWeight0;
+        _tokenWeight1 = tokenWeight1;
     }
 
     function getSwapFee() public view returns (uint32 _swapFee) {
@@ -436,10 +436,9 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
         uint256 amountIn
     ) external view returns (uint256) {
         (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
-            ? (reserve0, reserve1, tokenWeight0, 100 - tokenWeight0)
-            : (reserve1, reserve0, 100 - tokenWeight0, tokenWeight0);
-
-        return IRequiemFormula(formula).getAmountOut(amountIn, reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
+            ? (reserve0, reserve1, tokenWeight0, tokenWeight1)
+            : (reserve1, reserve0, tokenWeight1, tokenWeight0);
+        return IRequiemFormula(formula).getAmountOut(amountIn, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
     }
 
     function calculateSwapGivenOut(
@@ -450,7 +449,6 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
         (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
             ? (reserve0, reserve1, tokenWeight0, tokenWeight1)
             : (reserve1, reserve0, tokenWeight1, tokenWeight0);
-
         return IRequiemFormula(formula).getAmountIn(amountOut, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
     }
 

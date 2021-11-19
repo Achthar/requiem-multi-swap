@@ -448,21 +448,26 @@
         "components": [
           {
             "internalType": "uint8",
-            "name": "swapStructureId",
+            "name": "structure",
             "type": "uint8"
           },
           {
-            "internalType": "address[]",
-            "name": "pools",
-            "type": "address[]"
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
           },
           {
-            "internalType": "address[]",
-            "name": "path",
-            "type": "address[]"
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
           }
         ],
-        "internalType": "struct IRequiemSwap.MultiSwapStep[]",
+        "internalType": "struct IRequiemSwap.QSwapStep[]",
         "name": "params",
         "type": "tuple[]"
       },
@@ -485,9 +490,9 @@
     "name": "onSwapExactETHForTokens",
     "outputs": [
       {
-        "internalType": "uint256[]",
-        "name": "amounts",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "amountLast",
+        "type": "uint256"
       }
     ],
     "stateMutability": "payable",
@@ -560,21 +565,26 @@
         "components": [
           {
             "internalType": "uint8",
-            "name": "swapStructureId",
+            "name": "structure",
             "type": "uint8"
           },
           {
-            "internalType": "address[]",
-            "name": "pools",
-            "type": "address[]"
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
           },
           {
-            "internalType": "address[]",
-            "name": "path",
-            "type": "address[]"
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
           }
         ],
-        "internalType": "struct IRequiemSwap.MultiSwapStep[]",
+        "internalType": "struct IRequiemSwap.QSwapStep[]",
         "name": "params",
         "type": "tuple[]"
       },
@@ -602,9 +612,9 @@
     "name": "onSwapTokensForExactETH",
     "outputs": [
       {
-        "internalType": "uint256[][]",
-        "name": "allAmounts",
-        "type": "uint256[][]"
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "nonpayable",

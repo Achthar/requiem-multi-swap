@@ -135,7 +135,12 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "onSwapExactETHForTokens",
     values: [
-      { swapStructureId: BigNumberish; pools: string[]; path: string[] }[],
+      {
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+      }[],
       BigNumberish,
       string,
       BigNumberish
@@ -159,7 +164,12 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "onSwapTokensForExactETH",
     values: [
-      { swapStructureId: BigNumberish; pools: string[]; path: string[] }[],
+      {
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
+      }[],
       BigNumberish,
       BigNumberish,
       string,
@@ -573,9 +583,10 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapExactETHForTokens(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOutMin: BigNumberish,
       to: string,
@@ -599,9 +610,10 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapTokensForExactETH(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
@@ -880,9 +892,10 @@ export class RequiemQRouter extends BaseContract {
 
   onSwapExactETHForTokens(
     params: {
-      swapStructureId: BigNumberish;
-      pools: string[];
-      path: string[];
+      structure: BigNumberish;
+      pool: string;
+      tokenIn: string;
+      tokenOut: string;
     }[],
     amountOutMin: BigNumberish,
     to: string,
@@ -906,9 +919,10 @@ export class RequiemQRouter extends BaseContract {
 
   onSwapTokensForExactETH(
     params: {
-      swapStructureId: BigNumberish;
-      pools: string[];
-      path: string[];
+      structure: BigNumberish;
+      pool: string;
+      tokenIn: string;
+      tokenOut: string;
     }[],
     amountOut: BigNumberish,
     amountInMax: BigNumberish,
@@ -1199,15 +1213,16 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapExactETHForTokens(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    ): Promise<BigNumber>;
 
     onSwapExactTokensForTokens(
       params: {
@@ -1225,16 +1240,17 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapTokensForExactETH(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber[][]>;
+    ): Promise<BigNumber[]>;
 
     onSwapTokensForExactTokens(
       params: {
@@ -1535,9 +1551,10 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapExactETHForTokens(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOutMin: BigNumberish,
       to: string,
@@ -1561,9 +1578,10 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapTokensForExactETH(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
@@ -1843,9 +1861,10 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapExactETHForTokens(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOutMin: BigNumberish,
       to: string,
@@ -1869,9 +1888,10 @@ export class RequiemQRouter extends BaseContract {
 
     onSwapTokensForExactETH(
       params: {
-        swapStructureId: BigNumberish;
-        pools: string[];
-        path: string[];
+        structure: BigNumberish;
+        pool: string;
+        tokenIn: string;
+        tokenOut: string;
       }[],
       amountOut: BigNumberish,
       amountInMax: BigNumberish,

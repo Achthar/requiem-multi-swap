@@ -258,11 +258,11 @@ contract RequiemQRouter is IRequiemRouter {
         address to,
         uint256 deadline
     ) external payable virtual ensure(deadline) returns (uint256 amountLast) {
-        transferETHTo(msg.value, params[0].pool);
         uint256 _amountIn = msg.value;
-        amountLast = IRequiemSwap(params[0].pool).calculateSwapGivenIn(params[0].tokenIn, params[0].tokenOut, amountLast);
+        transferETHTo(msg.value, params[0].pool);
+        amountLast = IRequiemSwap(params[0].pool).calculateSwapGivenIn(params[0].tokenIn, params[0].tokenOut, _amountIn);
         IRequiemSwap(params[0].pool).onSwapGivenIn(params[0].tokenIn, params[0].tokenOut, _amountIn, amountLast, params[1].pool);
-        for (uint256 i = 1; i < params.length; i++) {
+        for (uint8 i = 1; i < params.length; i++) {
             address _to = i == params.length - 1 ? to : params[i + 1].pool;
             if (params[i].structure == 0) {
                 _amountIn = amountLast;
@@ -276,32 +276,30 @@ contract RequiemQRouter is IRequiemRouter {
     }
 
     function onSwapTokensForExactETH(
-        IRequiemSwap.MultiSwapStep[] memory params,
+        IRequiemSwap.QSwapStep[] memory params,
         uint256 amountOut,
         uint256 amountInMax,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[][] memory allAmounts) {
-        uint256 _amountOut = amountOut;
-        for (uint256 i = params.length - 1; i > 0; i--) {
-            if (params[i].swapStructureId == 0) {
-                allAmounts[i] = _calculateAmountIn(params[i].path[0], params[i].path[params[i].path.length - 1], _amountOut, params[i].pools);
-                _amountOut = allAmounts[i][0];
-            } else {
-                // _amountOut = IRequiemSwap(params[i].pools[0]).calculateSwapOut(params[i].path[0], params[i].path[1], _amountOut);
-            }
+    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+        amounts = new uint256[](params.length + 1);
+        amounts[params.length] = amountOut;
+        for (uint256 i = amounts.length - 1; i > 0; i--) {
+            amounts[i - 1] = IRequiemSwap(params[i - 1].pool).calculateSwapGivenOut(params[i - 1].tokenIn, params[i - 1].tokenOut, amounts[i]);
         }
-        require(_amountOut <= amountInMax, "EXCESSIVE_INPUT");
+        require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT");
+        TransferHelper.safeTransferFrom(params[0].tokenIn, msg.sender, params[0].pool, amounts[0]);
 
-        TransferHelper.safeTransferFrom(params[0].path[0], msg.sender, params[0].pools[0], allAmounts[0][0]);
-        for (uint256 i = 0; i < params.length; i++) {
-            address _to = i == params.length - 1 ? address(this) : params[i + 1].pools[0];
-            if (params[i].swapStructureId == 0) {
-                _swap(params[i].path[0], allAmounts[i], params[i].pools, _to);
-            } else {
-                IRequiemSwap(params[i].pools[0]).onSwapGivenIn(params[i].path[0], params[i].path[1], allAmounts[i][0], 0, _to);
-            }
+        for (uint8 i = 0; i < params.length - 1; i++) {
+            IRequiemSwap(params[i].pool).onSwapGivenIn(params[i].tokenIn, params[i].tokenOut, amounts[i], params[i].structure == 0 ? amounts[i + 1] : 0, params[i + 1].pool);
         }
+        IRequiemSwap(params[params.length - 1].pool).onSwapGivenIn(
+            params[params.length - 1].tokenIn,
+            params[params.length - 1].tokenOut,
+            amounts[params.length - 1],
+            amounts[params.length],
+            address(this)
+        );
         transferAll(ETH_ADDRESS, to, amountOut);
     }
 

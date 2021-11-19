@@ -8,6 +8,7 @@ import { toNormalizedWeights } from "./resources/normalizedWeights"
 import { MONTH } from './resources/time';
 import { fp } from "./resources/numbers"
 import { constants } from 'ethers';
+import { Console } from 'console';
 // import { deploy, deployedAt } from "./contract";
 
 
@@ -248,6 +249,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	await execute('DAI', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
 	await execute('TUSD', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
 
+	await execute('TestWETH', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
+
 	console.log('add_liquidity');
 	const tokenAmount = await poolContract.calculateTokenAmount(
 		[parseUnits('10', 6), parseUnits('10', 6), parseUnits('10', 18), parseUnits('10', 18)],
@@ -450,7 +453,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokens',
 		qSwap0,
 		BigNumber.from(100), // in
-		0, //out Min
+		1, //out Min
 		localhost,// address to,
 		deadline,// uint256 deadline
 	);
@@ -492,6 +495,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("swapped 3")
 
+	console.log("--- create WETH t2 pair ----")
+	await factoryContract.createPair(weth.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
+	const pairWeth = await factoryContract.getPair(weth.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
+	// console.log("--- create t2 usdt pair ----")
+	// await factoryContract.createPair(usdt.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(50))
+	// const pair2 = await factoryContract.getPair(usdt.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(50))
+
+	// console.log("pair:", pair, pair2)
+	// // const routerContract = await ethers.getContract('RequiemRouter');
+
+	console.log("deposit eth")
+	await execute('TestWETH', { from: localhost, value: parseUnits('1000', 18) }, 'deposit')
+	console.log("addWETH Liquidity")
+
+	const liqWeth = await execute('RequiemQRouter', { from: localhost }, 'addLiquidity', pairWeth, weth.address, t2.address,
+		parseUnits('1000', 18),
+		parseUnits('1000000', 18),
+		parseUnits('1000', 18),
+		parseUnits('1000000', 18),
+		localhost,
+		deadline);
+	console.log("LP received")
+	// const liq2 = await execute('RequiemQRouter', { from: localhost }, 'addLiquidity', pair2, t2.address, usdt.address,
+	// 	BigNumber.from('1000000000'),
+	// 	BigNumber.from('1000000000'),
+	// 	BigNumber.from('1000000000'),
+	// 	BigNumber.from('1000000000'),
+	// 	localhost,
+	// 	deadline);
+
 	const qSwap2 = [
 		{
 			structure: 0,
@@ -514,15 +547,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		}
 	]
 
-	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactETHForTokens',
-	qSwap2,
-	BigNumber.from(100000000), // out
-	BigNumber.from('10000000000000000000'), //in max
-	localhost,// address to,
-	deadline,// uint256 deadline
-);
+	await execute('RequiemQRouter', { from: localhost, value: BigNumber.from(1) }, 'onSwapExactETHForTokens',
+		qSwap2,
+		BigNumber.from('0'), //out min
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
 
-console.log("swapped 4")
+	console.log("swapped 4")
 };
 export default func;
 func.tags = ['factory-localhost-q'];

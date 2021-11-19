@@ -651,7 +651,8 @@ contract RequiemFormula is IRequiemFormula {
 
         uint256 temp1 = reserveOut.mul(result);
         uint256 temp2 = reserveOut << precision;
-        return (temp1 - temp2) / result;
+        require((temp1 - temp2) > 0, "HIHIH");
+        amountOut = (temp1 - temp2) / result;
     }
 
     /**
@@ -694,7 +695,7 @@ contract RequiemFormula is IRequiemFormula {
         uint256 baseReserveIn = reserveIn.mul(10000);
         uint256 temp1 = baseReserveIn.mul(result);
         uint256 temp2 = baseReserveIn << precision;
-        return (((temp1 - temp2) >> precision) / (10000 - swapFee)).add(1);
+        amountIn = (((temp1 - temp2) >> precision) / (10000 - swapFee)).add(1);
     }
 
     // performs chained getAmountOut calculations on any number of pairs
@@ -745,7 +746,7 @@ contract RequiemFormula is IRequiemFormula {
         address tokenIn,
         uint256 amountIn
     ) external view override returns (uint256 amountOut) {
-        (,uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
+        (, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
         amountOut = getAmountOut(amountIn, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
     }
 
