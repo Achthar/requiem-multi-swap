@@ -8,8 +8,9 @@ import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
 import "./RequiemStableSwapLib.sol";
 import "./interfaces/IRequiemStableSwap.sol";
+import "./interfaces/IRequiemSwap.sol";
 
-contract RequiemStableSwap is OwnerPausable, ReentrancyGuard, Initializable, IRequiemStableSwap {
+contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IRequiemStableSwap {
     using RequiemStableSwapLib for RequiemStableSwapLib.SwapStorage;
     using SafeERC20 for IERC20;
 
@@ -98,15 +99,44 @@ contract RequiemStableSwap is OwnerPausable, ReentrancyGuard, Initializable, IRe
         return swapStorage.swap(fromIndex, toIndex, inAmount, minOutAmount, to);
     }
 
-    function swap(
+    function onSwap(SwapStep memory params, address to) external override whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.onSwap(tokenIndexes[params.tokenIn], tokenIndexes[params.tokenOut], params.swapAmount, params.limitReturnAmount, to);
+    }
+
+    function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
-        uint256 inAmount,
-        uint256 minOutAmount,
-        address to,
-        uint256 deadline
-    ) external whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], inAmount, minOutAmount, to);
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address to
+    ) external override whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOutMin, to);
+    }
+
+    function onSwapGivenOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        uint256 amountInMax,
+        address to
+    ) external override whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+    }
+
+    function calculateSwapGivenIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn
+    ) external view returns (uint256) {
+        return swapStorage.calculateSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn);
+    }
+
+    function calculateSwapGivenOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut
+    ) external view returns (uint256) {
+        return swapStorage.calculateSwap(tokenIndexes[tokenOut], tokenIndexes[tokenIn], amountOut);
     }
 
     function removeLiquidity(
@@ -205,12 +235,7 @@ contract RequiemStableSwap is OwnerPausable, ReentrancyGuard, Initializable, IRe
         return swapStorage.calculateSwap(inIndex, outIndex, inAmount);
     }
 
-    function calculateRemoveLiquidity(address account, uint256 amount)
-        external
-        view
-        override
-        returns (uint256[] memory)
-    {
+    function calculateRemoveLiquidity(address account, uint256 amount) external view override returns (uint256[] memory) {
         return swapStorage.calculateRemoveLiquidity(account, amount);
     }
 

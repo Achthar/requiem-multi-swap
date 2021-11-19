@@ -141,6 +141,39 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
         inAmount = _doTransferIn(inCoin, inAmount);
 
+        // uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
+        uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
+
+        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
+        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
+
+        dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
+
+        require(dy >= minOutAmount, "> slippage");
+
+        // uint256 _adminFee = (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+
+        // update balances
+        self.balances[i] += inAmount;
+        self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+
+        self.pooledTokens[j].safeTransfer(to, dy);
+        emit TokenExchange(to, i, inAmount, j, dy);
+        return dy;
+    }
+
+    // the same function as swap, but it espects that amounts already have been
+    // sent to the contract
+    function onSwap(
+        SwapStorage storage self,
+        uint256 i,
+        uint256 j,
+        uint256 inAmount,
+        uint256 minOutAmount,
+        address to
+    ) external returns (uint256) {
+        uint256[] memory normalizedBalances = _xp(self);
+
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
 

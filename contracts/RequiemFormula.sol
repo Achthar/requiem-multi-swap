@@ -727,6 +727,7 @@ contract RequiemFormula is IRequiemFormula {
         amounts = new uint256[](path.length + 1);
         amounts[0] = amountIn;
         address currentTokenIn = tokenIn;
+
         for (uint256 i = 0; i < path.length; i++) {
             (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryReserveAndWeights(
                 factory,
@@ -744,7 +745,7 @@ contract RequiemFormula is IRequiemFormula {
         address tokenIn,
         uint256 amountIn
     ) external view override returns (uint256 amountOut) {
-        (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
+        (,uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
         amountOut = getAmountOut(amountIn, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
     }
 

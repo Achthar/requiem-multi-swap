@@ -42,7 +42,7 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     "removeLiquidity(uint256,uint256[],uint256)": FunctionFragment;
     "removeLiquidityImbalance(uint256[],uint256,uint256)": FunctionFragment;
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
-    "swap(uint8,uint8,uint256,uint256,uint256)": FunctionFragment;
+    "swap(uint8,uint8,uint256,uint256,address,uint256)": FunctionFragment;
     "updateUserWithdrawFee(address,uint256)": FunctionFragment;
   };
 
@@ -131,6 +131,7 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
+      string,
       BigNumberish
     ]
   ): string;
@@ -471,6 +472,7 @@ export class IRequiemStableSwap extends BaseContract {
       tokenIndexTo: BigNumberish,
       dx: BigNumberish,
       minDy: BigNumberish,
+      to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -580,6 +582,7 @@ export class IRequiemStableSwap extends BaseContract {
     tokenIndexTo: BigNumberish,
     dx: BigNumberish,
     minDy: BigNumberish,
+    to: string,
     deadline: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -689,6 +692,7 @@ export class IRequiemStableSwap extends BaseContract {
       tokenIndexTo: BigNumberish,
       dx: BigNumberish,
       minDy: BigNumberish,
+      to: string,
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1062,6 +1066,7 @@ export class IRequiemStableSwap extends BaseContract {
       tokenIndexTo: BigNumberish,
       dx: BigNumberish,
       minDy: BigNumberish,
+      to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1175,6 +1180,7 @@ export class IRequiemStableSwap extends BaseContract {
       tokenIndexTo: BigNumberish,
       dx: BigNumberish,
       minDy: BigNumberish,
+      to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
