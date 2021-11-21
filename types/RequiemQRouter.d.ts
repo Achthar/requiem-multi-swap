@@ -23,24 +23,13 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface RequiemQRouterInterface extends ethers.utils.Interface {
   functions: {
     "WETH()": FunctionFragment;
-    "addLiquidity(address,address,address,uint256,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    "addLiquidityETH(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    "createPair(address,address,uint256,uint256,uint32,uint32,address)": FunctionFragment;
-    "createPairETH(address,uint256,uint32,uint32,address)": FunctionFragment;
     "factory()": FunctionFragment;
     "formula()": FunctionFragment;
     "multihopBatchSwapExactIn(tuple[][],address,address,uint256,uint256,uint256)": FunctionFragment;
     "multihopBatchSwapExactOut(tuple[][],address,address,uint256,uint256)": FunctionFragment;
-    "onSwapExactETHForTokens(tuple[],uint256,address,uint256)": FunctionFragment;
-    "onSwapExactTokensForTokens(tuple[],uint256,uint256,address,uint256)": FunctionFragment;
-    "onSwapTokensForExactETH(tuple[],uint256,uint256,address,uint256)": FunctionFragment;
-    "onSwapTokensForExactTokens(tuple[],uint256,uint256,address,uint256)": FunctionFragment;
-    "removeLiquidity(address,address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    "removeLiquidityETH(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    "removeLiquidityETHSupportingFeeOnTransferTokens(address,address,uint256,uint256,uint256,address,uint256)": FunctionFragment;
-    "removeLiquidityETHWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)": FunctionFragment;
-    "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)": FunctionFragment;
-    "removeLiquidityWithPermit(address,address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)": FunctionFragment;
+    "onSwapExactETHForTokens(address[],address[],uint256,address,uint256)": FunctionFragment;
+    "onSwapExactTokensForETH(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
+    "onSwapExactTokensForTokens(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
     "swapETHForExactTokens(address,uint256,address[],address,uint256)": FunctionFragment;
     "swapExactETHForTokens(address,uint256,address[],address,uint256)": FunctionFragment;
     "swapExactETHForTokensSupportingFeeOnTransferTokens(address,uint256,address[],address,uint256)": FunctionFragment;
@@ -53,48 +42,6 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(functionFragment: "WETH", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "addLiquidity",
-    values: [
-      string,
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addLiquidityETH",
-    values: [
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createPair",
-    values: [
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createPairETH",
-    values: [string, BigNumberish, BigNumberish, BigNumberish, string]
-  ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(functionFragment: "formula", values?: undefined): string;
   encodeFunctionData(
@@ -134,13 +81,14 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "onSwapExactETHForTokens",
+    values: [string[], string[], BigNumberish, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onSwapExactTokensForETH",
     values: [
-      {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+      string[],
+      string[],
+      BigNumberish,
       BigNumberish,
       string,
       BigNumberish
@@ -149,132 +97,12 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "onSwapExactTokensForTokens",
     values: [
-      {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+      string[],
+      string[],
       BigNumberish,
       BigNumberish,
       string,
       BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapTokensForExactETH",
-    values: [
-      {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapTokensForExactTokens",
-    values: [
-      {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidity",
-    values: [
-      string,
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidityETH",
-    values: [
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidityETHSupportingFeeOnTransferTokens",
-    values: [
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidityETHWithPermit",
-    values: [
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish,
-      boolean,
-      BigNumberish,
-      BytesLike,
-      BytesLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
-    values: [
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish,
-      boolean,
-      BigNumberish,
-      BytesLike,
-      BytesLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidityWithPermit",
-    values: [
-      string,
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish,
-      boolean,
-      BigNumberish,
-      BytesLike,
-      BytesLike
     ]
   ): string;
   encodeFunctionData(
@@ -339,19 +167,6 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "WETH", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "addLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addLiquidityETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "createPair", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "createPairETH",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "formula", data: BytesLike): Result;
   decodeFunctionResult(
@@ -367,39 +182,11 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "onSwapExactTokensForETH",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "onSwapExactTokensForTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapTokensForExactETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapTokensForExactTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityETHSupportingFeeOnTransferTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityETHWithPermit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityWithPermit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -500,50 +287,6 @@ export class RequiemQRouter extends BaseContract {
   functions: {
     WETH(overrides?: CallOverrides): Promise<[string]>;
 
-    addLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    addLiquidityETH(
-      pair: string,
-      token: string,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    createPair(
-      tokenA: string,
-      tokenB: string,
-      amountA: BigNumberish,
-      amountB: BigNumberish,
-      tokenWeightA: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    createPairETH(
-      token: string,
-      amountToken: BigNumberish,
-      tokenWeight: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     factory(overrides?: CallOverrides): Promise<[string]>;
 
     formula(overrides?: CallOverrides): Promise<[string]>;
@@ -582,25 +325,17 @@ export class RequiemQRouter extends BaseContract {
     ): Promise<ContractTransaction>;
 
     onSwapExactETHForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+      pools: string[],
+      tokens: string[],
       amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    onSwapExactTokensForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+    onSwapExactTokensForETH(
+      pools: string[],
+      tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
@@ -608,111 +343,13 @@ export class RequiemQRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    onSwapTokensForExactETH(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
+    onSwapExactTokensForTokens(
+      pools: string[],
+      tokens: string[],
+      amountIn: BigNumberish,
+      amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    onSwapTokensForExactTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeLiquidityETH(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeLiquidityETHSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeLiquidityETHWithPermit(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    removeLiquidityWithPermit(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -809,50 +446,6 @@ export class RequiemQRouter extends BaseContract {
 
   WETH(overrides?: CallOverrides): Promise<string>;
 
-  addLiquidity(
-    pair: string,
-    tokenA: string,
-    tokenB: string,
-    amountADesired: BigNumberish,
-    amountBDesired: BigNumberish,
-    amountAMin: BigNumberish,
-    amountBMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  addLiquidityETH(
-    pair: string,
-    token: string,
-    amountTokenDesired: BigNumberish,
-    amountTokenMin: BigNumberish,
-    amountETHMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  createPair(
-    tokenA: string,
-    tokenB: string,
-    amountA: BigNumberish,
-    amountB: BigNumberish,
-    tokenWeightA: BigNumberish,
-    swapFee: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  createPairETH(
-    token: string,
-    amountToken: BigNumberish,
-    tokenWeight: BigNumberish,
-    swapFee: BigNumberish,
-    to: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   factory(overrides?: CallOverrides): Promise<string>;
 
   formula(overrides?: CallOverrides): Promise<string>;
@@ -891,25 +484,17 @@ export class RequiemQRouter extends BaseContract {
   ): Promise<ContractTransaction>;
 
   onSwapExactETHForTokens(
-    params: {
-      structure: BigNumberish;
-      pool: string;
-      tokenIn: string;
-      tokenOut: string;
-    }[],
+    pools: string[],
+    tokens: string[],
     amountOutMin: BigNumberish,
     to: string,
     deadline: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  onSwapExactTokensForTokens(
-    params: {
-      structure: BigNumberish;
-      pool: string;
-      tokenIn: string;
-      tokenOut: string;
-    }[],
+  onSwapExactTokensForETH(
+    pools: string[],
+    tokens: string[],
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     to: string,
@@ -917,111 +502,13 @@ export class RequiemQRouter extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  onSwapTokensForExactETH(
-    params: {
-      structure: BigNumberish;
-      pool: string;
-      tokenIn: string;
-      tokenOut: string;
-    }[],
-    amountOut: BigNumberish,
-    amountInMax: BigNumberish,
+  onSwapExactTokensForTokens(
+    pools: string[],
+    tokens: string[],
+    amountIn: BigNumberish,
+    amountOutMin: BigNumberish,
     to: string,
     deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  onSwapTokensForExactTokens(
-    params: {
-      structure: BigNumberish;
-      pool: string;
-      tokenIn: string;
-      tokenOut: string;
-    }[],
-    amountOut: BigNumberish,
-    amountInMax: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeLiquidity(
-    pair: string,
-    tokenA: string,
-    tokenB: string,
-    liquidity: BigNumberish,
-    amountAMin: BigNumberish,
-    amountBMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeLiquidityETH(
-    pair: string,
-    token: string,
-    liquidity: BigNumberish,
-    amountTokenMin: BigNumberish,
-    amountETHMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeLiquidityETHSupportingFeeOnTransferTokens(
-    pair: string,
-    token: string,
-    liquidity: BigNumberish,
-    amountTokenMin: BigNumberish,
-    amountETHMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeLiquidityETHWithPermit(
-    pair: string,
-    token: string,
-    liquidity: BigNumberish,
-    amountTokenMin: BigNumberish,
-    amountETHMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    approveMax: boolean,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-    pair: string,
-    token: string,
-    liquidity: BigNumberish,
-    amountTokenMin: BigNumberish,
-    amountETHMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    approveMax: boolean,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  removeLiquidityWithPermit(
-    pair: string,
-    tokenA: string,
-    tokenB: string,
-    liquidity: BigNumberish,
-    amountAMin: BigNumberish,
-    amountBMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    approveMax: boolean,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1118,62 +605,6 @@ export class RequiemQRouter extends BaseContract {
   callStatic: {
     WETH(overrides?: CallOverrides): Promise<string>;
 
-    addLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amountA: BigNumber;
-        amountB: BigNumber;
-        liquidity: BigNumber;
-      }
-    >;
-
-    addLiquidityETH(
-      pair: string,
-      token: string,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amountToken: BigNumber;
-        amountETH: BigNumber;
-        liquidity: BigNumber;
-      }
-    >;
-
-    createPair(
-      tokenA: string,
-      tokenB: string,
-      amountA: BigNumberish,
-      amountB: BigNumberish,
-      tokenWeightA: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    createPairETH(
-      token: string,
-      amountToken: BigNumberish,
-      tokenWeight: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     factory(overrides?: CallOverrides): Promise<string>;
 
     formula(overrides?: CallOverrides): Promise<string>;
@@ -1212,25 +643,17 @@ export class RequiemQRouter extends BaseContract {
     ): Promise<BigNumber>;
 
     onSwapExactETHForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+      pools: string[],
+      tokens: string[],
       amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    onSwapExactTokensForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+    onSwapExactTokensForETH(
+      pools: string[],
+      tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
@@ -1238,121 +661,15 @@ export class RequiemQRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    onSwapTokensForExactETH(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    onSwapTokensForExactTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    removeLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-    >;
-
-    removeLiquidityETH(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-    >;
-
-    removeLiquidityETHSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
+    onSwapExactTokensForTokens(
+      pools: string[],
+      tokens: string[],
+      amountIn: BigNumberish,
+      amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    removeLiquidityETHWithPermit(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountToken: BigNumber; amountETH: BigNumber }
-    >;
-
-    removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    removeLiquidityWithPermit(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { amountA: BigNumber; amountB: BigNumber }
-    >;
 
     swapETHForExactTokens(
       tokenOut: string,
@@ -1468,50 +785,6 @@ export class RequiemQRouter extends BaseContract {
   estimateGas: {
     WETH(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    addLiquidityETH(
-      pair: string,
-      token: string,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    createPair(
-      tokenA: string,
-      tokenB: string,
-      amountA: BigNumberish,
-      amountB: BigNumberish,
-      tokenWeightA: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    createPairETH(
-      token: string,
-      amountToken: BigNumberish,
-      tokenWeight: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
     formula(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1550,25 +823,17 @@ export class RequiemQRouter extends BaseContract {
     ): Promise<BigNumber>;
 
     onSwapExactETHForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+      pools: string[],
+      tokens: string[],
       amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    onSwapExactTokensForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+    onSwapExactTokensForETH(
+      pools: string[],
+      tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
@@ -1576,111 +841,13 @@ export class RequiemQRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    onSwapTokensForExactETH(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
+    onSwapExactTokensForTokens(
+      pools: string[],
+      tokens: string[],
+      amountIn: BigNumberish,
+      amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    onSwapTokensForExactTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeLiquidityETH(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeLiquidityETHSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeLiquidityETHWithPermit(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    removeLiquidityWithPermit(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1778,50 +945,6 @@ export class RequiemQRouter extends BaseContract {
   populateTransaction: {
     WETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    addLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      amountADesired: BigNumberish,
-      amountBDesired: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addLiquidityETH(
-      pair: string,
-      token: string,
-      amountTokenDesired: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    createPair(
-      tokenA: string,
-      tokenB: string,
-      amountA: BigNumberish,
-      amountB: BigNumberish,
-      tokenWeightA: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    createPairETH(
-      token: string,
-      amountToken: BigNumberish,
-      tokenWeight: BigNumberish,
-      swapFee: BigNumberish,
-      to: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     formula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1860,25 +983,17 @@ export class RequiemQRouter extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     onSwapExactETHForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+      pools: string[],
+      tokens: string[],
       amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    onSwapExactTokensForTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
+    onSwapExactTokensForETH(
+      pools: string[],
+      tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
@@ -1886,111 +1001,13 @@ export class RequiemQRouter extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    onSwapTokensForExactETH(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
+    onSwapExactTokensForTokens(
+      pools: string[],
+      tokens: string[],
+      amountIn: BigNumberish,
+      amountOutMin: BigNumberish,
       to: string,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onSwapTokensForExactTokens(
-      params: {
-        structure: BigNumberish;
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-      }[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeLiquidity(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeLiquidityETH(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeLiquidityETHSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeLiquidityETHWithPermit(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-      pair: string,
-      token: string,
-      liquidity: BigNumberish,
-      amountTokenMin: BigNumberish,
-      amountETHMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeLiquidityWithPermit(
-      pair: string,
-      tokenA: string,
-      tokenB: string,
-      liquidity: BigNumberish,
-      amountAMin: BigNumberish,
-      amountBMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      approveMax: boolean,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

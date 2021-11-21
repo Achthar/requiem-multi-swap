@@ -117,8 +117,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	});
 
 
-	const router = await deploy("RequiemQRouter", {
-		contract: "RequiemQRouter",
+	const router = await deploy("RequiemQRouterBackup", {
+		contract: "RequiemQRouterBackup",
+		skipIfAlreadyDeployed: true,
+		from: localhost,
+		args: [factory.address, weth.address],
+		log: true,
+	});
+
+	const pairManager = await deploy("RequiemQPairManager", {
+		contract: "RequiemQPairManager",
 		skipIfAlreadyDeployed: true,
 		from: localhost,
 		args: [factory.address, weth.address],
@@ -130,6 +138,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	await execute('T2', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
 	await execute('T3', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
 	await execute('T4', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
+
+	await execute('T1', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+	await execute('T2', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+	await execute('T3', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+	await execute('T4', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
 
 	console.log("--- deploy stables --- ")
 
@@ -249,7 +262,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	await execute('DAI', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
 	await execute('TUSD', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
 
+	await execute('USDC', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+	await execute('USDT', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+	await execute('DAI', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+	await execute('TUSD', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
+
 	await execute('TestWETH', { from: localhost }, 'approve', router.address, ethers.constants.MaxInt256);
+
+	await execute('TestWETH', { from: localhost }, 'approve', pairManager.address, ethers.constants.MaxInt256);
 
 	console.log('add_liquidity');
 	const tokenAmount = await poolContract.calculateTokenAmount(
@@ -263,7 +283,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		'RequiemStableSwap',
 		{ from: localhost, gasLimit: 2e6 },
 		'addLiquidity',
-		[parseUnits('10', 6), parseUnits('10', 6), parseUnits('10', 18), parseUnits('10', 18)],
+		[parseUnits('101', 6), parseUnits('102', 6), parseUnits('103', 18), parseUnits('104', 18)],
 		0,
 		deadline
 	);
@@ -280,18 +300,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// const routerContract = await ethers.getContract('RequiemRouter');
 
 
-	const liq = await execute('RequiemQRouter', { from: localhost }, 'addLiquidity', pair, t1.address, t2.address,
-		parseUnits('1000000', 18),
-		parseUnits('1000000', 18),
-		parseUnits('1000000', 18),
-		parseUnits('1000000', 18),
+	const liq = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pair, t1.address, t2.address,
+		parseUnits('10003245', 18),
+		parseUnits('13002330', 18),
+		parseUnits('10003245', 18),
+		parseUnits('13002330', 18),
 		localhost,
 		deadline);
 
-	const liq2 = await execute('RequiemQRouter', { from: localhost }, 'addLiquidity', pair2, t2.address, usdt.address,
+	const liq2 = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pair2, t2.address, usdt.address,
+		BigNumber.from('1200000000'),
 		BigNumber.from('1000000000'),
-		BigNumber.from('1000000000'),
-		BigNumber.from('1000000000'),
+		BigNumber.from('1200000000'),
 		BigNumber.from('1000000000'),
 		localhost,
 		deadline);
@@ -319,7 +339,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("--regular")
 
-	// await execute('RequiemQRouter', { from: localhost }, 'swapExactTokensForTokens',
+	// await execute('RequiemQRouterBackup', { from: localhost }, 'swapExactTokensForTokens',
 	// 	t1.address, // address tokenIn,
 	// 	t2.address, // address tokenOut,
 	// 	10, // uint256 amountIn,
@@ -329,7 +349,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// 	deadline// uint256 deadline
 	// );
 
-	await execute('RequiemQRouter', { from: localhost }, 'swapExactTokensForTokens',
+	await execute('RequiemQRouterBackup', { from: localhost }, 'swapExactTokensForTokens',
 		t1.address, // address tokenIn,
 		t2.address, // address tokenOut,
 		10, // uint256 amountIn,
@@ -341,7 +361,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("swapped 0")
 
-	await execute('RequiemQRouter', { from: localhost }, 'swapExactTokensForTokens',
+	await execute('RequiemQRouterBackup', { from: localhost }, 'swapExactTokensForTokens',
 		t2.address, // address tokenIn,
 		usdt.address, // address tokenOut,
 		10, // uint256 amountIn,
@@ -352,7 +372,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	);
 
 	console.log("swapped 01")
-	await execute('RequiemQRouter', { from: localhost }, 'swapExactTokensForTokens',
+	await execute('RequiemQRouterBackup', { from: localhost }, 'swapExactTokensForTokens',
 		t1.address, // address tokenIn,
 		usdt.address, // address tokenOut,
 		10, // uint256 amountIn,
@@ -365,7 +385,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-	// await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokensTest',
+	// await execute('RequiemQRouterBackup', { from: localhost }, 'onSwapExactTokensForTokensTest',
 	// 	[{
 	// 		swapStructureId: 0,
 	// 		pools: [pair, pair2], // address pool;
@@ -394,7 +414,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	// // console.log("swap", swap)
 
-	// await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokensTest',
+	// await execute('RequiemQRouterBackup', { from: localhost }, 'onSwapExactTokensForTokensTest',
 	// 	swap,
 	// 	BigNumber.from(100), // in
 	// 	0, //out Min
@@ -404,7 +424,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	// console.log("swapped 2 old")
 
-	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokens',
+	await execute('RequiemQRouterBackup', { from: localhost }, 'onSwapExactTokensForTokens',
 		[
 			{
 				structure: 0,
@@ -450,10 +470,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("swap", qSwap0)
 
-	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokens',
+	await execute('RequiemQRouterBackup', { from: localhost }, 'onSwapExactTokensForTokens',
 		qSwap0,
-		BigNumber.from(100), // in
-		1, //out Min
+		BigNumber.from(10000), // in
+		10, //out Min
 		localhost,// address to,
 		deadline,// uint256 deadline
 	);
@@ -463,6 +483,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	//     address tokenIn;
 	//     address tokenOut;
 	// }
+	console.log("swapped 2")
+
+	await execute('RequiemQRouterBackup', { from: localhost }, 'onSwapTokensForExactTokens',
+	qSwap0,
+	BigNumber.from(10000), // out
+	BigNumber.from('100000000000000'), //in MAX
+	localhost,// address to,
+	deadline,// uint256 deadline
+);
+
+// struct QSwapStep {
+//     address pool;
+//     address tokenIn;
+//     address tokenOut;
+// }
+console.log("swapped 2B")
 
 	const qSwap1 = [
 		{
@@ -485,7 +521,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 		}
 	]
-	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+	await execute('RequiemQRouterBackup', { from: localhost }, 'onSwapTokensForExactTokens',
 		qSwap1,
 		BigNumber.from(100000000), // out
 		BigNumber.from('10000000000000000000'), //in max
@@ -494,67 +530,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	);
 
 	console.log("swapped 3")
-
-	console.log("--- create WETH t2 pair ----")
-	await factoryContract.createPair(weth.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
-	const pairWeth = await factoryContract.getPair(weth.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
-	// console.log("--- create t2 usdt pair ----")
-	// await factoryContract.createPair(usdt.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(50))
-	// const pair2 = await factoryContract.getPair(usdt.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(50))
-
-	// console.log("pair:", pair, pair2)
-	// // const routerContract = await ethers.getContract('RequiemRouter');
-
-	console.log("deposit eth")
-	await execute('TestWETH', { from: localhost, value: parseUnits('1000', 18) }, 'deposit')
-	console.log("addWETH Liquidity")
-
-	const liqWeth = await execute('RequiemQRouter', { from: localhost }, 'addLiquidity', pairWeth, weth.address, t2.address,
-		parseUnits('1000', 18),
-		parseUnits('1000000', 18),
-		parseUnits('1000', 18),
-		parseUnits('1000000', 18),
-		localhost,
-		deadline);
-	console.log("LP received")
-	// const liq2 = await execute('RequiemQRouter', { from: localhost }, 'addLiquidity', pair2, t2.address, usdt.address,
-	// 	BigNumber.from('1000000000'),
-	// 	BigNumber.from('1000000000'),
-	// 	BigNumber.from('1000000000'),
-	// 	BigNumber.from('1000000000'),
-	// 	localhost,
-	// 	deadline);
-
-	const qSwap2 = [
-		{
-			structure: 0,
-			pool: pair, // address pool;
-			tokenIn: weth.address,
-			tokenOut: t2.address
-		},
-		{
-			structure: 0,
-			pool: pair2, // address pool;
-			tokenIn: t2.address,
-			tokenOut: usdt.address
-		},
-		{
-			structure: 1,
-			pool: pool.address, // address pool;
-			tokenIn: usdt.address,
-			tokenOut: usdc.address,
-
-		}
-	]
-
-	await execute('RequiemQRouter', { from: localhost, value: BigNumber.from(1) }, 'onSwapExactETHForTokens',
-		qSwap2,
-		BigNumber.from('0'), //out min
-		localhost,// address to,
-		deadline,// uint256 deadline
-	);
-
-	console.log("swapped 4")
 };
 export default func;
 func.tags = ['factory-localhost-q'];

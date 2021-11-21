@@ -24,8 +24,6 @@ interface IRequiemSwap {
         uint256 maxPrice;
     }
 
-    function onSwap(SwapStep memory params, address to) external returns (uint256);
-
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,

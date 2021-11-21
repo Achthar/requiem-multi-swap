@@ -293,6 +293,153 @@ const _abi = [
   {
     inputs: [
       {
+        components: [
+          {
+            internalType: "address",
+            name: "pool",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "swapAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "limitReturnAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxPrice",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct IRequiemRouter.Swap[][]",
+        name: "swapSequences",
+        type: "tuple[][]",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "totalAmountIn",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "minTotalAmountOut",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+    ],
+    name: "multihopBatchSwapExactIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "totalAmountOut",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "pool",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "swapAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "limitReturnAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxPrice",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct IRequiemRouter.Swap[][]",
+        name: "swapSequences",
+        type: "tuple[][]",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "maxTotalAmountIn",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+    ],
+    name: "multihopBatchSwapExactOut",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "totalAmountIn",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "pair",
         type: "address",

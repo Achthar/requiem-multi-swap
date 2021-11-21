@@ -64,62 +64,6 @@
     {
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "pool",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "tokenIn",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "tokenOut",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "swapAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "limitReturnAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxPrice",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct IRequiemSwap.SwapStep",
-          "name": "params",
-          "type": "tuple"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        }
-      ],
-      "name": "onSwap",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "address",
           "name": "tokenIn",
           "type": "address"

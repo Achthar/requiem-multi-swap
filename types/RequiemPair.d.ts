@@ -41,7 +41,6 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "mint(address)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
-    "onSwap((address,address,address,uint256,uint256,uint256),address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
@@ -114,20 +113,6 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "mint", values: [string]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "onSwap",
-    values: [
-      {
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-        swapAmount: BigNumberish;
-        limitReturnAmount: BigNumberish;
-        maxPrice: BigNumberish;
-      },
-      string
-    ]
-  ): string;
   encodeFunctionData(
     functionFragment: "onSwapGivenIn",
     values: [string, string, BigNumberish, BigNumberish, string]
@@ -222,7 +207,6 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "onSwap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "onSwapGivenIn",
     data: BytesLike
@@ -461,30 +445,9 @@ export class RequiemPair extends BaseContract {
 
     nonces(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    onSwap(
-      params: {
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-        swapAmount: BigNumberish;
-        limitReturnAmount: BigNumberish;
-        maxPrice: BigNumberish;
-      },
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "onSwapGivenIn(address,address,uint256,uint256,address)"(
+    onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "onSwapGivenIn(address,uint256,uint256,address)"(
-      tokenIn: string,
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
@@ -643,30 +606,9 @@ export class RequiemPair extends BaseContract {
 
   nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  onSwap(
-    params: {
-      pool: string;
-      tokenIn: string;
-      tokenOut: string;
-      swapAmount: BigNumberish;
-      limitReturnAmount: BigNumberish;
-      maxPrice: BigNumberish;
-    },
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "onSwapGivenIn(address,address,uint256,uint256,address)"(
+  onSwapGivenIn(
     tokenIn: string,
     tokenOut: string,
-    amountIn: BigNumberish,
-    amountOutMin: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "onSwapGivenIn(address,uint256,uint256,address)"(
-    tokenIn: string,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     to: string,
@@ -824,20 +766,7 @@ export class RequiemPair extends BaseContract {
 
     nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    onSwap(
-      params: {
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-        swapAmount: BigNumberish;
-        limitReturnAmount: BigNumberish;
-        maxPrice: BigNumberish;
-      },
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "onSwapGivenIn(address,address,uint256,uint256,address)"(
+    onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
@@ -845,14 +774,6 @@ export class RequiemPair extends BaseContract {
       to: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    "onSwapGivenIn(address,uint256,uint256,address)"(
-      tokenIn: string,
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     onSwapGivenOut(
       tokenIn: string,
@@ -1129,30 +1050,9 @@ export class RequiemPair extends BaseContract {
 
     nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    onSwap(
-      params: {
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-        swapAmount: BigNumberish;
-        limitReturnAmount: BigNumberish;
-        maxPrice: BigNumberish;
-      },
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "onSwapGivenIn(address,address,uint256,uint256,address)"(
+    onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "onSwapGivenIn(address,uint256,uint256,address)"(
-      tokenIn: string,
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
@@ -1299,30 +1199,9 @@ export class RequiemPair extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    onSwap(
-      params: {
-        pool: string;
-        tokenIn: string;
-        tokenOut: string;
-        swapAmount: BigNumberish;
-        limitReturnAmount: BigNumberish;
-        maxPrice: BigNumberish;
-      },
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "onSwapGivenIn(address,address,uint256,uint256,address)"(
+    onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "onSwapGivenIn(address,uint256,uint256,address)"(
-      tokenIn: string,
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
