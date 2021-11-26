@@ -27,9 +27,12 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
     "formula()": FunctionFragment;
     "multihopBatchSwapExactIn(tuple[][],address,address,uint256,uint256,uint256)": FunctionFragment;
     "multihopBatchSwapExactOut(tuple[][],address,address,uint256,uint256)": FunctionFragment;
+    "onSwapETHForExactTokens(address[],address[],uint256,address,uint256)": FunctionFragment;
     "onSwapExactETHForTokens(address[],address[],uint256,address,uint256)": FunctionFragment;
     "onSwapExactTokensForETH(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
     "onSwapExactTokensForTokens(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
+    "onSwapTokensForExactETH(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
+    "onSwapTokensForExactTokens(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
     "swapETHForExactTokens(address,uint256,address[],address,uint256)": FunctionFragment;
     "swapExactETHForTokens(address,uint256,address[],address,uint256)": FunctionFragment;
     "swapExactETHForTokensSupportingFeeOnTransferTokens(address,uint256,address[],address,uint256)": FunctionFragment;
@@ -80,6 +83,10 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "onSwapETHForExactTokens",
+    values: [string[], string[], BigNumberish, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "onSwapExactETHForTokens",
     values: [string[], string[], BigNumberish, string, BigNumberish]
   ): string;
@@ -96,6 +103,28 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "onSwapExactTokensForTokens",
+    values: [
+      string[],
+      string[],
+      BigNumberish,
+      BigNumberish,
+      string,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onSwapTokensForExactETH",
+    values: [
+      string[],
+      string[],
+      BigNumberish,
+      BigNumberish,
+      string,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onSwapTokensForExactTokens",
     values: [
       string[],
       string[],
@@ -178,6 +207,10 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "onSwapETHForExactTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "onSwapExactETHForTokens",
     data: BytesLike
   ): Result;
@@ -187,6 +220,14 @@ interface RequiemQRouterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "onSwapExactTokensForTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "onSwapTokensForExactETH",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "onSwapTokensForExactTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -324,6 +365,15 @@ export class RequiemQRouter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    onSwapETHForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     onSwapExactETHForTokens(
       pools: string[],
       tokens: string[],
@@ -348,6 +398,26 @@ export class RequiemQRouter extends BaseContract {
       tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    onSwapTokensForExactETH(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    onSwapTokensForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -483,6 +553,15 @@ export class RequiemQRouter extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  onSwapETHForExactTokens(
+    pools: string[],
+    tokens: string[],
+    amountOut: BigNumberish,
+    to: string,
+    deadline: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   onSwapExactETHForTokens(
     pools: string[],
     tokens: string[],
@@ -507,6 +586,26 @@ export class RequiemQRouter extends BaseContract {
     tokens: string[],
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
+    to: string,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  onSwapTokensForExactETH(
+    pools: string[],
+    tokens: string[],
+    amountOut: BigNumberish,
+    amountInMax: BigNumberish,
+    to: string,
+    deadline: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  onSwapTokensForExactTokens(
+    pools: string[],
+    tokens: string[],
+    amountOut: BigNumberish,
+    amountInMax: BigNumberish,
     to: string,
     deadline: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -642,6 +741,15 @@ export class RequiemQRouter extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    onSwapETHForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
     onSwapExactETHForTokens(
       pools: string[],
       tokens: string[],
@@ -670,6 +778,26 @@ export class RequiemQRouter extends BaseContract {
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    onSwapTokensForExactETH(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    onSwapTokensForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
 
     swapETHForExactTokens(
       tokenOut: string,
@@ -822,6 +950,15 @@ export class RequiemQRouter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    onSwapETHForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     onSwapExactETHForTokens(
       pools: string[],
       tokens: string[],
@@ -846,6 +983,26 @@ export class RequiemQRouter extends BaseContract {
       tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    onSwapTokensForExactETH(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    onSwapTokensForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -982,6 +1139,15 @@ export class RequiemQRouter extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    onSwapETHForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     onSwapExactETHForTokens(
       pools: string[],
       tokens: string[],
@@ -1006,6 +1172,26 @@ export class RequiemQRouter extends BaseContract {
       tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    onSwapTokensForExactETH(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
+      to: string,
+      deadline: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    onSwapTokensForExactTokens(
+      pools: string[],
+      tokens: string[],
+      amountOut: BigNumberish,
+      amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

@@ -283,7 +283,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		'RequiemStableSwap',
 		{ from: localhost, gasLimit: 2e6 },
 		'addLiquidity',
-		[parseUnits('101', 6), parseUnits('102', 6), parseUnits('103', 18), parseUnits('104', 18)],
+		[parseUnits('123401', 6), parseUnits('102342', 6), parseUnits('104233', 18), parseUnits('102334', 18)],
 		0,
 		deadline
 	);
@@ -424,22 +424,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 	// console.log("swapped 2 old")
-	const pairContract = await ethers.getContractAt('RequiemPair', pair);
-	await pairContract.onSwapGivenIn(
-		t1.address,// address tokenIn,
-        t2.address,// address tokenOut,
-        BigNumber.from(10000),// uint256 amountIn,
-        0,// uint256 amountOutMin,
-        localhost// address to
-	)
-	console.log("swapped single1")
-	await pairContract.onSwapGivenOut(
-		t1.address,// address tokenIn,
-        t2.address,// address tokenOut,
-        BigNumber.from('100000000'),// uint256 amountInMax,
-        1000,// uint256 amountOut,
-        localhost// address to
-	)
+	// const pairContract = await ethers.getContractAt('RequiemPair', pair);
+	// await pairContract.onSwapGivenIn(
+	// 	t1.address,// address tokenIn,
+	//     t2.address,// address tokenOut,
+	//     BigNumber.from(10000),// uint256 amountIn,
+	//     0,// uint256 amountOutMin,
+	//     localhost// address to
+	// )
+	// console.log("swapped single1")
+	// await pairContract.onSwapGivenOut(
+	// 	t1.address,// address tokenIn,
+	//     t2.address,// address tokenOut,
+	//     BigNumber.from('100000000'),// uint256 amountInMax,
+	//     1000,// uint256 amountOut,
+	//     localhost// address to
+	// )
 	// const pools1 = [pair, pair2]
 	// const tokens1 = [t1.address, t2.address, usdt.address]
 	console.log("swapped single2")
@@ -480,6 +480,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// }
 	console.log("swapped 2")
 
+	console.log("swap EO", pools2, tokens2)
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools2,
+		tokens2,
+		BigNumber.from('324243232'), // out
+		BigNumber.from('1000234324324240'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+
+	// struct QSwapStep {
+	//     address pool;
+	//     address tokenIn;
+	//     address tokenOut;
+	// }
+	console.log("swapped 2A")
+
 
 	console.log("--- create WETH t2 pair ----")
 	await factoryContract.createPair(weth.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
@@ -510,6 +528,29 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		deadline,// uint256 deadline
 	);
 	console.log("swapped 3")
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools3,
+		tokens3,
+		// [0, 0, 1],
+		BigNumber.from('3232332'), // out
+		BigNumber.from('1000234324324240'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+	console.log("swapped 3A")
+
+	await execute('RequiemQRouter', { from: localhost, value: BigNumber.from('1000235430') }, 'onSwapETHForExactTokens',
+		pools3,
+		tokens3,
+		// [0, 0, 1],
+		BigNumber.from('3232332'), // out
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+	console.log("swapped 3B")
+
+
 	await execute('RequiemQRouter', { from: localhost, value: BigNumber.from(1000) }, 'onSwapExactETHForTokens',
 		pools3,
 		tokens3,
@@ -520,6 +561,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("swapped 4")
 
+	const tokens4 = [usdc.address, usdt.address, t2.address, weth.address]
+	const pools4 = [pool.address, pair2, pairWeth]
+
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForETH',
+		pools4,
+		tokens4,
+		BigNumber.from('323233'), // out
+		BigNumber.from('0'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+
+
+	console.log("swapped 4A")
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactETH',
+		pools4,
+		tokens4,
+		BigNumber.from('324433'), // out
+		BigNumber.from('3242343232432'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+	console.log("swapped 5A")
 
 	// const qSwap21 = [
 	// 	{
