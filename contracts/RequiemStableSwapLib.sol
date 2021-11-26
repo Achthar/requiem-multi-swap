@@ -504,6 +504,42 @@ library RequiemStableSwapLib {
         revert("invariantCalculationFailed");
     }
 
+ /**
+     * Calculate D for *NORMALIZED* balances of each tokens
+     * @param xp normalized balances of token
+     */
+    function _getInvariant(uint256[] memory xp, uint256 amp, bool roundUp) internal pure returns (uint256) {
+        uint256 nCoins = xp.length;
+        uint256 sum = _sumOf(xp);
+        if (sum == 0) {
+            return 0;
+        }
+
+        uint256 Dprev = 0;
+        uint256 D = sum;
+        uint256 Ann = amp * nCoins;
+
+        for (uint256 i = 0; i < MAX_ITERATION; i++) {
+            uint256 D_P = D;
+            for (uint256 j = 0; j < xp.length; j++) {
+                D_P = div((D_P * D) , (xp[j] * nCoins), roundUp);
+            }
+            Dprev = D;
+            D = div(
+                ((div((Ann * sum) , A_PRECISION , roundUp)+ D_P * nCoins) * D) , 
+                (div(((Ann - A_PRECISION) * D) , A_PRECISION, !roundUp) + (nCoins + 1) * D_P),
+                roundUp);
+            if (_distance(D, Dprev) <= 1) {
+                return D;
+            }
+        }
+
+        // Convergence should occur in 4 loops or less. If this is reached, there may be something wrong
+        // with the pool. If this were to occur repeatedly, LPs should withdraw via `removeLiquidity()`
+        // function which does not rely on D.
+        revert("invariantCalculationFailed");
+    }
+
     /**
      * calculate new balance of when swap
      * Done by solving quadratic equation iteratively.
