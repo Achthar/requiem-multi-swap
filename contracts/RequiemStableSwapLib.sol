@@ -127,7 +127,7 @@ library RequiemStableSwapLib {
         inAmount = _doTransferIn(inCoin, inAmount);
 
         // uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
-        uint256 y = _getYOrig(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
+        uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
         uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
         uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
@@ -234,7 +234,7 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
 
         uint256 y = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
-        uint256 x = _getX(self, i, j, y, normalizedBalances);
+        uint256 x = _getY(self, j, i, y, normalizedBalances);
 
         uint256 dx = normalizedBalances[i] - x - 1; // iliminate rouding errors
         uint256 dx_fee = (dx * self.fee) / FEE_DENOMINATOR;
@@ -420,7 +420,7 @@ library RequiemStableSwapLib {
     ) external view returns (uint256) {
         uint256[] memory normalizedBalances = _xp(self);
         uint256 newInBalance = normalizedBalances[inIndex] + (inAmount * self.tokenMultipliers[inIndex]);
-        uint256 outBalance = _getYOrig(self, inIndex, outIndex, newInBalance, normalizedBalances);
+        uint256 outBalance = _getY(self, inIndex, outIndex, newInBalance, normalizedBalances);
         uint256 outAmount = divDown(normalizedBalances[outIndex] - outBalance , self.tokenMultipliers[outIndex]);
         uint256 _fee = self.fee * outAmount / FEE_DENOMINATOR;
         return outAmount - _fee;
@@ -439,7 +439,7 @@ library RequiemStableSwapLib {
         // fee has to be deducted on the output
         uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
         uint256 newOutBalance = normalizedBalances[outIndex] - (_amountOutInclFee * self.tokenMultipliers[outIndex]);
-        uint256 inBalance = _getX(self, inIndex, outIndex, newOutBalance, normalizedBalances);
+        uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
         // _getYOrig(self, outIndex, inIndex, newOutBalance, normalizedBalances);_getX(self, inIndex, outIndex, newOutBalance, normalizedBalances);
         uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex] , self.tokenMultipliers[inIndex]);
         return inAmount;
@@ -593,7 +593,7 @@ library RequiemStableSwapLib {
      * @param inBalance new balance (normalized) of input token if the swap is successful
      * @return NORMALIZED balance of output token if the swap is successful
      */
-    function _getYOrig(
+    function _getY(
         SwapStorage storage self,
         uint256 inIndex,
         uint256 outIndex,
@@ -637,115 +637,115 @@ library RequiemStableSwapLib {
         revert("yCalculationFailed");
     }
 
-    /**
-     * calculate new balance of when swap
-     * Done by solving quadratic equation iteratively.
-     *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
-     *  x_1**2 + b*x_1 = c
-     *  x_1 = (x_1**2 + c) / (2*x_1 + b)
-     * @param inIndex index of token to swap in
-     * @param outIndex index of token to swap out
-     * @param inBalance new balance (normalized) of input token if the swap is successful
-     * @return NORMALIZED balance of output token if the swap is successful
-     */
-    function _getY(
-        SwapStorage storage self,
-        uint256 inIndex,
-        uint256 outIndex,
-        uint256 inBalance,
-        uint256[] memory normalizedBalances
-    ) internal view returns (uint256) {
-        require(inIndex != outIndex, "sameToken");
-        uint256 nCoins = self.pooledTokens.length;
-        require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
+    // /**
+    //  * calculate new balance of when swap
+    //  * Done by solving quadratic equation iteratively.
+    //  *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
+    //  *  x_1**2 + b*x_1 = c
+    //  *  x_1 = (x_1**2 + c) / (2*x_1 + b)
+    //  * @param inIndex index of token to swap in
+    //  * @param outIndex index of token to swap out
+    //  * @param inBalance new balance (normalized) of input token if the swap is successful
+    //  * @return NORMALIZED balance of output token if the swap is successful
+    //  */
+    // function _getY(
+    //     SwapStorage storage self,
+    //     uint256 inIndex,
+    //     uint256 outIndex,
+    //     uint256 inBalance,
+    //     uint256[] memory normalizedBalances
+    // ) internal view returns (uint256) {
+    //     require(inIndex != outIndex, "sameToken");
+    //     uint256 nCoins = self.pooledTokens.length;
+    //     require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
 
-        uint256 amp = _getAPrecise(self);
-        uint256 Ann = amp * nCoins;
-        uint256 D = _getInvariant(normalizedBalances, amp, true); // calculate invariant
+    //     uint256 amp = _getAPrecise(self);
+    //     uint256 Ann = amp * nCoins;
+    //     uint256 D = _getInvariant(normalizedBalances, amp, true); // calculate invariant
 
-        uint256 sum = 0; // sum of new balances except output token
-        uint256 c = D;
-        for (uint256 i = 0; i < nCoins; i++) {
-            if (i == outIndex) {
-                continue;
-            }
+    //     uint256 sum = 0; // sum of new balances except output token
+    //     uint256 c = D;
+    //     for (uint256 i = 0; i < nCoins; i++) {
+    //         if (i == outIndex) {
+    //             continue;
+    //         }
 
-            uint256 x = i == inIndex ? inBalance : normalizedBalances[i];
-            sum += x;
-            c = divUp((c * D), (x * nCoins));
-        }
+    //         uint256 x = i == inIndex ? inBalance : normalizedBalances[i];
+    //         sum += x;
+    //         c = divUp((c * D), (x * nCoins));
+    //     }
 
-        c = divUp((c * D * A_PRECISION), (Ann * nCoins));
-        uint256 b = sum + divDown((D * A_PRECISION), Ann);
+    //     c = divUp((c * D * A_PRECISION), (Ann * nCoins));
+    //     uint256 b = sum + divDown((D * A_PRECISION), Ann);
 
-        uint256 lastY = 0;
-        uint256 y = D;
+    //     uint256 lastY = 0;
+    //     uint256 y = D;
 
-        for (uint256 index = 0; index < MAX_ITERATION; index++) {
-            lastY = y;
-            y = divUp((y * y + c), (2 * y + b - D));
-            if (_distance(lastY, y) <= 1) {
-                return y;
-            }
-        }
+    //     for (uint256 index = 0; index < MAX_ITERATION; index++) {
+    //         lastY = y;
+    //         y = divUp((y * y + c), (2 * y + b - D));
+    //         if (_distance(lastY, y) <= 1) {
+    //             return y;
+    //         }
+    //     }
 
-        revert("yCalculationFailed");
-    }
+    //     revert("yCalculationFailed");
+    // }
 
-    /**
-     * calculate new balance of when swap
-     * Done by solving quadratic equation iteratively.
-     *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
-     *  x_1**2 + b*x_1 = c
-     *  x_1 = (x_1**2 + c) / (2*x_1 + b)
-     * @param inIndex index of token to swap in
-     * @param outIndex index of token to swap out
-     * @param outBalance new balance (normalized) of input token if the swap is successful
-     * @return NORMALIZED balance of output token if the swap is successful
-     */
-    function _getX(
-        SwapStorage storage self,
-        uint256 inIndex,
-        uint256 outIndex,
-        uint256 outBalance,
-        uint256[] memory normalizedBalances
-    ) internal view returns (uint256) {
-        require(inIndex != outIndex, "sameToken");
-        uint256 nCoins = self.pooledTokens.length;
-        require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
+    // /**
+    //  * calculate new balance of when swap
+    //  * Done by solving quadratic equation iteratively.
+    //  *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
+    //  *  x_1**2 + b*x_1 = c
+    //  *  x_1 = (x_1**2 + c) / (2*x_1 + b)
+    //  * @param inIndex index of token to swap in
+    //  * @param outIndex index of token to swap out
+    //  * @param outBalance new balance (normalized) of input token if the swap is successful
+    //  * @return NORMALIZED balance of output token if the swap is successful
+    //  */
+    // function _getX(
+    //     SwapStorage storage self,
+    //     uint256 inIndex,
+    //     uint256 outIndex,
+    //     uint256 outBalance,
+    //     uint256[] memory normalizedBalances
+    // ) internal view returns (uint256) {
+    //     require(inIndex != outIndex, "sameToken");
+    //     uint256 nCoins = self.pooledTokens.length;
+    //     require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
 
-        uint256 amp = _getAPrecise(self);
-        uint256 Ann = amp * nCoins;
-        uint256 D = _getInvariant(normalizedBalances, amp, true);
+    //     uint256 amp = _getAPrecise(self);
+    //     uint256 Ann = amp * nCoins;
+    //     uint256 D = _getInvariant(normalizedBalances, amp, true);
 
-        uint256 sum = 0; // sum of new balances except output token
-        uint256 c = D;
-        for (uint256 i = 0; i < nCoins; i++) {
-            if (i == inIndex) {
-                continue;
-            }
+    //     uint256 sum = 0; // sum of new balances except output token
+    //     uint256 c = D;
+    //     for (uint256 i = 0; i < nCoins; i++) {
+    //         if (i == inIndex) {
+    //             continue;
+    //         }
 
-            uint256 y = i == outIndex ? outBalance : normalizedBalances[i];
-            sum += y;
-            c = divDown((c * D), (y * nCoins));
-        }
+    //         uint256 y = i == outIndex ? outBalance : normalizedBalances[i];
+    //         sum += y;
+    //         c = divDown((c * D), (y * nCoins));
+    //     }
 
-        c = divDown((c * D * A_PRECISION), (Ann * nCoins));
-        uint256 b = sum + divUp((D * A_PRECISION), Ann);
+    //     c = divDown((c * D * A_PRECISION), (Ann * nCoins));
+    //     uint256 b = sum + divUp((D * A_PRECISION), Ann);
 
-        uint256 lastX = 0;
-        uint256 x = D;
+    //     uint256 lastX = 0;
+    //     uint256 x = D;
 
-        for (uint256 index = 0; index < MAX_ITERATION; index++) {
-            lastX = x;
-            x = divDown((x * x + c), (2 * x + b - D));
-            if (_distance(lastX, x) <= 1) {
-                return x;
-            }
-        }
+    //     for (uint256 index = 0; index < MAX_ITERATION; index++) {
+    //         lastX = x;
+    //         x = divDown((x * x + c), (2 * x + b - D));
+    //         if (_distance(lastX, x) <= 1) {
+    //             return x;
+    //         }
+    //     }
 
-        revert("xCalculationFailed");
-    }
+    //     revert("xCalculationFailed");
+    // }
 
     function _calculateRemoveLiquidity(
         SwapStorage storage self,
