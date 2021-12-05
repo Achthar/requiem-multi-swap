@@ -692,8 +692,8 @@ contract RequiemFormula is IRequiemFormula {
         uint8 precision;
         uint256 baseD = reserveOut - amountOut;
         (result, precision) = power(reserveOut, baseD, tokenWeightOut, tokenWeightIn);
-        uint256 baseReserveIn = reserveIn - 10000;
-        uint256 temp1 = baseReserveIn - result;
+        uint256 baseReserveIn = reserveIn * 10000;
+        uint256 temp1 = baseReserveIn * result;
         uint256 temp2 = baseReserveIn << precision;
         amountIn = ((temp1 - temp2) >> precision) / (10000 - swapFee) + 1;
     }
