@@ -731,7 +731,7 @@ export class RequiemStableSwap extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOut: BigNumberish,
+      arg3: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -988,7 +988,7 @@ export class RequiemStableSwap extends BaseContract {
     tokenIn: string,
     tokenOut: string,
     amountIn: BigNumberish,
-    amountOut: BigNumberish,
+    arg3: BigNumberish,
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1247,7 +1247,7 @@ export class RequiemStableSwap extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOut: BigNumberish,
+      arg3: BigNumberish,
       to: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1786,7 +1786,7 @@ export class RequiemStableSwap extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOut: BigNumberish,
+      arg3: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -2030,7 +2030,7 @@ export class RequiemStableSwap extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOut: BigNumberish,
+      arg3: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

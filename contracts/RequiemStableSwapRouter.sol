@@ -6,6 +6,8 @@ import "./interfaces/IRequiemStableSwap.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
+
 contract RequiemStableSwapRouter {
     using SafeERC20 for IERC20;
 

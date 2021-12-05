@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import "./tokens/LPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -67,7 +67,7 @@ library RequiemStableSwapLib {
         uint256 minMintAmount
     ) external returns (uint256 mintAmount) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "invalidAmountsLength");
+        require(amounts.length == nCoins, "length");
         uint256[] memory fees = new uint256[](nCoins);
         uint256 _fee = _feePerToken(self);
 
@@ -83,7 +83,7 @@ library RequiemStableSwapLib {
 
         for (uint256 i = 0; i < nCoins; i++) {
             if (tokenSupply == 0) {
-                require(amounts[i] > 0, "initialDepositRequireAllTokens");
+                require(amounts[i] > 0, "tokens");
             }
             // get real transfer in amount
             newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
@@ -107,7 +107,7 @@ library RequiemStableSwapLib {
             mintAmount = (tokenSupply * (D1 - D0)) / D0;
         }
 
-        require(mintAmount >= minMintAmount, "> slippage");
+        require(mintAmount >= minMintAmount, "> s");
 
         self.lpToken.mint(msg.sender, mintAmount);
         emit AddLiquidity(msg.sender, amounts, fees, D1, mintAmount);
@@ -136,7 +136,7 @@ library RequiemStableSwapLib {
 
         dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
 
-        require(dy >= minOutAmount, "> slippage");
+        require(dy >= minOutAmount, "> s");
 
         // update balances
         self.balances[i] += inAmount;
@@ -145,49 +145,6 @@ library RequiemStableSwapLib {
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
         return dy;
-    }
-
-    /**
-     *  implements classic swap function a la compound
-     *  here the amounts are provided and just validated via the invariant
-     *  - out amount is supposed to not include the fees
-     *  - inAmount is supposd to be sent already to this address
-     * @param i token in index
-     * @param j token out index
-     * @param inAmount exact in amount, povided or calculated using outAmount
-     * @param outAmount exact out amount, povided or calculated using inAmount
-     */
-    function _swap(
-        SwapStorage storage self,
-        uint256 i,
-        uint256 j,
-        uint256 inAmount,
-        uint256 outAmount,
-        address to
-    ) external returns (uint256) {
-        // check whether at least the input amount has been sent here
-        require(self.balances[i] + inAmount == self.pooledTokens[i].balanceOf(address(this)), "input");
-        // adjust output amount for fees
-        uint256 amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
-        uint256 amp = _getAPrecise(self);
-        // calculate invariant before trade
-        uint256 D0 = _getD(_xp(self), amp);
-        //calculate new balance
-        uint256[] memory newBalances = self.balances;
-        newBalances[i] += inAmount;
-        newBalances[j] -= amountOutInclFee;
-        // calculate invariant after trade
-        uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-
-        require(D1 >= D0, "invariant");
-
-        // update balances after invariant validation
-        self.balances[i] += inAmount;
-        self.balances[j] -= amountOutInclFee;
-
-        self.pooledTokens[j].safeTransfer(to, amountOutInclFee);
-        emit TokenExchange(to, i, inAmount, j, amountOutInclFee);
-        return outAmount;
     }
 
     /**
@@ -218,7 +175,7 @@ library RequiemStableSwapLib {
 
         dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
 
-        require(dy >= minOutAmount, "> slippage");
+        require(dy >= minOutAmount, "> s");
 
         uint256 _adminFee = (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
 
@@ -266,7 +223,7 @@ library RequiemStableSwapLib {
 
         dx = dx / self.tokenMultipliers[i]; // denormalize
 
-        require(dx <= maxInAmount, "> slippage");
+        require(dx <= maxInAmount, "> s");
 
         // update balances
         self.balances[i] -= dx;
@@ -296,7 +253,7 @@ library RequiemStableSwapLib {
         amounts = _calculateRemoveLiquidity(self, msg.sender, lpAmount);
 
         for (uint256 i = 0; i < amounts.length; i++) {
-            require(amounts[i] >= minAmounts[i], "> slippage");
+            require(amounts[i] >= minAmounts[i], "> s");
             self.balances[i] = self.balances[i] - amounts[i];
             self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
         }
@@ -323,7 +280,7 @@ library RequiemStableSwapLib {
 
         (dy, dyFee) = _calculateRemoveLiquidityOneToken(self, msg.sender, lpAmount, index);
 
-        require(dy >= minAmount, "> slippage");
+        require(dy >= minAmount, "> s");
 
         self.balances[index] -= (dy + (dyFee * self.adminFee) / FEE_DENOMINATOR);
         self.lpToken.burnFrom(msg.sender, lpAmount);
@@ -340,7 +297,7 @@ library RequiemStableSwapLib {
         uint256 maxBurnAmount
     ) external returns (uint256 burnAmount) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "invalidAmountsLength");
+        require(amounts.length == nCoins, "length");
         uint256 totalSupply = self.lpToken.totalSupply();
         require(totalSupply != 0, "totalSupply = 0");
         uint256 _fee = _feePerToken(self);
@@ -369,7 +326,7 @@ library RequiemStableSwapLib {
         burnAmount = ((D0 - D1) * totalSupply) / D0;
         assert(burnAmount > 0);
         burnAmount = (burnAmount + 1) * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender)); //In case of rounding errors - make it unfavorable for the "attacker"
-        require(burnAmount <= maxBurnAmount, "> slippage");
+        require(burnAmount <= maxBurnAmount, "> s");
 
         self.lpToken.burnFrom(msg.sender, burnAmount);
 
@@ -412,7 +369,7 @@ library RequiemStableSwapLib {
         bool deposit
     ) external view returns (uint256) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "invalidAmountsLength");
+        require(amounts.length == nCoins, "length");
         uint256 amp = _getAPrecise(self);
         uint256 D0 = _getD(_xp(self), amp);
 
@@ -636,7 +593,7 @@ library RequiemStableSwapLib {
         uint256 amount
     ) internal view returns (uint256[] memory) {
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(amount <= totalSupply, "Cannot exceed total supply");
+        require(amount <= totalSupply, "total supply");
 
         uint256 feeAdjustedAmount = (amount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
 
@@ -781,12 +738,12 @@ library RequiemStableSwapLib {
     }
 
     function divDown(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "ZERO_DIVISION");
+        require(b != 0, "div");
         return a / b;
     }
 
     function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "ZERO_DIVISION");
+        require(b != 0, "div");
 
         if (a == 0) {
             return 0;

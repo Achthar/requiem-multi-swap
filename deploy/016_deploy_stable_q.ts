@@ -247,7 +247,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		dai.address,
 		tusd.address,
 		calcSwap6, //in
-		BigNumber.from('0'), //out
+		BigNumber.from('10'), //out
 		localhost
 	)
 

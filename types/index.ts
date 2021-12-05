@@ -66,7 +66,6 @@ export type { RequiemFormulaTest } from "./RequiemFormulaTest";
 export type { RequiemPair } from "./RequiemPair";
 export type { RequiemQPairManager } from "./RequiemQPairManager";
 export type { RequiemQRouter } from "./RequiemQRouter";
-export type { RequiemQRouterBackup } from "./RequiemQRouterBackup";
 export type { RequiemRouter } from "./RequiemRouter";
 export type { RequiemStableSwap } from "./RequiemStableSwap";
 export type { RequiemStableSwapLib } from "./RequiemStableSwapLib";
@@ -164,7 +163,6 @@ export { RequiemFormulaTest__factory } from "./factories/RequiemFormulaTest__fac
 export { RequiemPair__factory } from "./factories/RequiemPair__factory";
 export { RequiemQPairManager__factory } from "./factories/RequiemQPairManager__factory";
 export { RequiemQRouter__factory } from "./factories/RequiemQRouter__factory";
-export { RequiemQRouterBackup__factory } from "./factories/RequiemQRouterBackup__factory";
 export { RequiemRouter__factory } from "./factories/RequiemRouter__factory";
 export { RequiemStableSwap__factory } from "./factories/RequiemStableSwap__factory";
 export { RequiemStableSwapLib__factory } from "./factories/RequiemStableSwapLib__factory";

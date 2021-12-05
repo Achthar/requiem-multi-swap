@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.9;
+pragma solidity >=0.8.10;
 pragma abicoder v2;
 
 import "./interfaces/IRequiemFactory.sol";
@@ -11,6 +11,8 @@ import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/IRequiemRouter.sol";
 import "./libraries/SafeMath.sol";
 import "./interfaces/IWETH.sol";
+
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 contract RequiemRouter is IRequiemRouter {
     using SafeMath for uint256;

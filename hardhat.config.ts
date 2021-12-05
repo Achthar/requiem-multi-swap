@@ -242,8 +242,8 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       // tags: ['staging'],
       // gasMultiplier: 4,
-      gas: 800000000,
-      gasPrice: 2500000000000,
+      gas: 8000000,
+      gasPrice: 25000000000,
     },
     harmony: {
       url: 'https://api.s0.t.hmny.io',
@@ -340,7 +340,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 12500,
+            runs: 99999,
           },
           evmVersion: 'london',
         },

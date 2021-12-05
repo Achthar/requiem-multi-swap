@@ -3,27 +3,6 @@
 pragma solidity ^0.8.10;
 
 interface IRequiemSwap {
-    enum SwapKind {
-        GIVEN_IN,
-        GIVEN_OUT
-    }
-
-    struct QSwapStep {
-        uint8 structure;
-        address pool;
-        address tokenIn;
-        address tokenOut;
-    }
-
-    struct SwapStep {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount; // tokenInAmount / tokenOutAmount
-        uint256 limitReturnAmount; // minAmountOut / maxAmountIn
-        uint256 maxPrice;
-    }
-
     // this funtion requires the correctly calculated amounts as input
     // the others are supposed to implement that calculation
     // no return value required since the amounts are already known

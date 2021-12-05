@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 import "./libraries/ReentrancyGuard.sol";
 import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -36,7 +36,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     }
 
     modifier onlyFeeControllerOrOwner() {
-        require(msg.sender == feeController || msg.sender == owner(), "!feeControllerOrOwner");
+        require(msg.sender == feeController || msg.sender == owner(), "!feeController");
         _;
     }
 
@@ -51,7 +51,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         uint256 _withdrawFee,
         address _feeDistributor
     ) external onlyOwner initializer {
-        require(_coins.length == _decimals.length, "coinsLength != decimalsLength");
+        require(_coins.length == _decimals.length, "coinsL != decimalsL");
         require(_feeDistributor != address(0), "feeDistributor = empty");
         uint256 numberOfCoins = _coins.length;
         uint256[] memory rates = new uint256[](numberOfCoins);
@@ -65,9 +65,9 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         }
 
         require(_A < MAX_A, "> maxA");
-        require(_fee <= MAX_SWAP_FEE, "> maxSwapFee");
-        require(_adminFee <= MAX_ADMIN_FEE, "> maxAdminFee");
-        require(_withdrawFee <= MAX_WITHDRAW_FEE, "> maxWithdrawFee");
+        require(_fee <= MAX_SWAP_FEE, "> maxSFee");
+        require(_adminFee <= MAX_ADMIN_FEE, "> maxAFee");
+        require(_withdrawFee <= MAX_WITHDRAW_FEE, "> maxWFee");
 
         swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
@@ -103,17 +103,20 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         return swapStorage.swap(fromIndex, toIndex, inAmount, minOutAmount, to);
     }
 
-    // function that uses already the correct amounts as input
-    // that is done to avoid recalculating the values with only checking whether
-    // the invariant is still holding
+    // function for the requiem swap interface
+    // recalculates the output amount from the input
+    // has no check for slippage, that should be wrapped arount that funtion if used
+    // calculation-wise not really less efficient than just validating input amounts
+    // since the invariant would have to be calculated twice
     function onSwap(
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        uint256 amountOut,
+        uint256,
         address to
     ) external override whenNotPaused nonReentrant {
-        swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+        // swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+        swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, 0, to);
     }
 
     // expects amount alrady to be sent to this address
@@ -297,9 +300,9 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         uint256 newAdminFee,
         uint256 newWithdrawFee
     ) external onlyOwner {
-        require(newSwapFee <= MAX_SWAP_FEE, "> maxSwapFee");
-        require(newAdminFee <= MAX_ADMIN_FEE, "> maxAdminFee");
-        require(newWithdrawFee <= MAX_WITHDRAW_FEE, "> maxWithdrawFee");
+        require(newSwapFee <= MAX_SWAP_FEE, "> SFee");
+        require(newAdminFee <= MAX_ADMIN_FEE, "> AFee");
+        require(newWithdrawFee <= MAX_WITHDRAW_FEE, "> WFee");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
@@ -315,17 +318,17 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
      * @param futureATime timestamp when the new A should be reached
      */
     function rampA(uint256 futureA, uint256 futureATime) external onlyOwner {
-        require(block.timestamp >= swapStorage.initialATime + (1 days), "< rampDelay"); // please wait 1 days before start a new ramping
-        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "< minRampTime");
+        require(block.timestamp >= swapStorage.initialATime + (1 days), "< rampD"); // please wait 1 days before start a new ramping
+        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "< minRampT");
         require(0 < futureA && futureA < MAX_A, "outOfRange");
 
         uint256 initialAPrecise = swapStorage.getAPrecise();
         uint256 futureAPrecise = futureA * RequiemStableSwapLib.A_PRECISION;
 
         if (futureAPrecise < initialAPrecise) {
-            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "> maxChange");
+            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "> maxC");
         } else {
-            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "> maxChange");
+            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "> maxC");
         }
 
         swapStorage.initialA = initialAPrecise;
@@ -349,13 +352,13 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     }
 
     function setFeeController(address _feeController) external onlyOwner {
-        require(_feeController != address(0), "zeroAddress");
+        require(_feeController != address(0), "zero");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
     }
 
     function setFeeDistributor(address _feeDistributor) external onlyOwner {
-        require(_feeDistributor != address(0), "zeroAddress");
+        require(_feeDistributor != address(0), "zero");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
     }
