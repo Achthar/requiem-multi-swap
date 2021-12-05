@@ -181,8 +181,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemStableSwap.sol": {
-      "lastModificationDate": 1637971649130,
-      "contentHash": "7bde695a7cf73d09051747be58beca29",
+      "lastModificationDate": 1638666551787,
+      "contentHash": "c3d20ecd102dfdbba0602d4a1b5abe55",
       "sourceName": "contracts/RequiemStableSwap.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -408,8 +408,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemStableSwapLib.sol": {
-      "lastModificationDate": 1638017838229,
-      "contentHash": "652438b2a582d2a73f7c73a61682fe70",
+      "lastModificationDate": 1638666572051,
+      "contentHash": "35daef430a23bc7fe2fbd0fb84ade3d6",
       "sourceName": "contracts/RequiemStableSwapLib.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -500,8 +500,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/interfaces/IRequiemSwap.sol": {
-      "lastModificationDate": 1637359243012,
-      "contentHash": "478804e13fff06b8d756623f0565f9b4",
+      "lastModificationDate": 1638663208150,
+      "contentHash": "797b212139563cf8d665bd9b0a077137",
       "sourceName": "contracts/interfaces/IRequiemSwap.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -817,8 +817,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemQRouter.sol": {
-      "lastModificationDate": 1637513503107,
-      "contentHash": "121bc31d811cec44e674d9fe65f8e9c8",
+      "lastModificationDate": 1638666229703,
+      "contentHash": "142e5f6bcbcbf692ee17e56cc6778c58",
       "sourceName": "contracts/RequiemQRouter.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -3036,8 +3036,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemPair.sol": {
-      "lastModificationDate": 1637430723978,
-      "contentHash": "f983ff023ab095fb1338c3394b3f923d",
+      "lastModificationDate": 1638666942123,
+      "contentHash": "bf8930ceded5e4598cbd283c03046745",
       "sourceName": "contracts/RequiemPair.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -3553,8 +3553,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemFormula.sol": {
-      "lastModificationDate": 1637332003599,
-      "contentHash": "8481898e214702d6c88836efa2fbd89f",
+      "lastModificationDate": 1638666889803,
+      "contentHash": "bdc022746aedb9bbfffcd3d5c258c0f7",
       "sourceName": "contracts/RequiemFormula.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -3590,11 +3590,10 @@
       "imports": [
         "./interfaces/IRequiemFormula.sol",
         "./interfaces/IRequiemPair.sol",
-        "./interfaces/IRequiemFactory.sol",
-        "./libraries/SafeMath.sol"
+        "./interfaces/IRequiemFactory.sol"
       ],
       "versionPragmas": [
-        ">=0.7.6"
+        ">=0.8.10"
       ],
       "artifacts": [
         "RequiemFormula"
@@ -3829,8 +3828,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemFactory.sol": {
-      "lastModificationDate": 1637161242540,
-      "contentHash": "1a18a9e45761ea4679b8e823423ab473",
+      "lastModificationDate": 1638309268730,
+      "contentHash": "1f9d3ed70daff7ff9912576dc4721043",
       "sourceName": "contracts/RequiemFactory.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -5812,8 +5811,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/StableSwap.sol": {
-      "lastModificationDate": 1638011450467,
-      "contentHash": "c968e4d14d138e3bbb5428e76540eabd",
+      "lastModificationDate": 1638663254558,
+      "contentHash": "4e3d17d71f5c7fec59c5f9802d379928",
       "sourceName": "contracts/StableSwap.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -5908,6 +5907,142 @@
       ],
       "artifacts": [
         "StableMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/math/PRBMath.sol": {
+      "lastModificationDate": 1638226479013,
+      "contentHash": "a631b5d3dbc32494d28b51081c3cec90",
+      "sourceName": "contracts/libraries/math/PRBMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 10000
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.8.4"
+      ],
+      "artifacts": [
+        "PRBMath"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/libraries/math/PRBMathUD60x18.sol": {
+      "lastModificationDate": 1638226523413,
+      "contentHash": "0f1c61419c53e04d5b1411fd8260e7d9",
+      "sourceName": "contracts/libraries/math/PRBMathUD60x18.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 10000
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./PRBMath.sol"
+      ],
+      "versionPragmas": [
+        ">=0.8.4"
+      ],
+      "artifacts": [
+        "PRBMathUD60x18"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/RequiemFormulaTest.sol": {
+      "lastModificationDate": 1638227490128,
+      "contentHash": "ddd9eea2ec864637f6db5f5ac6f450b1",
+      "sourceName": "contracts/RequiemFormulaTest.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 10000
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IRequiemFormula.sol",
+        "./interfaces/IRequiemPair.sol",
+        "./interfaces/IRequiemFactory.sol",
+        "./libraries/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "RequiemFormulaTest"
       ]
     }
   }

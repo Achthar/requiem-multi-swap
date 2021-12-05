@@ -387,7 +387,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokens',
 		qSwap2,
-		BigNumber.from(1000),
+		BigNumber.from(100000),
 		BigNumber.from('0'), //out min
 		localhost,// address to,
 		deadline,// uint256 deadline
@@ -579,4 +579,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 };
 export default func;
-func.tags = ['factory-localhost-q-eth'];
+func.tags = ['swap-localhost-q-eth'];

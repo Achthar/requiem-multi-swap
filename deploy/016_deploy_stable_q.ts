@@ -150,7 +150,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		'RequiemStableSwap',
 		{ from: localhost, gasLimit: 2e6 },
 		'addLiquidity',
-		[parseUnits('101', 6), parseUnits('1022', 6), parseUnits('1033', 18), parseUnits('1141', 18)],
+		[parseUnits('1001', 6), parseUnits('1022', 6), parseUnits('1033', 18), parseUnits('1141', 18)],
 		0,
 		deadline
 	);
@@ -158,7 +158,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// address tokenOut,
 	// uint256 amountOut
 
-	const inAmount = BigNumber.from(1234322433)
+	const inAmount = BigNumber.from('12343223')
 	console.log("calculateIn")
 	const calcSwap1 = await poolContract.calculateSwapGivenIn(usdt.address, usdc.address,
 		inAmount)
@@ -171,7 +171,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		calcSwap1
 	)
 
-	console.log("in", inAmount.toString(), "inValidated", calcSwaps.toString())
+	console.log("1 --- in", inAmount.toString(), "inValidated", calcSwaps.toString())
 
 
 
@@ -179,16 +179,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	console.log("calculateIn")
 	const calcSwap2 = await poolContract.calculateSwapGivenIn(usdc.address, dai.address,
 		inAmount1)
-	// address tokenIn,
-	// address tokenOut,
-	// uint256 amountOut
-	console.log("calculate from Out", calcSwap2.toString())
+
 	const calcSwap3 = await poolContract.calculateSwapGivenOut(
 		usdc.address, dai.address,
 		calcSwap2
 	)
 
-	console.log("in", inAmount1.toString(), "inValidated", calcSwap3.toString())
+	console.log("2 --- in", inAmount1.toString(), "inValidated", calcSwap3.toString())
 
 	const outAmount2 = BigNumber.from('54365229785433243')
 
@@ -207,11 +204,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		dai.address,
 		tusd.address,
 		calcSwap5)
-	// address tokenIn,
-	// address tokenOut,
-	// uint256 amountOut
+		
+	console.log("3 --- in", outAmount2.toString(), "inValidated", calcSwap4.toString())
 
-	console.log("in", outAmount2.toString(), "inValidated", calcSwap4.toString())
+
+	const inAmount3 = BigNumber.from('54365229785433243')
+	console.log("calculateout")
+	const calcSwap6 = await poolContract.calculateSwapGivenIn(
+		dai.address,
+		tusd.address,
+		inAmount3)
+
+	console.log("calculate from Out", outAmount2.toString())
+	const calcSwap7 = await poolContract.calculateSwapGivenOut(
+		dai.address,
+		tusd.address,
+		calcSwap6
+	)
+
+
+	console.log("4 --- in", inAmount3.toString(), "inValidated", calcSwap7.toString())
 
 
 

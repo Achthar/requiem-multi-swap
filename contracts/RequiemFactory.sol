@@ -5,11 +5,14 @@ pragma solidity ^0.8.10;
 import "./interfaces/IRequiemFactory.sol";
 import "./RequiemPair.sol";
 
+// solhint-disable no-inline-assembly
+
 contract RequiemFactory is IRequiemFactory {
     address public feeTo;
     address public formula;
     uint256 public protocolFee;
     address public feeToSetter;
+    bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemPair).creationCode));
 
     mapping(bytes32 => address) private _pairSalts;
     address[] public allPairs;

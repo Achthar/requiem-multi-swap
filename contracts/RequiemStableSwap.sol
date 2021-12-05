@@ -10,6 +10,8 @@ import "./RequiemStableSwapLib.sol";
 import "./interfaces/IRequiemStableSwap.sol";
 import "./interfaces/IRequiemSwap.sol";
 
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
+
 contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IRequiemStableSwap {
     using RequiemStableSwapLib for RequiemStableSwapLib.SwapStorage;
     using SafeERC20 for IERC20;
@@ -88,6 +90,8 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         return swapStorage.addLiquidity(amounts, minMintAmount);
     }
 
+    // standard swap function a la curve
+    // just the to parameter is added to be more flexible
     function swap(
         uint8 fromIndex,
         uint8 toIndex,
@@ -99,6 +103,21 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         return swapStorage.swap(fromIndex, toIndex, inAmount, minOutAmount, to);
     }
 
+    // function that uses already the correct amounts as input
+    // that is done to avoid recalculating the values with only checking whether
+    // the invariant is still holding
+    function onSwap(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        address to
+    ) external override whenNotPaused nonReentrant{
+       swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+    }
+
+    // expects amount alrady to be sent to this address
+    // calculates the output amount and sends it after deducting the fee
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
@@ -109,6 +128,8 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         return swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOutMin, to);
     }
 
+    // calculates the input amount from a given output amount
+    // will transfer amounts to itself as input is not yet known
     function onSwapGivenOut(
         address tokenIn,
         address tokenOut,

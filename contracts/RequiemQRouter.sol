@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.8.9;
-pragma abicoder v2;
 
 import "./interfaces/IRequiemFactory.sol";
 import "./interfaces/IRequiemFormula.sol";
@@ -11,6 +10,8 @@ import "./libraries/TransferHelper.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/IRequiemQRouter.sol";
 import "./interfaces/IWETH.sol";
+
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 contract RequiemQRouter is IRequiemQRouter {
     address public immutable override factory;
@@ -122,6 +123,7 @@ contract RequiemQRouter is IRequiemQRouter {
         transferAll(ETH_ADDRESS, to, amountLast);
     }
 
+    // direct swap function for given exact output
     function onSwapTokensForExactTokens(
         address[] memory pools,
         address[] memory tokens,
@@ -130,18 +132,25 @@ contract RequiemQRouter is IRequiemQRouter {
         address to,
         uint256 deadline
     ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+        // set amount array
         amounts = new uint256[](tokens.length);
         amounts[pools.length] = amountOut;
+
+        // calculate all amounts to be sent and recieved
         for (uint256 i = amounts.length - 1; i > 0; i--) {
             amounts[i - 1] = IRequiemSwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
         }
-        // return amounts;
+
+        // check input condition
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT");
+
+        // tranfer amounts
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0]);
-        uint256 amountOutSafe = amounts[0];
+
+        // use general swap functions that do not execute the full calculation to save gas
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
-            amountOutSafe = IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountOutSafe, 0, _to);
+            IRequiemSwap(pools[i]).onSwap(tokens[i], tokens[i + 1], amounts[i], amounts[i + 1], _to);
         }
     }
 
@@ -163,7 +172,7 @@ contract RequiemQRouter is IRequiemQRouter {
         transferETHTo(amounts[0], pools[0]);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
-            IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amounts[i], 0, _to);
+            IRequiemSwap(pools[i]).onSwap(tokens[i], tokens[i + 1], amounts[i], amounts[i + 1], _to);
         }
         // refund dust eth, if any
         if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
@@ -185,12 +194,11 @@ contract RequiemQRouter is IRequiemQRouter {
         // return amounts;
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT");
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0]);
-        uint256 amountOutSafe = amounts[0]; // safe value to prevent rounding errors
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? address(this) : pools[i + 1];
-            amountOutSafe = IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountOutSafe, 0, _to);
+            IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amounts[i], amounts[i + 1], _to);
         }
-        transferAll(ETH_ADDRESS, to, amountOutSafe);
+        transferAll(ETH_ADDRESS, to, amountOut);
     }
 
     function swapTokensForExactTokens(

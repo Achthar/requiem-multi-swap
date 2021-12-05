@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface RequiemFactoryInterface extends ethers.utils.Interface {
   functions: {
+    "INIT_CODE_HASH()": FunctionFragment;
     "allPairs(uint256)": FunctionFragment;
     "allPairsLength()": FunctionFragment;
     "createPair(address,address,uint32,uint32)": FunctionFragment;
@@ -36,6 +37,10 @@ interface RequiemFactoryInterface extends ethers.utils.Interface {
     "setProtocolFee(uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "INIT_CODE_HASH",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "allPairs",
     values: [BigNumberish]
@@ -77,6 +82,10 @@ interface RequiemFactoryInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "INIT_CODE_HASH",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allPairs", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "allPairsLength",
@@ -171,6 +180,8 @@ export class RequiemFactory extends BaseContract {
   interface: RequiemFactoryInterface;
 
   functions: {
+    INIT_CODE_HASH(overrides?: CallOverrides): Promise<[string]>;
+
     allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     allPairsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -227,6 +238,8 @@ export class RequiemFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
 
   allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -285,6 +298,8 @@ export class RequiemFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
+
     allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
@@ -380,6 +395,8 @@ export class RequiemFactory extends BaseContract {
   };
 
   estimateGas: {
+    INIT_CODE_HASH(overrides?: CallOverrides): Promise<BigNumber>;
+
     allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
@@ -432,6 +449,8 @@ export class RequiemFactory extends BaseContract {
   };
 
   populateTransaction: {
+    INIT_CODE_HASH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     allPairs(
       arg0: BigNumberish,
       overrides?: CallOverrides

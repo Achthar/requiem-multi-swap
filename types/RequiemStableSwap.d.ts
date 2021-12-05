@@ -51,6 +51,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     "getTokens()": FunctionFragment;
     "getVirtualPrice()": FunctionFragment;
     "initialize(address[],uint8[],string,string,uint256,uint256,uint256,uint256,address)": FunctionFragment;
+    "onSwap(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -194,6 +195,10 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
       BigNumberish,
       string
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onSwap",
+    values: [string, string, BigNumberish, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "onSwapGivenIn",
@@ -374,6 +379,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "onSwap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "onSwapGivenIn",
     data: BytesLike
@@ -721,6 +727,15 @@ export class RequiemStableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    onSwap(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      amountOut: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
@@ -966,6 +981,15 @@ export class RequiemStableSwap extends BaseContract {
     _adminFee: BigNumberish,
     _withdrawFee: BigNumberish,
     _feeDistributor: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  onSwap(
+    tokenIn: string,
+    tokenOut: string,
+    amountIn: BigNumberish,
+    amountOut: BigNumberish,
+    to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1216,6 +1240,15 @@ export class RequiemStableSwap extends BaseContract {
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    onSwap(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      amountOut: BigNumberish,
+      to: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1749,6 +1782,15 @@ export class RequiemStableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    onSwap(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      amountOut: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
@@ -1981,6 +2023,15 @@ export class RequiemStableSwap extends BaseContract {
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    onSwap(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      amountOut: BigNumberish,
+      to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

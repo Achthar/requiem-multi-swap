@@ -13,6 +13,8 @@ import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/IRequiemFactory.sol";
 import "./interfaces/IUniswapV2Callee.sol";
 
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
+
 contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
     using SafeMath for uint256;
     using UQ112x112 for uint224;
@@ -256,6 +258,7 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
+    //
     function calculateSwapGivenIn(
         address tokenIn,
         address tokenOut,
@@ -384,5 +387,64 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
         _update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
         return amount0Out > 0 ? amount0Out : amount1Out;
+    }
+
+    // this low-level function should be called from a contract which performs important safety checks
+    function onSwap(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        address to
+    ) external override lock {
+        (uint256 amount0Out, uint256 amount1Out) = token0 == tokenIn ? (uint256(0), amountOut) : (amountOut, uint256(0));
+        require(amount0Out > 0 || amount1Out > 0, "REQLP: INSUFFICIENT_OUTPUT_AMOUNT");
+        uint112 _reserve0 = reserve0; // gas savings
+        uint112 _reserve1 = reserve1; // gas savings
+        require(amount0Out < _reserve0 && amount1Out < _reserve1, "REQLP: INSUFFICIENT_LIQUIDITY");
+
+        uint256 balance0;
+        uint256 balance1;
+        {
+            // scope for _token{0,1}, avoids stack too deep errors
+            address _token0 = token0;
+            address _token1 = token1;
+            require(to != _token0 && to != _token1, "REQLP: INVALID_TO");
+            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            balance0 = IERC20(_token0).balanceOf(address(this));
+            balance1 = IERC20(_token1).balanceOf(address(this));
+        }
+        uint256 amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
+        uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+
+        require(amount0In > 0 || amount1In > 0, "REQLP: INSUFFICIENT_INPUT_AMOUNT");
+        {
+            // scope for reserve{0,1}Adjusted, avoids stack too deep errors
+            uint256 balance0Adjusted = balance0.mul(10000);
+            uint256 balance1Adjusted = balance1.mul(10000);
+            {
+                // avoids stack too deep errors
+                if (amount0In > 0) {
+                    uint256 amount0InFee = amount0In.mul(swapFee);
+                    balance0Adjusted = balance0Adjusted.sub(amount0InFee);
+                    collectedFee0 = uint112(uint256(collectedFee0).add(amount0InFee));
+                }
+                if (amount1In > 0) {
+                    uint256 amount1InFee = amount1In.mul(swapFee);
+                    balance1Adjusted = balance1Adjusted.sub(amount1InFee);
+                    collectedFee1 = uint112(uint256(collectedFee1).add(amount1InFee));
+                }
+                uint32 _tokenWeight0 = tokenWeight0; // gas savings
+                if (_tokenWeight0 == 50) {
+                    // gas savings for pair 50/50
+                    require(balance0Adjusted.mul(balance1Adjusted) >= uint256(_reserve0).mul(_reserve1).mul(10000**2), "REQLP: K");
+                } else {
+                    require(IRequiemFormula(formula).ensureConstantValue(uint256(_reserve0).mul(10000), uint256(_reserve1).mul(10000), balance0Adjusted, balance1Adjusted, _tokenWeight0), "REQLP: K");
+                }
+            }
+        }
+        _update(balance0, balance1, _reserve0, _reserve1);
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 }

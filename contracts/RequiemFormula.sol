@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.6;
+pragma solidity >=0.8.10;
 
 import "./interfaces/IRequiemFormula.sol";
 import "./interfaces/IRequiemPair.sol";
 import "./interfaces/IRequiemFactory.sol";
-import "./libraries/SafeMath.sol";
+
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
 
 contract RequiemFormula is IRequiemFormula {
-    using SafeMath for uint256;
 
     uint256 private constant ONE = 1;
     uint8 private constant MIN_PRECISION = 32;
@@ -255,6 +255,7 @@ contract RequiemFormula is IRequiemFormula {
         if (maxExpArray[lo] >= _x) return lo;
 
         require(false);
+        return 0;
     }
 
     /**
@@ -638,20 +639,19 @@ contract RequiemFormula is IRequiemFormula {
         // validate input
         require(amountIn > 0, "RequiemFormula: INSUFFICIENT_INPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
-        uint256 amountInWithFee = amountIn.mul(10000 - swapFee);
+        uint256 amountInWithFee = amountIn * (10000 - swapFee);
         // special case for equal weights
         if (tokenWeightIn == tokenWeightOut) {
-            return reserveOut.mul(amountInWithFee) / (reserveIn.mul(10000).add(amountInWithFee));
+            return reserveOut * amountInWithFee / (reserveIn * 10000 + amountInWithFee);
         }
 
         uint256 result;
         uint8 precision;
-        uint256 baseN = reserveIn.mul(10000).add(amountInWithFee);
-        (result, precision) = power(baseN, reserveIn.mul(10000), tokenWeightIn, tokenWeightOut);
+        uint256 baseN = reserveIn * 10000 + amountInWithFee;
+        (result, precision) = power(baseN, reserveIn * 10000, tokenWeightIn, tokenWeightOut);
 
-        uint256 temp1 = reserveOut.mul(result);
+        uint256 temp1 = reserveOut * result;
         uint256 temp2 = reserveOut << precision;
-        require((temp1 - temp2) > 0, "HIHIH");
         amountOut = (temp1 - temp2) / result;
     }
 
@@ -683,19 +683,19 @@ contract RequiemFormula is IRequiemFormula {
         require(reserveIn > 0 && reserveOut > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
         // special case for equal weights
         if (tokenWeightIn == tokenWeightOut) {
-            uint256 numerator = reserveIn.mul(amountOut).mul(10000);
-            uint256 denominator = reserveOut.sub(amountOut).mul(10000 - swapFee);
-            return (numerator / denominator).add(1);
+            uint256 numerator = reserveIn * amountOut * 10000;
+            uint256 denominator = (reserveOut - amountOut) * (10000 - swapFee);
+            return numerator / denominator + 1;
         }
 
         uint256 result;
         uint8 precision;
-        uint256 baseD = reserveOut.sub(amountOut);
+        uint256 baseD = reserveOut - amountOut;
         (result, precision) = power(reserveOut, baseD, tokenWeightOut, tokenWeightIn);
-        uint256 baseReserveIn = reserveIn.mul(10000);
-        uint256 temp1 = baseReserveIn.mul(result);
+        uint256 baseReserveIn = reserveIn - 10000;
+        uint256 temp1 = baseReserveIn - result;
         uint256 temp2 = baseReserveIn << precision;
-        amountIn = (((temp1 - temp2) >> precision) / (10000 - swapFee)).add(1);
+        amountIn = ((temp1 - temp2) >> precision) / (10000 - swapFee) + 1;
     }
 
     // performs chained getAmountOut calculations on any number of pairs
@@ -797,7 +797,7 @@ contract RequiemFormula is IRequiemFormula {
         address tokenIn,
         uint256 amountOut
     ) external view override returns (uint256 amountIn) {
-        (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
+        (, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
         amountIn = getAmountIn(amountOut, reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
     }
 
@@ -844,7 +844,7 @@ contract RequiemFormula is IRequiemFormula {
         uint32 tokenWeight0
     ) external view override returns (bool) {
         if (tokenWeight0 == 50) {
-            return balance0Adjusted.mul(balance1Adjusted) >= reserve0.mul(reserve1);
+            return balance0Adjusted*balance1Adjusted >= reserve0*reserve1;
         }
         if (balance0Adjusted >= reserve0 && balance1Adjusted >= reserve1) {
             return true;
@@ -904,7 +904,7 @@ contract RequiemFormula is IRequiemFormula {
     ) external pure override returns (uint256 amountB) {
         require(amountA > 0, "RequiemFormula: INSUFFICIENT_AMOUNT");
         require(reserveA > 0 && reserveB > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
-        amountB = amountA.mul(reserveB) / reserveA;
+        amountB = amountA * reserveB / reserveA;
     }
 
     function mintLiquidityFee(
@@ -917,12 +917,12 @@ contract RequiemFormula is IRequiemFormula {
         uint112 collectedFee1
     ) external view override returns (uint256 amount) {
         if (collectedFee0 > 0) {
-            (uint256 r0, uint256 p0) = power(uint256(collectedFee0).add(reserve0), reserve0, tokenWeight0, 100);
-            amount = amount.add(totalLiquidity.mul(r0) >> p0).sub(totalLiquidity);
+            (uint256 r0, uint256 p0) = power(uint256(collectedFee0) + reserve0, reserve0, tokenWeight0, 100);
+            amount = amount + ((totalLiquidity * r0) >> p0) - totalLiquidity;
         }
         if (collectedFee1 > 0) {
-            (uint256 r1, uint256 p1) = power(uint256(collectedFee1).add(reserve1), reserve1, tokenWeight1, 100);
-            amount = amount.add(totalLiquidity.mul(r1) >> p1).sub(totalLiquidity);
+            (uint256 r1, uint256 p1) = power(uint256(collectedFee1) + reserve1, reserve1, tokenWeight1, 100);
+            amount = amount + ((totalLiquidity  * r1) >> p1) - totalLiquidity;
         }
     }
 }
