@@ -2,16 +2,9 @@
 
 pragma solidity ^0.8.10;
 
+// solhint-disable func-name-mixedcase
+
 interface IRequiemQPairManager {
-    event Exchange(address pair, uint256 amountOut, address output);
-    struct Swap {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount; // tokenInAmount / tokenOutAmount
-        uint256 limitReturnAmount; // minAmountOut / maxAmountIn
-        uint256 maxPrice;
-    }
 
     function factory() external view returns (address);
 
