@@ -181,8 +181,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemStableSwap.sol": {
-      "lastModificationDate": 1637503280052,
-      "contentHash": "ac84726d9cd547f6d743508cc3c3dc98",
+      "lastModificationDate": 1637971649130,
+      "contentHash": "7bde695a7cf73d09051747be58beca29",
       "sourceName": "contracts/RequiemStableSwap.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -408,8 +408,8 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemStableSwapLib.sol": {
-      "lastModificationDate": 1637969209669,
-      "contentHash": "2eb7d8e6871cec8c803dc76c4d5d8dee",
+      "lastModificationDate": 1638017838229,
+      "contentHash": "652438b2a582d2a73f7c73a61682fe70",
       "sourceName": "contracts/RequiemStableSwapLib.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -5809,6 +5809,105 @@
       ],
       "artifacts": [
         "RequiemQRouterBackup"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/StableSwap.sol": {
+      "lastModificationDate": 1638011450467,
+      "contentHash": "c968e4d14d138e3bbb5428e76540eabd",
+      "sourceName": "contracts/StableSwap.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 10000
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./libraries/ReentrancyGuard.sol",
+        "./libraries/Initializable.sol",
+        "./interfaces/ERC20/IERC20.sol",
+        "./libraries/SafeERC20.sol",
+        "./base/OwnerPausable.sol",
+        "./RequiemStableSwapLib.sol",
+        "./interfaces/IRequiemStableSwap.sol",
+        "./interfaces/IRequiemSwap.sol",
+        "./StableMath.sol"
+      ],
+      "versionPragmas": [
+        "0.8.10"
+      ],
+      "artifacts": [
+        "StableSwap"
+      ]
+    },
+    "/home/achthar/requiem-multi-swap/contracts/StableMath.sol": {
+      "lastModificationDate": 1638011242387,
+      "contentHash": "0adc1ccb31df3baf97ccb3acbf71c8d8",
+      "sourceName": "contracts/StableMath.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 10000
+          },
+          "evmVersion": "london",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./libraries/math/Math.sol",
+        "./libraries/math/FixedPoint.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "StableMath"
       ]
     }
   }
