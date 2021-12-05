@@ -1,14 +1,231 @@
-// SPDX-License-Identifier: MIT
+
+// File: contracts/interfaces/IRequiemFactory.sol
+
+
+
+pragma solidity >=0.5.16;
+
+interface IRequiemFactory {
+    event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint);
+    function feeTo() external view returns (address);
+    function formula() external view returns (address);
+    function protocolFee() external view returns (uint);
+    function feeToSetter() external view returns (address);
+
+    function getPair(address tokenA, address tokenB, uint32 tokenWeightA, uint32 swapFee) external view returns (address pair);
+    function allPairs(uint) external view returns (address pair);
+    function isPair(address) external view returns (bool);
+    function allPairsLength() external view returns (uint);
+
+    function createPair(address tokenA, address tokenB, uint32 tokenWeightA, uint32 swapFee) external returns (address pair);
+    function getWeightsAndSwapFee(address pair) external view returns (uint32 tokenWeight0, uint32 tokenWeight1, uint32 swapFee);
+
+    function setFeeTo(address) external;
+    function setFeeToSetter(address) external;
+    function setProtocolFee(uint) external;
+}
+
+// File: contracts/interfaces/IRequiemERC20.sol
+
+
+
+pragma solidity ^0.8.10;
+
+// solhint-disable func-name-mixedcase
+
+interface IRequiemERC20 {
+    event Approval(address indexed owner, address indexed spender, uint value);
+    event Transfer(address indexed from, address indexed to, uint value);
+
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external pure returns (uint8);
+    function totalSupply() external view returns (uint);
+    function balanceOf(address owner) external view returns (uint);
+    function allowance(address owner, address spender) external view returns (uint);
+
+    function approve(address spender, uint value) external returns (bool);
+    function transfer(address to, uint value) external returns (bool);
+    function transferFrom(address from, address to, uint value) external returns (bool);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+    function PERMIT_TYPEHASH() external pure returns (bytes32);
+    function nonces(address owner) external view returns (uint);
+
+    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+}
+
+// File: contracts/interfaces/IRequiemPair.sol
+
+
+
+pragma solidity ^0.8.10;
+
+
+// solhint-disable func-name-mixedcase
+
+interface IRequiemPair is IRequiemERC20 {
+
+    event PaidProtocolFee(uint112 collectedFee0, uint112 collectedFee1);
+    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
+    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
+    event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to);
+    event Sync(uint112 reserve0, uint112 reserve1);
+
+    function MINIMUM_LIQUIDITY() external pure returns (uint256);
+
+    function factory() external view returns (address);
+
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
+
+    function getReserves()
+        external
+        view
+        returns (
+            uint112 reserve0,
+            uint112 reserve1,
+            uint32 blockTimestampLast
+        );
+
+    function getCollectedFees() external view returns (uint112 _collectedFee0, uint112 _collectedFee1);
+
+    function getTokenWeights() external view returns (uint32 tokenWeight0, uint32 tokenWeight1);
+
+    function getSwapFee() external view returns (uint32);
+
+    function price0CumulativeLast() external view returns (uint256);
+
+    function price1CumulativeLast() external view returns (uint256);
+
+    function mint(address to) external returns (uint256 liquidity);
+
+    function burn(address to) external returns (uint256 amount0, uint256 amount1);
+
+    function swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes calldata data
+    ) external;
+
+    function skim(address to) external;
+
+    function sync() external;
+
+    function initialize(
+        address,
+        address,
+        uint32,
+        uint32
+    ) external;
+}
+
+// File: contracts/interfaces/IRequiemFormula.sol
+
+
+pragma solidity >=0.5.16;
+
+/*
+    Bancor Formula interface
+*/
+interface IRequiemFormula {
+
+    function getReserveAndWeights(address pair, address tokenA) external view returns (
+        address tokenB,
+        uint reserveA,
+        uint reserveB,
+        uint32 tokenWeightA,
+        uint32 tokenWeightB,
+        uint32 swapFee
+    );
+
+    function getFactoryReserveAndWeights(address factory, address pair, address tokenA) external view returns (
+        address tokenB,
+        uint reserveA,
+        uint reserveB,
+        uint32 tokenWeightA,
+        uint32 tokenWeightB,
+        uint32 swapFee
+    );
+
+    function getAmountIn(
+        uint amountOut,
+        uint reserveIn, uint reserveOut,
+        uint32 tokenWeightIn, uint32 tokenWeightOut,
+        uint32 swapFee
+    ) external view returns (uint amountIn);
+
+    function getPairAmountIn(address pair, address tokenIn, uint amountOut) external view returns (uint amountIn);
+
+    function getAmountOut(
+        uint amountIn,
+        uint reserveIn, uint reserveOut,
+        uint32 tokenWeightIn, uint32 tokenWeightOut,
+        uint32 swapFee
+    ) external view returns (uint amountOut);
+
+    function getPairAmountOut(address pair, address tokenIn, uint amountIn) external view returns (uint amountOut);
+
+    function getAmountsIn(
+        address tokenIn,
+        address tokenOut,
+        uint amountOut,
+        address[] calldata path
+    ) external view returns (uint[] memory amounts);
+
+    function getFactoryAmountsIn(
+        address factory,
+        address tokenIn,
+        address tokenOut,
+        uint amountOut,
+        address[] calldata path
+    ) external view returns (uint[] memory amounts);
+
+    function getAmountsOut(
+        address tokenIn,
+        address tokenOut,
+        uint amountIn,
+        address[] calldata path
+    ) external view returns (uint[] memory amounts);
+
+    function getFactoryAmountsOut(
+        address factory,
+        address tokenIn,
+        address tokenOut,
+        uint amountIn,
+        address[] calldata path
+    ) external view returns (uint[] memory amounts);
+
+    function ensureConstantValue(uint reserve0, uint reserve1, uint balance0Adjusted, uint balance1Adjusted, uint32 tokenWeight0) external view returns (bool);
+    function getReserves(address pair, address tokenA, address tokenB) external view returns (uint reserveA, uint reserveB);
+    function getOtherToken(address pair, address tokenA) external view returns (address tokenB);
+    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
+    function sortTokens(address tokenA, address tokenB) external pure returns (address token0, address token1);
+    function mintLiquidityFee(
+        uint totalLiquidity,
+        uint112 reserve0,
+        uint112  reserve1,
+        uint32 tokenWeight0,
+        uint32 tokenWeight1,
+        uint112  collectedFee0,
+        uint112 collectedFee1) external view returns (uint amount);
+}
+
+// File: contracts/RequiemFormula.sol
+
+
 
 pragma solidity >=0.8.10;
 
-import "./interfaces/IRequiemFormula.sol";
-import "./interfaces/IRequiemPair.sol";
-import "./interfaces/IRequiemFactory.sol";
+
+
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
 
 contract RequiemFormula is IRequiemFormula {
+
     uint256 private constant ONE = 1;
     uint8 private constant MIN_PRECISION = 32;
     uint8 private constant MAX_PRECISION = 127;
@@ -641,7 +858,7 @@ contract RequiemFormula is IRequiemFormula {
         uint256 amountInWithFee = amountIn * (10000 - swapFee);
         // special case for equal weights
         if (tokenWeightIn == tokenWeightOut) {
-            return (reserveOut * amountInWithFee) / (reserveIn * 10000 + amountInWithFee);
+            return reserveOut * amountInWithFee / (reserveIn * 10000 + amountInWithFee);
         }
 
         uint256 result;
@@ -843,7 +1060,7 @@ contract RequiemFormula is IRequiemFormula {
         uint32 tokenWeight0
     ) external view override returns (bool) {
         if (tokenWeight0 == 50) {
-            return balance0Adjusted * balance1Adjusted >= reserve0 * reserve1;
+            return balance0Adjusted*balance1Adjusted >= reserve0*reserve1;
         }
         if (balance0Adjusted >= reserve0 && balance1Adjusted >= reserve1) {
             return true;
@@ -903,7 +1120,7 @@ contract RequiemFormula is IRequiemFormula {
     ) external pure override returns (uint256 amountB) {
         require(amountA > 0, "RequiemFormula: INSUFFICIENT_AMOUNT");
         require(reserveA > 0 && reserveB > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
-        amountB = (amountA * reserveB) / reserveA;
+        amountB = amountA * reserveB / reserveA;
     }
 
     function mintLiquidityFee(
@@ -921,7 +1138,7 @@ contract RequiemFormula is IRequiemFormula {
         }
         if (collectedFee1 > 0) {
             (uint256 r1, uint256 p1) = power(uint256(collectedFee1) + reserve1, reserve1, tokenWeight1, 100);
-            amount = amount + ((totalLiquidity * r1) >> p1) - totalLiquidity;
+            amount = amount + ((totalLiquidity  * r1) >> p1) - totalLiquidity;
         }
     }
 }
