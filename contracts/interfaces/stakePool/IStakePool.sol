@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.10;
 
+// solhint-disable max-line-length
+
 interface IStakePool {
     event Deposit(address indexed account, uint256 amount);
     event AddRewardPool(uint256 indexed poolId);

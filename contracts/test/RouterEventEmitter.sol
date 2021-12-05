@@ -4,6 +4,8 @@ pragma solidity ^0.8.10;
 
 import "../interfaces/IRequiemRouter.sol";
 
+// solhint-disable avoid-low-level-calls, no-empty-blocks
+
 contract RouterEventEmitter {
     event Amounts(uint[] amounts);
 

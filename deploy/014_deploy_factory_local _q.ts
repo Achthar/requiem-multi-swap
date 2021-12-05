@@ -568,8 +568,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForETH',
 		pools4,
 		tokens4,
-		BigNumber.from('323233'), // out
-		BigNumber.from('0'), //in max
+		BigNumber.from('323233'), // in
+		BigNumber.from('10'), //out min
 		localhost,// address to,
 		deadline,// uint256 deadline
 	);
@@ -586,29 +586,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		deadline,// uint256 deadline
 	);
 	console.log("swapped 5A")
-
-	// const qSwap21 = [
-	// 	{
-	// 		structure: 1,
-	// 		pool: pool.address, // address pool;
-	// 		tokenIn: usdc.address,
-	// 		tokenOut: usdt.address,
-
-	// 	},
-	// 	{
-	// 		structure: 0,
-	// 		pool: pair2, // address pool;
-	// 		tokenIn: usdt.address,
-	// 		tokenOut: t2.address
-	// 	},
-
-	// 	{
-	// 		structure: 0,
-	// 		pool: pairWeth, // address pool;
-	// 		tokenIn: t2.address,
-	// 		tokenOut: weth.address
-	// 	},
-	// ]
 };
 export default func;
 func.tags = ['swap-localhost-q'];

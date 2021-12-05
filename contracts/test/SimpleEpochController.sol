@@ -7,6 +7,8 @@ import "../interfaces/ERC20/IERC20.sol";
 import "../interfaces/stakePool/IStakePoolEpochReward.sol";
 import "../libraries/TransferHelper.sol";
 
+// solhint-disable not-rely-on-time
+
 contract SimpleEpochController is IEpochController {
     uint256 public _epoch = 0;
     uint256 public epochLength = 5 minutes;

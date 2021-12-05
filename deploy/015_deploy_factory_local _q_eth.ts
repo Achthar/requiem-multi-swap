@@ -360,33 +360,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		deadline);
 	console.log("LP received weth t2")
 
-
-	const qSwap2 = [
-		{
-			structure: 0,
-			pool: pairWeth, // address pool;
-			tokenIn: weth.address,
-			tokenOut: t2.address
-		},
-		{
-			structure: 0,
-			pool: pair2, // address pool;
-			tokenIn: t2.address,
-			tokenOut: usdt.address
-		},
-		{
-			structure: 1,
-			pool: pool.address, // address pool;
-			tokenIn: usdt.address,
-			tokenOut: usdc.address,
-
-		}
-	]
-
+	const pools2 = [pairWeth, pair2, pool.address]
+	const path2 = [weth.address, t2.address, usdt.address, usdc.address]
 
 
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokens',
-		qSwap2,
+		pools2,
+		path2,
 		BigNumber.from(100000),
 		BigNumber.from('0'), //out min
 		localhost,// address to,
@@ -394,8 +374,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	);
 	console.log("swapped 3")
 	await execute('RequiemQRouter', { from: localhost, value: BigNumber.from(10000) }, 'onSwapExactETHForTokens',
-		qSwap2,
-		BigNumber.from('0'), //out min
+		pools2,
+		path2,
+		BigNumber.from('10'), //out min
 		localhost,// address to,
 		deadline,// uint256 deadline
 	);
@@ -403,31 +384,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	console.log("swapped 4")
 
 
-	const qSwap21 = [
-		{
-			structure: 1,
-			pool: pool.address, // address pool;
-			tokenIn: usdc.address,
-			tokenOut: usdt.address,
+	const pools21 = [pool.address, pair2, pairWeth]
+	const path21 = [usdc.address, usdt.address, t2.address, weth.address]
 
-		},
-		{
-			structure: 0,
-			pool: pair2, // address pool;
-			tokenIn: usdt.address,
-			tokenOut: t2.address
-		},
-
-		{
-			structure: 0,
-			pool: pairWeth, // address pool;
-			tokenIn: t2.address,
-			tokenOut: weth.address
-		},
-	]
 
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForTokens',
-		qSwap21,
+		pools21,
+		path21,
 		BigNumber.from(1000),
 		BigNumber.from('0'), //out min
 		localhost,// address to,
@@ -435,7 +398,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	);
 	console.log("swapped 4RT")
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapExactTokensForETH',
-		qSwap21,
+		pools21,
+		path21,
 		BigNumber.from(1000),
 		BigNumber.from('0'), //out min
 		localhost,// address to,
@@ -449,48 +413,47 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const pairWethUsdc = await factoryContract.getPair(weth.address, usdc.address, ethers.BigNumber.from(20), ethers.BigNumber.from(10))
 	console.log("--- add WETH usdc liq ----")
 	const liqWeth3 = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pairWethUsdc, weth.address, usdc.address,
-		BigNumber.from('10000000'),
-		BigNumber.from('10000000000'),
-		BigNumber.from('10000000'),
-		BigNumber.from('10000000000'),
+	BigNumber.from('100000000'),
+	BigNumber.from('1000000000'),
+	BigNumber.from('100000000'),
+	BigNumber.from('1000000000'),
 		localhost,
 		deadline);
 	console.log("LP received weth usdc")
 
-	const qSwap13 = [
-		{
-			structure: 0,
-			pool: pairWethUsdc, // address pool;
-			tokenIn: usdc.address,
-			tokenOut: weth.address,
+	const path13 = [usdc.address, weth.address]
+	const pools13 = [pairWethUsdc]
 
-		}
-	]
-
-
-	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
-		qSwap13,
-		BigNumber.from('34'), //out
-		BigNumber.from('1000000000000000'), //in max
-		localhost,// address to,
-		deadline,// uint256 deadline
-	);
+	// await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactETH',
+	// 	pools13,
+	// 	path13,
+	// 	BigNumber.from('23'), //out
+	// 	BigNumber.from('1000000000000000'), //in max
+	// 	localhost,// address to,
+	// 	deadline,// uint256 deadline
+	// );
 
 	console.log("swapped 5S")
 
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+	pools13,
+	path13,
+	BigNumber.from('324433'), // out
+	BigNumber.from('3242343232432'), //in max
+	localhost,// address to,
+	deadline,// uint256 deadline
+);
 
-	const qSwap230 = [
-		{
-			structure: 1,
-			pool: pool.address, // address pool;
-			tokenIn: usdt.address,
-			tokenOut: usdc.address
-		}
-	]
+console.log("swapped 5S1")
+
+	const pools230 = [pool.address]
+	const path230 = [usdt.address, usdc.address]
+
 	const usdcContract = await ethers.getContractAt('MockERC20', usdc.address);
 	const bal = await usdcContract.balanceOf(localhost)
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
-		qSwap230,
+		pools230,
+		path230,
 		BigNumber.from('1000000000'), //out
 		BigNumber.from('1000000000000000'), //in max
 		localhost,// address to,
@@ -501,23 +464,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	console.log(bal.toString(), "to", bal2.toString())
 	console.log("swapped 5S20")
 
-	const qSwap23 = [
-		{
-			structure: 1,
-			pool: pool.address, // address pool;
-			tokenIn: usdt.address,
-			tokenOut: usdc.address
-		},
-		{
-			structure: 0,
-			pool: pairWethUsdc, // address pool;
-			tokenIn: usdc.address,
-			tokenOut: weth.address,
-		}
-	]
+
+	const pools23 = [pool.address, pairWethUsdc]
+	const path23 = [usdt.address, usdc.address, weth.address]
 
 	const routerContract = await ethers.getContractAt('RequiemQRouter', router.address);
-	const amnts = await routerContract.onSwapTokensForExactTokens(qSwap23,
+	const amnts = await routerContract.onSwapTokensForExactTokens(
+		pools23,
+		path23,
 		BigNumber.from('32'), //out
 		BigNumber.from('1000000000000000'), //in max
 		localhost,// address to,
@@ -525,7 +479,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	)
 	console.log("amnts", amnts)
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
-		qSwap23,
+		pools23,
+		path23,
 		BigNumber.from('32'), //out
 		BigNumber.from('1000000000000000'), //in max
 		localhost,// address to,
@@ -534,31 +489,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("swapped 5S2")
 
-	const qSwap3 = [
-		{
-			structure: 0,
-			pool: pair2, // address pool;
-			tokenIn: t2.address,
-			tokenOut: usdt.address
-		},
-		{
-			structure: 1,
-			pool: pool.address, // address pool;
-			tokenIn: usdt.address,
-			tokenOut: usdc.address
-		},
-		{
-			structure: 0,
-			pool: pairWethUsdc, // address pool;
-			tokenIn: usdc.address,
-			tokenOut: weth.address,
-
-		}
-	]
-
+	const pools3 = [pair2, pool.address, pairWethUsdc]
+	const path3 = [t2.address, usdt.address, usdc.address, weth.address]
 
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
-		qSwap3,
+		pools3,
+		path3,
 		BigNumber.from('34232'), //out
 		BigNumber.from('1000000000000000'), //in max
 		localhost,// address to,
@@ -568,7 +504,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	console.log("swapped 5")
 
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactETH',
-		qSwap3,
+	pools3,
+	path3,
 		BigNumber.from('100000'), //out
 		BigNumber.from('10000000000'), //in max
 		localhost,// address to,

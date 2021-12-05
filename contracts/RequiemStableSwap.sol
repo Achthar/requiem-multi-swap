@@ -112,8 +112,8 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         uint256 amountIn,
         uint256 amountOut,
         address to
-    ) external override whenNotPaused nonReentrant{
-       swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+    ) external override whenNotPaused nonReentrant {
+        swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
     }
 
     // expects amount alrady to be sent to this address
@@ -253,7 +253,6 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     ) external view returns (uint256) {
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
     }
-
 
     function calculateRemoveLiquidity(address account, uint256 amount) external view override returns (uint256[] memory) {
         return swapStorage.calculateRemoveLiquidity(account, amount);

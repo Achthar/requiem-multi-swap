@@ -13,7 +13,7 @@ import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/IRequiemFactory.sol";
 import "./interfaces/IUniswapV2Callee.sol";
 
-// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls
 
 contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
     using SafeMath for uint256;
@@ -261,7 +261,7 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
     //
     function calculateSwapGivenIn(
         address tokenIn,
-        address tokenOut,
+        address,
         uint256 amountIn
     ) external view returns (uint256) {
         (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
@@ -272,7 +272,7 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
 
     function calculateSwapGivenOut(
         address tokenIn,
-        address tokenOut,
+        address,
         uint256 amountOut
     ) external view returns (uint256) {
         (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
@@ -299,9 +299,9 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
     // requires the amount in to be sent to this address beforehand
     function onSwapGivenIn(
         address tokenIn,
-        address tokenOut,
+        address,
         uint256 amountIn,
-        uint256 amountOutMin,
+        uint256,
         address to
     ) external override lock returns (uint256) {
         bool inToken0 = tokenIn == token0;
@@ -318,9 +318,9 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
     // requires the amount in to be sent to this address beforehand
     function onSwapGivenOut(
         address tokenIn,
-        address tokenOut,
+        address,
         uint256 amountOut,
-        uint256 amountInMax,
+        uint256,
         address to
     ) external override lock returns (uint256) {
         bool inToken0 = tokenIn == token0;
@@ -392,8 +392,8 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
     // this low-level function should be called from a contract which performs important safety checks
     function onSwap(
         address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
+        address,
+        uint256,
         uint256 amountOut,
         address to
     ) external override lock {

@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.10;
 
+// solhint-disable max-line-length
+
 interface IStakePoolEpochReward {
     event AllocateReward(uint256 blocktime, uint256 amount);
     event Deposit(address indexed account, uint256 amount);
@@ -9,9 +11,13 @@ interface IStakePoolEpochReward {
     event Withdraw(address indexed account, uint256 amount);
 
     function version() external view returns (uint256);
+
     function stakeToken() external view returns (address);
+
     function rewardToken() external view returns (address);
+
     function rewardFund() external view returns (address);
+
     function epochController() external view returns (address);
 
     function allowRecoverRewardToken(address _token) external view returns (bool);

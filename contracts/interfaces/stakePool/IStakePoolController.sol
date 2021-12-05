@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma abicoder v2;
+
 pragma solidity ^0.8.10;
+
+// solhint-disable max-line-length
 
 interface IStakePoolController {
     event MasterCreated(address indexed farm, address indexed stakeToken, uint256 version, address timelock, address stakePoolRewardFund, uint256 totalStakePool);

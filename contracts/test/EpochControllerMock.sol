@@ -6,6 +6,8 @@ import "../interfaces/IEpochController.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../interfaces/stakePool/IStakePoolEpochReward.sol";
 
+// solhint-disable not-rely-on-time
+
 contract EpochControllerMock is IEpochController {
     uint256 private _epoch = 0;
     address public rewardToken;
@@ -23,7 +25,7 @@ contract EpochControllerMock is IEpochController {
         return lastEpochTime + nextEpochLength();
     }
 
-    function nextEpochLength() public view override returns (uint256) {
+    function nextEpochLength() public pure override returns (uint256) {
         return 12 hours;
     }
 
@@ -44,7 +46,7 @@ contract EpochControllerMock is IEpochController {
         IStakePoolEpochReward(_pool).allocateReward(_amount);
     }
 
-    function nextEpochAllocatedReward(address _pool) external view override returns (uint256) {
+    function nextEpochAllocatedReward(address) external pure override returns (uint256) {
         return 0;
     }
 }

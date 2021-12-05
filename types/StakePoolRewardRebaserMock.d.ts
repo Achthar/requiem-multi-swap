@@ -81,21 +81,21 @@ export class StakePoolRewardRebaserMock extends BaseContract {
 
   functions: {
     getRebaseAmount(
-      rewardToken: string,
+      arg0: string,
       baseAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
   getRebaseAmount(
-    rewardToken: string,
+    arg0: string,
     baseAmount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
     getRebaseAmount(
-      rewardToken: string,
+      arg0: string,
       baseAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -105,7 +105,7 @@ export class StakePoolRewardRebaserMock extends BaseContract {
 
   estimateGas: {
     getRebaseAmount(
-      rewardToken: string,
+      arg0: string,
       baseAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -113,7 +113,7 @@ export class StakePoolRewardRebaserMock extends BaseContract {
 
   populateTransaction: {
     getRebaseAmount(
-      rewardToken: string,
+      arg0: string,
       baseAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

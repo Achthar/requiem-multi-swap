@@ -158,7 +158,7 @@ export class EpochControllerMock extends BaseContract {
     lastEpochTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     nextEpochAllocatedReward(
-      _pool: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -189,7 +189,7 @@ export class EpochControllerMock extends BaseContract {
   lastEpochTime(overrides?: CallOverrides): Promise<BigNumber>;
 
   nextEpochAllocatedReward(
-    _pool: string,
+    arg0: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -220,7 +220,7 @@ export class EpochControllerMock extends BaseContract {
     lastEpochTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     nextEpochAllocatedReward(
-      _pool: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -252,7 +252,7 @@ export class EpochControllerMock extends BaseContract {
     lastEpochTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     nextEpochAllocatedReward(
-      _pool: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -284,7 +284,7 @@ export class EpochControllerMock extends BaseContract {
     lastEpochTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nextEpochAllocatedReward(
-      _pool: string,
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -88,8 +88,8 @@ export class StakePoolRewardMultiplierMock extends BaseContract {
 
   functions: {
     getRewardMultiplier(
-      _start: BigNumberish,
-      _end: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       _from: BigNumberish,
       _to: BigNumberish,
       _rewardPerBlock: BigNumberish,
@@ -98,8 +98,8 @@ export class StakePoolRewardMultiplierMock extends BaseContract {
   };
 
   getRewardMultiplier(
-    _start: BigNumberish,
-    _end: BigNumberish,
+    arg0: BigNumberish,
+    arg1: BigNumberish,
     _from: BigNumberish,
     _to: BigNumberish,
     _rewardPerBlock: BigNumberish,
@@ -108,8 +108,8 @@ export class StakePoolRewardMultiplierMock extends BaseContract {
 
   callStatic: {
     getRewardMultiplier(
-      _start: BigNumberish,
-      _end: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       _from: BigNumberish,
       _to: BigNumberish,
       _rewardPerBlock: BigNumberish,
@@ -121,8 +121,8 @@ export class StakePoolRewardMultiplierMock extends BaseContract {
 
   estimateGas: {
     getRewardMultiplier(
-      _start: BigNumberish,
-      _end: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       _from: BigNumberish,
       _to: BigNumberish,
       _rewardPerBlock: BigNumberish,
@@ -132,8 +132,8 @@ export class StakePoolRewardMultiplierMock extends BaseContract {
 
   populateTransaction: {
     getRewardMultiplier(
-      _start: BigNumberish,
-      _end: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       _from: BigNumberish,
       _to: BigNumberish,
       _rewardPerBlock: BigNumberish,

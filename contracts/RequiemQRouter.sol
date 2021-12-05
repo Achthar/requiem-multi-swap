@@ -166,7 +166,7 @@ contract RequiemQRouter is IRequiemQRouter {
         for (uint256 i = amounts.length - 1; i > 0; i--) {
             amounts[i - 1] = IRequiemSwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
         }
-        // return amounts;
+
         require(amounts[0] <= msg.value, "EXCESSIVE_INPUT");
 
         transferETHTo(amounts[0], pools[0]);
@@ -191,13 +191,14 @@ contract RequiemQRouter is IRequiemQRouter {
         for (uint256 i = amounts.length - 1; i > 0; i--) {
             amounts[i - 1] = IRequiemSwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
         }
-        // return amounts;
+
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT");
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0]);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? address(this) : pools[i + 1];
-            IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amounts[i], amounts[i + 1], _to);
+            IRequiemSwap(pools[i]).onSwap(tokens[i], tokens[i + 1], amounts[i], amounts[i + 1], _to);
         }
+
         transferAll(ETH_ADDRESS, to, amountOut);
     }
 

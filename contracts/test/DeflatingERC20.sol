@@ -4,6 +4,8 @@ pragma solidity ^0.8.10;
 
 import "../libraries/SafeMath.sol";
 
+// solhint-disable func-name-mixedcase, var-name-mixedcase, no-inline-assembly, max-line-length, not-rely-on-time
+
 contract DeflatingERC20 {
     using SafeMath for uint256;
 

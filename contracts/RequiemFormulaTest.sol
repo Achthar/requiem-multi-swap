@@ -7,6 +7,8 @@ import "./interfaces/IRequiemPair.sol";
 import "./interfaces/IRequiemFactory.sol";
 import "./libraries/SafeMath.sol";
 
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
+
 contract RequiemFormulaTest is IRequiemFormula {
     using SafeMath for uint256;
 
@@ -255,6 +257,8 @@ contract RequiemFormulaTest is IRequiemFormula {
         if (maxExpArray[lo] >= _x) return lo;
 
         require(false);
+
+        return 0;
     }
 
     /**
@@ -796,7 +800,7 @@ contract RequiemFormulaTest is IRequiemFormula {
         address tokenIn,
         uint256 amountOut
     ) external view override returns (uint256 amountIn) {
-        (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
+        (, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
         amountIn = getAmountIn(amountOut, reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
     }
 

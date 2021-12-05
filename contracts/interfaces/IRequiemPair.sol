@@ -4,6 +4,8 @@ pragma solidity ^0.8.10;
 
 import "./IRequiemERC20.sol";
 
+// solhint-disable func-name-mixedcase
+
 interface IRequiemPair is IRequiemERC20 {
 
     event PaidProtocolFee(uint112 collectedFee0, uint112 collectedFee1);

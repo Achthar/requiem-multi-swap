@@ -16,6 +16,7 @@
 pragma solidity ^0.8.10;
 
 // Test Token
+// solhint-disable reason-string
 
 contract TToken {
 
@@ -47,12 +48,12 @@ contract TToken {
     }
 
     constructor(
-        string memory name,
-        string memory symbol,
+        string memory name_,
+        string memory symbol_,
         uint256 amt
-    ) public {
-        _name = name;
-        _symbol = symbol;
+    ) {
+        _name = name_;
+        _symbol = symbol_;
         _decimals = 18;
         _owner = msg.sender;
         _mint(msg.sender, amt);

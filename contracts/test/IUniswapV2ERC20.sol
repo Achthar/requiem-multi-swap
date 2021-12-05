@@ -2,6 +2,8 @@
 
 pragma solidity >=0.5.0;
 
+// solhint-disable func-name-mixedcase
+
 interface IUniswapV2ERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event Transfer(address indexed from, address indexed to, uint256 value);

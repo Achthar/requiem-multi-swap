@@ -31,6 +31,9 @@ import "../libraries/SafeMath.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
+
+ // solhint-disable no-empty-blocks
+
 contract ERC20Test is IERC20 {
     using SafeMath for uint256;
 

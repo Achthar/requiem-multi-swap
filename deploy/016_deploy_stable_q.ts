@@ -204,7 +204,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		dai.address,
 		tusd.address,
 		calcSwap5)
-		
+
 	console.log("3 --- in", outAmount2.toString(), "inValidated", calcSwap4.toString())
 
 
@@ -225,6 +225,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("4 --- in", inAmount3.toString(), "inValidated", calcSwap7.toString())
 
+	console.log("Test swap ginvnOut directly with out", calcSwap6.toString())
+
+	const daiContract = await ethers.getContractAt('MockERC20', dai.address);
+	const bal = await daiContract.balanceOf(localhost)
+
+	const swap34 = await poolContract.onSwapGivenOut(
+		dai.address,
+		tusd.address,
+		calcSwap6,
+		BigNumber.from('99999999999999999'),
+		localhost
+	)
+	const balAfter = await daiContract.balanceOf(localhost)
+	// console.log(swap34)
+	console.log("5 --- balance before", bal.toString(), "balance after", balAfter.toString())
+	console.log("    in", calcSwap7.toString(), "diff", bal.sub(balAfter).toString())
+
+	console.log(" onSwap test")
+	await poolContract.onSwap(
+		dai.address,
+		tusd.address,
+		calcSwap6, //in
+		BigNumber.from('0'), //out
+		localhost
+	)
 
 
 };

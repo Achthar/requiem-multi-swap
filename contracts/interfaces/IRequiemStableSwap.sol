@@ -4,6 +4,8 @@ pragma solidity 0.8.10;
 
 import "./ERC20/IERC20.sol";
 
+// solhint-disable var-name-mixedcase
+
 interface IRequiemStableSwap {
     /// EVENTS
     event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 invariant, uint256 tokenSupply);

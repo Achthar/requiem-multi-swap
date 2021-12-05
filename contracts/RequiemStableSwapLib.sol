@@ -114,6 +114,9 @@ library RequiemStableSwapLib {
     }
 
     // implements classic swap function a la compound
+    // here the regular calculations such as balance values are implemented
+    // funds are transferred in in that function and are not required to be sent
+    // to the contract
     function swap(
         SwapStorage storage self,
         uint256 i,
@@ -126,7 +129,6 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
         inAmount = _doTransferIn(inCoin, inAmount);
 
-        // uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
         uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
@@ -136,8 +138,6 @@ library RequiemStableSwapLib {
 
         require(dy >= minOutAmount, "> slippage");
 
-        // uint256 _adminFee = (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
-        
         // update balances
         self.balances[i] += inAmount;
         self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
@@ -147,11 +147,16 @@ library RequiemStableSwapLib {
         return dy;
     }
 
-
-    // implements classic swap function a la compound
-    // here the amounts are provided and just validated via the invariant
-    // out amount is supposed to not include the fees
-    // inAmount is supposd to be sent already to this address
+    /**
+     *  implements classic swap function a la compound
+     *  here the amounts are provided and just validated via the invariant
+     *  - out amount is supposed to not include the fees
+     *  - inAmount is supposd to be sent already to this address
+     * @param i token in index
+     * @param j token out index
+     * @param inAmount exact in amount, povided or calculated using outAmount
+     * @param outAmount exact out amount, povided or calculated using inAmount
+     */
     function _swap(
         SwapStorage storage self,
         uint256 i,
@@ -161,7 +166,7 @@ library RequiemStableSwapLib {
         address to
     ) external returns (uint256) {
         // check whether at least the input amount has been sent here
-        require(self.balances[i] + inAmount <= self.pooledTokens[i].balanceOf(address(this)), "INSUFFICIENT_INPUT");
+        require(self.balances[i] + inAmount == self.pooledTokens[i].balanceOf(address(this)), "input");
         // adjust output amount for fees
         uint256 amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
         uint256 amp = _getAPrecise(self);
@@ -174,9 +179,9 @@ library RequiemStableSwapLib {
         // calculate invariant after trade
         uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
 
-        require(D1 >= D0, "INVARIANT");
+        require(D1 >= D0, "invariant");
 
-        // update balances
+        // update balances after invariant validation
         self.balances[i] += inAmount;
         self.balances[j] -= amountOutInclFee;
 
@@ -185,9 +190,15 @@ library RequiemStableSwapLib {
         return outAmount;
     }
 
-    // the same function as swap, but it espects that amounts already have been
-    // sent to the contract
-    // - designed to be used in the Requiem Swap framework
+    /**
+     *  the same function as swap, but it expects that amounts already have been
+     *  sent to the contract
+     *   - designed to be used in the Requiem Swap framework
+     *   - deducts the fee from the output, in this case simple as the output is the calculated value
+     *   - viable function for batch swapping
+     * @param i token index in
+     * @param j token index out
+     */
     function onSwapGivenIn(
         SwapStorage storage self,
         uint256 i,
@@ -195,14 +206,14 @@ library RequiemStableSwapLib {
         uint256 inAmount,
         uint256 minOutAmount,
         address to
-    ) external returns (uint256) {
+    ) external returns (uint256 dy) {
         // we check whether the balance has increased by the suggested inAmount
-        require(self.balances[i] + inAmount <= IERC20(self.pooledTokens[i]).balanceOf(address(this)), "INSUFFICIENT_INPUT");
+        require(self.balances[i] + inAmount <= IERC20(self.pooledTokens[i]).balanceOf(address(this)), "input");
         uint256[] memory normalizedBalances = _xp(self);
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
 
-        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
+        dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
         uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
 
         dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
@@ -217,12 +228,20 @@ library RequiemStableSwapLib {
 
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
+
+        // returns final output amount
         return dy;
     }
 
-    // the same function as swap, but it espects that amounts already have been
-    // sent to the contract and it requires the output to be provided
-    //  - designed to be used in the requirem swap framework
+    /**
+     * the same function as swap, but it espects that amounts already have been
+     * sent to the contract and it requires the output to be provided
+     *  - designed to be used in the requirem swap framework
+     *  - deducts the fees from the output, that means that the
+     *    output has to be increased by the fee to then create a highe input
+     * @param i token index in
+     * @param j token index out
+     */
     function onSwapGivenOut(
         SwapStorage storage self,
         uint256 i,
@@ -230,27 +249,37 @@ library RequiemStableSwapLib {
         uint256 outAmount,
         uint256 maxInAmount,
         address to
-    ) external returns (uint256) {
+    ) external returns (uint256 dx) {
         uint256[] memory normalizedBalances = _xp(self);
 
-        uint256 y = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
+        // thre fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
+        uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+
+        // calculate out balance
+        uint256 y = normalizedBalances[j] - (_amountOutInclFee * self.tokenMultipliers[j]);
+
+        // calculate in balance
         uint256 x = _getY(self, j, i, y, normalizedBalances);
 
-        uint256 dx = normalizedBalances[i] - x - 1; // iliminate rouding errors
-        uint256 dx_fee = (dx * self.fee) / FEE_DENOMINATOR;
+        // calculate normalized in balance
+        dx = x - normalizedBalances[i]; // no rounding adjustment
 
-        dx = (dx - dx_fee) / self.tokenMultipliers[i]; // denormalize
+        dx = dx / self.tokenMultipliers[i]; // denormalize
 
-        require(dx >= maxInAmount, "> slippage");
-
-        uint256 _adminFee = (dx_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+        require(dx <= maxInAmount, "> slippage");
 
         // update balances
-        self.balances[i] -= dx + _adminFee;
-        self.balances[j] -= outAmount;
+        self.balances[i] -= dx;
+        self.balances[j] -= _amountOutInclFee;
 
-        self.pooledTokens[i].safeTransfer(to, dx);
-        emit TokenExchange(to, i, outAmount, j, dx);
+        // do the transfer after all calculations
+        IERC20 inCoin = self.pooledTokens[i];
+        dx = _doTransferIn(inCoin, dx); // transfer the calculated amount in
+
+        self.pooledTokens[j].safeTransfer(to, outAmount); // transfer the desired amount out
+        emit TokenExchange(to, i, dx, j, outAmount);
+
+        // returns final input amount
         return dx;
     }
 
@@ -412,6 +441,7 @@ library RequiemStableSwapLib {
     }
 
     // implements calculation of stable swap interface
+    // represents calculateSwapGivenIn function
     function calculateSwap(
         SwapStorage storage self,
         uint256 inIndex,
@@ -421,8 +451,8 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
         uint256 newInBalance = normalizedBalances[inIndex] + (inAmount * self.tokenMultipliers[inIndex]);
         uint256 outBalance = _getY(self, inIndex, outIndex, newInBalance, normalizedBalances);
-        uint256 outAmount = divDown(normalizedBalances[outIndex] - outBalance , self.tokenMultipliers[outIndex]);
-        uint256 _fee = self.fee * outAmount / FEE_DENOMINATOR;
+        uint256 outAmount = divDown(normalizedBalances[outIndex] - outBalance, self.tokenMultipliers[outIndex]);
+        uint256 _fee = (self.fee * outAmount) / FEE_DENOMINATOR;
         return outAmount - _fee;
     }
 
@@ -439,9 +469,9 @@ library RequiemStableSwapLib {
         // fee has to be deducted on the output
         uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
         uint256 newOutBalance = normalizedBalances[outIndex] - (_amountOutInclFee * self.tokenMultipliers[outIndex]);
+        // switch index on regulat _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
-        // _getYOrig(self, outIndex, inIndex, newOutBalance, normalizedBalances);_getX(self, inIndex, outIndex, newOutBalance, normalizedBalances);
-        uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex] , self.tokenMultipliers[inIndex]);
+        uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
         return inAmount;
     }
 
@@ -546,43 +576,6 @@ library RequiemStableSwapLib {
     }
 
     /**
-     * Calculate D for *NORMALIZED* balances of each tokens
-     * @param xp normalized balances of token
-     */
-    function _getInvariant(
-        uint256[] memory xp,
-        uint256 amp,
-        bool roundUp
-    ) internal pure returns (uint256) {
-        uint256 nCoins = xp.length;
-        uint256 sum = _sumOf(xp);
-        if (sum == 0) {
-            return 0;
-        }
-
-        uint256 Dprev = 0;
-        uint256 D = sum;
-        uint256 Ann = amp * nCoins;
-
-        for (uint256 i = 0; i < MAX_ITERATION; i++) {
-            uint256 D_P = D;
-            for (uint256 j = 0; j < xp.length; j++) {
-                D_P = div((D_P * D), (xp[j] * nCoins), roundUp);
-            }
-            Dprev = D;
-            D = div(((div((Ann * sum), A_PRECISION, roundUp) + D_P * nCoins) * D), (div(((Ann - A_PRECISION) * D), A_PRECISION, !roundUp) + (nCoins + 1) * D_P), roundUp);
-            if (_distance(D, Dprev) <= 1) {
-                return D;
-            }
-        }
-
-        // Convergence should occur in 4 loops or less. If this is reached, there may be something wrong
-        // with the pool. If this were to occur repeatedly, LPs should withdraw via `removeLiquidity()`
-        // function which does not rely on D.
-        revert("invariantCalculationFailed");
-    }
-
-    /**
      * calculate new balance of when swap
      * Done by solving quadratic equation iteratively.
      *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
@@ -636,116 +629,6 @@ library RequiemStableSwapLib {
 
         revert("yCalculationFailed");
     }
-
-    // /**
-    //  * calculate new balance of when swap
-    //  * Done by solving quadratic equation iteratively.
-    //  *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
-    //  *  x_1**2 + b*x_1 = c
-    //  *  x_1 = (x_1**2 + c) / (2*x_1 + b)
-    //  * @param inIndex index of token to swap in
-    //  * @param outIndex index of token to swap out
-    //  * @param inBalance new balance (normalized) of input token if the swap is successful
-    //  * @return NORMALIZED balance of output token if the swap is successful
-    //  */
-    // function _getY(
-    //     SwapStorage storage self,
-    //     uint256 inIndex,
-    //     uint256 outIndex,
-    //     uint256 inBalance,
-    //     uint256[] memory normalizedBalances
-    // ) internal view returns (uint256) {
-    //     require(inIndex != outIndex, "sameToken");
-    //     uint256 nCoins = self.pooledTokens.length;
-    //     require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
-
-    //     uint256 amp = _getAPrecise(self);
-    //     uint256 Ann = amp * nCoins;
-    //     uint256 D = _getInvariant(normalizedBalances, amp, true); // calculate invariant
-
-    //     uint256 sum = 0; // sum of new balances except output token
-    //     uint256 c = D;
-    //     for (uint256 i = 0; i < nCoins; i++) {
-    //         if (i == outIndex) {
-    //             continue;
-    //         }
-
-    //         uint256 x = i == inIndex ? inBalance : normalizedBalances[i];
-    //         sum += x;
-    //         c = divUp((c * D), (x * nCoins));
-    //     }
-
-    //     c = divUp((c * D * A_PRECISION), (Ann * nCoins));
-    //     uint256 b = sum + divDown((D * A_PRECISION), Ann);
-
-    //     uint256 lastY = 0;
-    //     uint256 y = D;
-
-    //     for (uint256 index = 0; index < MAX_ITERATION; index++) {
-    //         lastY = y;
-    //         y = divUp((y * y + c), (2 * y + b - D));
-    //         if (_distance(lastY, y) <= 1) {
-    //             return y;
-    //         }
-    //     }
-
-    //     revert("yCalculationFailed");
-    // }
-
-    // /**
-    //  * calculate new balance of when swap
-    //  * Done by solving quadratic equation iteratively.
-    //  *  x_1**2 + x_1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
-    //  *  x_1**2 + b*x_1 = c
-    //  *  x_1 = (x_1**2 + c) / (2*x_1 + b)
-    //  * @param inIndex index of token to swap in
-    //  * @param outIndex index of token to swap out
-    //  * @param outBalance new balance (normalized) of input token if the swap is successful
-    //  * @return NORMALIZED balance of output token if the swap is successful
-    //  */
-    // function _getX(
-    //     SwapStorage storage self,
-    //     uint256 inIndex,
-    //     uint256 outIndex,
-    //     uint256 outBalance,
-    //     uint256[] memory normalizedBalances
-    // ) internal view returns (uint256) {
-    //     require(inIndex != outIndex, "sameToken");
-    //     uint256 nCoins = self.pooledTokens.length;
-    //     require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
-
-    //     uint256 amp = _getAPrecise(self);
-    //     uint256 Ann = amp * nCoins;
-    //     uint256 D = _getInvariant(normalizedBalances, amp, true);
-
-    //     uint256 sum = 0; // sum of new balances except output token
-    //     uint256 c = D;
-    //     for (uint256 i = 0; i < nCoins; i++) {
-    //         if (i == inIndex) {
-    //             continue;
-    //         }
-
-    //         uint256 y = i == outIndex ? outBalance : normalizedBalances[i];
-    //         sum += y;
-    //         c = divDown((c * D), (y * nCoins));
-    //     }
-
-    //     c = divDown((c * D * A_PRECISION), (Ann * nCoins));
-    //     uint256 b = sum + divUp((D * A_PRECISION), Ann);
-
-    //     uint256 lastX = 0;
-    //     uint256 x = D;
-
-    //     for (uint256 index = 0; index < MAX_ITERATION; index++) {
-    //         lastX = x;
-    //         x = divDown((x * x + c), (2 * x + b - D));
-    //         if (_distance(lastX, x) <= 1) {
-    //             return x;
-    //         }
-    //     }
-
-    //     revert("xCalculationFailed");
-    // }
 
     function _calculateRemoveLiquidity(
         SwapStorage storage self,
@@ -895,14 +778,6 @@ library RequiemStableSwapLib {
 
     function _distance(uint256 x, uint256 y) internal pure returns (uint256) {
         return x > y ? x - y : y - x;
-    }
-
-    function div(
-        uint256 a,
-        uint256 b,
-        bool roundUp
-    ) internal pure returns (uint256) {
-        return roundUp ? divUp(a, b) : divDown(a, b);
     }
 
     function divDown(uint256 a, uint256 b) internal pure returns (uint256) {
