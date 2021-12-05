@@ -10,7 +10,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -56,7 +56,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -101,7 +101,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -146,7 +146,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -189,7 +189,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -241,7 +241,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -284,7 +284,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -327,7 +327,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -370,7 +370,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -416,7 +416,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -463,7 +463,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -508,7 +508,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -551,7 +551,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -595,7 +595,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -642,7 +642,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -688,7 +688,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -735,7 +735,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -780,7 +780,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -825,7 +825,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -877,7 +877,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -920,7 +920,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -963,7 +963,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1008,7 +1008,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1051,7 +1051,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1094,7 +1094,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1139,7 +1139,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1182,7 +1182,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1228,7 +1228,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1274,7 +1274,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1319,7 +1319,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1366,7 +1366,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1413,7 +1413,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1461,7 +1461,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1504,7 +1504,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1547,7 +1547,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1595,7 +1595,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1638,7 +1638,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1683,7 +1683,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1736,7 +1736,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1779,7 +1779,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1820,7 +1820,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1861,7 +1861,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1902,7 +1902,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1954,7 +1954,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -1997,7 +1997,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2041,7 +2041,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2093,7 +2093,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2141,7 +2141,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2193,7 +2193,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2236,7 +2236,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2281,7 +2281,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2325,7 +2325,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2374,7 +2374,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2419,7 +2419,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2462,7 +2462,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2507,7 +2507,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2550,7 +2550,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2593,7 +2593,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2648,7 +2648,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2694,7 +2694,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2737,7 +2737,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2783,7 +2783,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2826,7 +2826,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2869,7 +2869,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2912,7 +2912,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2955,7 +2955,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -2998,7 +2998,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3044,7 +3044,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3098,7 +3098,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3141,7 +3141,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3196,7 +3196,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3239,7 +3239,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3282,7 +3282,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3325,7 +3325,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3370,7 +3370,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3416,7 +3416,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3468,7 +3468,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3513,7 +3513,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3553,15 +3553,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemFormula.sol": {
-      "lastModificationDate": 1638666889803,
-      "contentHash": "bdc022746aedb9bbfffcd3d5c258c0f7",
+      "lastModificationDate": 1638667120230,
+      "contentHash": "947becd07887315bd2d6db521145ac27",
       "sourceName": "contracts/RequiemFormula.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3608,7 +3608,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3655,7 +3655,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3700,7 +3700,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3745,7 +3745,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3791,7 +3791,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3828,15 +3828,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemFactory.sol": {
-      "lastModificationDate": 1638309268730,
-      "contentHash": "1f9d3ed70daff7ff9912576dc4721043",
+      "lastModificationDate": 1638667094078,
+      "contentHash": "5ac2fc56c86b199b187d1aaafe669544",
       "sourceName": "contracts/RequiemFactory.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3882,7 +3882,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3927,7 +3927,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -3974,7 +3974,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4017,7 +4017,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4060,7 +4060,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4107,7 +4107,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4150,7 +4150,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4195,7 +4195,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4243,7 +4243,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4286,7 +4286,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4329,7 +4329,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4375,7 +4375,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4418,7 +4418,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4467,7 +4467,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4510,7 +4510,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4555,7 +4555,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4601,7 +4601,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4644,7 +4644,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4690,7 +4690,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4733,7 +4733,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4779,7 +4779,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4824,7 +4824,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4869,7 +4869,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4916,7 +4916,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -4961,7 +4961,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5006,7 +5006,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5051,7 +5051,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5096,7 +5096,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5141,7 +5141,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5186,7 +5186,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5229,7 +5229,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5274,7 +5274,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5317,7 +5317,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5360,7 +5360,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5403,7 +5403,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5446,7 +5446,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5489,7 +5489,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5532,7 +5532,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5579,7 +5579,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5629,7 +5629,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5664,15 +5664,15 @@
       ]
     },
     "/home/achthar/requiem-multi-swap/contracts/RequiemQPairManager.sol": {
-      "lastModificationDate": 1637360711406,
-      "contentHash": "7624f211b3f88017b3ddf02e0653f27a",
+      "lastModificationDate": 1638667437182,
+      "contentHash": "186a95a5d506b4e21aa21a298607f4c2",
       "sourceName": "contracts/RequiemQPairManager.sol",
       "solcConfig": {
         "version": "0.8.10",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5709,7 +5709,7 @@
         "./interfaces/IWETH.sol"
       ],
       "versionPragmas": [
-        ">=0.8.9"
+        ">=0.8.10"
       ],
       "artifacts": [
         "RequiemQPairManager"
@@ -5724,7 +5724,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5767,7 +5767,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5819,7 +5819,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5872,7 +5872,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5918,7 +5918,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -5961,7 +5961,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {
@@ -6006,7 +6006,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 10000
+            "runs": 99999
           },
           "evmVersion": "london",
           "outputSelection": {

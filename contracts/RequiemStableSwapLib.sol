@@ -137,7 +137,7 @@ library RequiemStableSwapLib {
         require(dy >= minOutAmount, "> slippage");
 
         // uint256 _adminFee = (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
-
+        
         // update balances
         self.balances[i] += inAmount;
         self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];

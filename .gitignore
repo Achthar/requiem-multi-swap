@@ -1,4 +1,5 @@
 node_modules
-artifacts
+artifacts/contracts
+artifacts/build-info
 abi
 .env
