@@ -12,6 +12,8 @@ import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/IRequiemQPairManager.sol";
 import "./interfaces/IWETH.sol";
 
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
+
 contract RequiemQPairManager is IRequiemQPairManager {
     address public immutable override factory;
     address public immutable override formula;
