@@ -11,31 +11,6 @@ import type {
 
 const _abi = [
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "pair",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amountOut",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "output",
-        type: "address",
-      },
-    ],
-    name: "Exchange",
-    type: "event",
-  },
-  {
     inputs: [],
     name: "WETH",
     outputs: [

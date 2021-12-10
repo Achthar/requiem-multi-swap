@@ -56,6 +56,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const oexp = await formulaContract.optimalExp(BigNumber.from('2353'))
 	// const d = await execute("RequiemFormulaTest" , { from: localhost },"power",bN, bD, eN, eD)
 	console.log("oexp", oexp.toString())
+	const amountOut = 2162530
+	const reserveIn = 60311888469
+	const reserveOut = 114139953
+	const weightIn = 52
+	const weightOut = 48
+	const fee = 10
+	console.log("in from ", 2162530)
+	const res = await formulaContract.getAmountIn(amountOut, reserveIn, reserveOut, weightIn, weightOut, fee)
+	console.log("---manual amount in ", res.toString())
+	const res2 = await formulaContract.getAmountOut(res, reserveIn, reserveOut, weightIn, weightOut, fee)
+	console.log("---from there out ", res2.toString())
 
 };
 export default func;

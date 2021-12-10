@@ -210,20 +210,8 @@ interface IRequiemQPairManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {
-    "Exchange(address,uint256,address)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Exchange"): EventFragment;
+  events: {};
 }
-
-export type ExchangeEvent = TypedEvent<
-  [string, BigNumber, string] & {
-    pair: string;
-    amountOut: BigNumber;
-    output: string;
-  }
->;
 
 export class IRequiemQPairManager extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -682,25 +670,7 @@ export class IRequiemQPairManager extends BaseContract {
     >;
   };
 
-  filters: {
-    "Exchange(address,uint256,address)"(
-      pair?: null,
-      amountOut?: null,
-      output?: null
-    ): TypedEventFilter<
-      [string, BigNumber, string],
-      { pair: string; amountOut: BigNumber; output: string }
-    >;
-
-    Exchange(
-      pair?: null,
-      amountOut?: null,
-      output?: null
-    ): TypedEventFilter<
-      [string, BigNumber, string],
-      { pair: string; amountOut: BigNumber; output: string }
-    >;
-  };
+  filters: {};
 
   estimateGas: {
     WETH(overrides?: CallOverrides): Promise<BigNumber>;
