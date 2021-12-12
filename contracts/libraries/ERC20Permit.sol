@@ -6,6 +6,8 @@ import "./ERC20.sol";
 import "../interfaces/ERC20/IERC20Permit.sol";
 import "./EIP712.sol";
 
+// solhint-disable no-empty-blocks
+
 /**
  * @dev Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
  * https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].

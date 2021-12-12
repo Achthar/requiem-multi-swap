@@ -108,15 +108,17 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     // has no check for slippage, that should be wrapped arount that funtion if used
     // calculation-wise not really less efficient than just validating input amounts
     // since the invariant would have to be calculated twice
+    // expects amounts to be sent to the contract alreaddy
     function onSwap(
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        uint256,
+        uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
         // swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
-        swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, 0, to);
+        swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+        // swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, 0, to);
     }
 
     // expects amount alrady to be sent to this address

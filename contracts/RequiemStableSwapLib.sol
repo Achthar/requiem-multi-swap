@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import "./tokens/LPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
+import "./libraries/math/FullMath.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
@@ -144,6 +145,53 @@ library RequiemStableSwapLib {
 
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
+        return dy;
+    }
+
+    /**
+     *  the same function as swap, but it expects that amounts already have been
+     *  sent to the contract
+     *   - designed to be used in the Requiem Swap framework
+     *   - deducts the fee from the output and caps it at outAmount to
+     *   - this is to avoid issues with the rounding when using the calculateSwapGivenOut function to determine the input
+     *          -> that is because e.g. a 6 digit input can never exactly hit a 18 digit output, so the input is selected slightly higher
+     *              such that the output also is essentially rounded up at the sixth digit
+     *          -> the outAmount can only be lower than the actual calculated dy
+     *   - viable function for batch swapping
+     * @param i token index in
+     * @param j token index out
+     * @param outAmount the target out amount - only a cap at the decimalplaces of the lower one, the rest is taken as fee
+     *                  that fee is always about the lowes amount possible of the ooin with the lower decimal number
+     *                  this will have a negative
+     */
+    function onSwap(
+        SwapStorage storage self,
+        uint256 i,
+        uint256 j,
+        uint256 inAmount,
+        uint256 outAmount,
+        address to
+    ) external returns (uint256) {
+        uint256[] memory normalizedBalances = _xp(self);
+
+        uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
+
+        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
+        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
+
+        dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
+
+        require(outAmount <= dy, "dy too low");
+        if (self.tokenMultipliers[i] > self.tokenMultipliers[j]) {
+            // token multipliers is 10^(commondec - decimals)
+            require(outAmount > dy + 10**POOL_TOKEN_COMMON_DECIMALS / self.tokenMultipliers[i], "out too low");
+        }
+
+        self.balances[i] += inAmount;
+        self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+
+        self.pooledTokens[j].safeTransfer(to, outAmount);
+        emit TokenExchange(to, i, inAmount, j, outAmount);
         return dy;
     }
 
@@ -424,11 +472,19 @@ library RequiemStableSwapLib {
     ) external view returns (uint256) {
         uint256[] memory normalizedBalances = _xp(self);
         // fee has to be deducted on the output
-        uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+        uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
         uint256 newOutBalance = normalizedBalances[outIndex] - (_amountOutInclFee * self.tokenMultipliers[outIndex]);
         // switch index on regulat _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
         uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
+        // if (self.tokenMultipliers[inIndex] < self.tokenMultipliers[outIndex]) {
+        //     inAmount = inAmount + 2000000*(10** POOL_TOKEN_COMMON_DECIMALS) / self.tokenMultipliers[inIndex];
+        // }
+        // uint256 inAmount = FullMath.mulDivRoundingUp(
+        //     inBalance - normalizedBalances[inIndex],
+        //  self.tokenMultipliers[inIndex],
+        //   10**POOL_TOKEN_COMMON_DECIMALS
+        //   );
         return inAmount;
     }
 

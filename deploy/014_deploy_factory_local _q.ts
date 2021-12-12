@@ -586,6 +586,38 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		deadline,// uint256 deadline
 	);
 	console.log("swapped 5A")
+
+
+
+
+	await factoryContract.createPair(tusd.address, t2.address, ethers.BigNumber.from(48), ethers.BigNumber.from(20))
+	const pairTusd = await factoryContract.getPair(tusd.address, t2.address, ethers.BigNumber.from(48), ethers.BigNumber.from(20))
+
+	console.log("pair:", pairTusd)
+
+
+	const liq3 = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pairTusd, tusd.address, t2.address,
+		parseUnits('10003245', 18),
+		parseUnits('13002330', 18),
+		parseUnits('10003245', 18),
+		parseUnits('13002330', 18),
+		localhost,
+		deadline);
+
+	console.log("TUSD T added")
+
+	const tokens5 = [tusd.address, usdc.address, t2.address]
+	const pools5 = [pool.address, pair2]
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools5,
+		tokens5,
+		BigNumber.from('34423432243433343'), // out
+		BigNumber.from('3242343232324432432432432'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+	console.log("swapped 6")
 };
 export default func;
 func.tags = ['swap-localhost-q'];

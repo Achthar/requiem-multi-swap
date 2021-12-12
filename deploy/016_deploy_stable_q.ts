@@ -140,7 +140,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log('add_liquidity');
 	const tokenAmount = await poolContract.calculateTokenAmount(
-		[parseUnits('101', 6), parseUnits('102', 6), parseUnits('103', 18), parseUnits('104', 18)],
+		[parseUnits('1101', 6), parseUnits('1102', 6), parseUnits('1103', 18), parseUnits('1014', 18)],
 		true
 	);
 
@@ -251,6 +251,57 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		localhost
 	)
 
+	const outAmount5 = BigNumber.from('5523245322543325293')
+	console.log("calculateout")
+	const calcSwap8 = await poolContract.calculateSwapGivenOut(
+		usdc.address,
+		tusd.address,
+		outAmount5)
+
+
+	const calcSwap9 = await poolContract.calculateSwapGivenIn(
+		usdc.address,
+		tusd.address,
+		calcSwap8
+	)
+	// 5523245322543325293 calculated 5523246259170329363
+
+	console.log("calculate from Out, orig", outAmount5.toString(), "calculated", calcSwap9.toString())
+	console.log("4 --- in",  calcSwap8.toString())
+
+
+	const inAmount4 = BigNumber.from('13213121')
+	console.log("calculateIn")
+	const calcSwap10 = await poolContract.calculateSwapGivenIn(
+		usdc.address,
+		dai.address,
+		inAmount4)
+
+	console.log("calculate from Out", calcSwap10.toString())
+	const calcSwap11 = await poolContract.calculateSwapGivenOut(
+		usdc.address,
+		dai.address,
+		calcSwap10
+	)
+	
+	console.log("5 --- in", inAmount4.toString(), "inValidated", calcSwap11.toString())
+	// 213213321321213121 inValidated 213212654847395401
+	const outAmount6 = BigNumber.from('21213121')
+	console.log("calculateIn")
+
+
+	console.log("calculate from Out", outAmount6.toString())
+	const calcSwap13 = await poolContract.calculateSwapGivenOut(
+		dai.address,
+		usdc.address,
+		outAmount6
+	)
+	const calcSwap12 = await poolContract.calculateSwapGivenIn(
+		dai.address,
+		usdc.address,
+		calcSwap13)
+	
+	console.log("6 --- out", outAmount6.toString(), "inValidated", calcSwap12.toString())
 
 };
 export default func;
