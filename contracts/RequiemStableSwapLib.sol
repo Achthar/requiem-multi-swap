@@ -161,7 +161,7 @@ library RequiemStableSwapLib {
      * @param i token index in
      * @param j token index out
      * @param outAmount the target out amount - only a cap at the decimalplaces of the lower one, the rest is taken as fee
-     *                  that fee is always about the lowes amount possible of the ooin with the lower decimal number
+     *                  - that fee is always about the lowes amount possible of the one with the lower decimal number
      *                  this will have a negative
      */
     function onSwap(
@@ -179,13 +179,10 @@ library RequiemStableSwapLib {
         uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
         uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
 
-        dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
+        dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
 
+        // the control outAmount has to be lower or equal than the "actual" one
         require(outAmount <= dy, "dy too low");
-        if (self.tokenMultipliers[i] > self.tokenMultipliers[j]) {
-            // token multipliers is 10^(commondec - decimals)
-            require(outAmount > dy + 10**POOL_TOKEN_COMMON_DECIMALS / self.tokenMultipliers[i], "out too low");
-        }
 
         self.balances[i] += inAmount;
         self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
@@ -258,7 +255,7 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
 
         // thre fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
-        uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+        uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
 
         // calculate out balance
         uint256 y = normalizedBalances[j] - (_amountOutInclFee * self.tokenMultipliers[j]);
@@ -456,7 +453,7 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
         uint256 newInBalance = normalizedBalances[inIndex] + (inAmount * self.tokenMultipliers[inIndex]);
         uint256 outBalance = _getY(self, inIndex, outIndex, newInBalance, normalizedBalances);
-        uint256 outAmount = divDown(normalizedBalances[outIndex] - outBalance, self.tokenMultipliers[outIndex]);
+        uint256 outAmount = (normalizedBalances[outIndex] - outBalance) / self.tokenMultipliers[outIndex];
         uint256 _fee = (self.fee * outAmount) / FEE_DENOMINATOR;
         return outAmount - _fee;
     }
@@ -477,14 +474,7 @@ library RequiemStableSwapLib {
         // switch index on regulat _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
         uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
-        // if (self.tokenMultipliers[inIndex] < self.tokenMultipliers[outIndex]) {
-        //     inAmount = inAmount + 2000000*(10** POOL_TOKEN_COMMON_DECIMALS) / self.tokenMultipliers[inIndex];
-        // }
-        // uint256 inAmount = FullMath.mulDivRoundingUp(
-        //     inBalance - normalizedBalances[inIndex],
-        //  self.tokenMultipliers[inIndex],
-        //   10**POOL_TOKEN_COMMON_DECIMALS
-        //   );
+
         return inAmount;
     }
 
@@ -634,7 +624,7 @@ library RequiemStableSwapLib {
 
         for (uint256 index = 0; index < MAX_ITERATION; index++) {
             lastY = y;
-            y = (y * y + c) / (2 * y + b - D);
+            y = divUp(y * y + c, 2 * y + b - D);
             if (_distance(lastY, y) <= 1) {
                 return y;
             }

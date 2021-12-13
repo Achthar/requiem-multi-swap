@@ -230,7 +230,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		localhost,
 		deadline);
 
-	
+
 
 	console.log("--- create WETH t2 pair ----")
 	await factoryContract.createPair(weth.address, t2.address, ethers.BigNumber.from(48), ethers.BigNumber.from(10))
@@ -246,7 +246,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		BigNumber.from('1000000000'),
 		localhost,
 		deadline);
-	console.log("LP received weth t2")
+	console.log("LP received weth t2", liqWeth)
 
 	const pairWethContract = await ethers.getContractAt('RequiemPair', pairWeth);
 
@@ -254,7 +254,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const inT2 = await pairWethContract.calculateSwapGivenOut(weth.address, weth.address, 4321234)
 
 	const y = await pairWethContract.calculateSwapGivenIn(weth.address, weth.address, inT2)
-	console.log("amountIn" , inT2.toString(), "outs", 4321234, y.toString())
+	console.log("amountIn", inT2.toString(), "outs", 4321234, y.toString())
+
+
+	const liqWeth32 = await execute('RequiemQPairManager', { from: localhost }, 'removeLiquidity', pairWeth, weth.address, t2.address,
+		BigNumber.from(1000),
+		BigNumber.from('1000000'),
+		BigNumber.from('10000000'),
+		localhost,
+		deadline);
+	console.log("LP received weth t2", liqWeth32)
+
 };
 export default func;
 func.tags = ['pair-localhost-q'];

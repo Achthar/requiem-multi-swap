@@ -60,10 +60,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		args: [localhost],
 	});
 
-	await execute('T1', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000', 6));
-	await execute('T2', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000', 6));
-	await execute('T3', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000', 18));
-	await execute('T4', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000', 18));
+	await execute('T1', { from: localhost, log: true }, 'mint', localhost, parseUnits('100002143000', 6));
+	await execute('T2', { from: localhost, log: true }, 'mint', localhost, parseUnits('100000414100', 6));
+	await execute('T3', { from: localhost, log: true }, 'mint', localhost, parseUnits('100002112000', 18));
+	await execute('T4', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000011400', 18));
 	// await execute('T1', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 6) );
 	// await execute('T2', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 6) );
 	// await execute('T3', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 18) );
@@ -352,7 +352,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	await execute('RequiemQRouter', { from: localhost }, 'swapExactTokensForTokens',
 		t1.address, // address tokenIn,
 		t2.address, // address tokenOut,
-		10, // uint256 amountIn,
+		1000, // uint256 amountIn,
 		0, // uint256 amountOutMin,
 		[pair],// address[] memory path,
 		localhost,// address to,
@@ -598,26 +598,102 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	const liq3 = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pairTusd, tusd.address, t2.address,
 		parseUnits('10003245', 18),
-		parseUnits('13002330', 18),
+		parseUnits('13002330', 6),
 		parseUnits('10003245', 18),
-		parseUnits('13002330', 18),
+		parseUnits('13002330', 6),
 		localhost,
 		deadline);
 
 	console.log("TUSD T added")
 
-	const tokens5 = [tusd.address, usdc.address, t2.address]
-	const pools5 = [pool.address, pair2]
+	const tokens5 = [usdc.address, tusd.address, t2.address]
+	const pools5 = [pool.address, pairTusd]
 
 	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
 		pools5,
 		tokens5,
-		BigNumber.from('34423432243433343'), // out
-		BigNumber.from('3242343232324432432432432'), //in max
+		BigNumber.from('347798'), // out
+		BigNumber.from('99999999999999999'), //in max
 		localhost,// address to,
 		deadline,// uint256 deadline
 	);
 	console.log("swapped 6")
+
+	await factoryContract.createPair(usdc.address, t3.address, ethers.BigNumber.from(48), ethers.BigNumber.from(20))
+	const pair_usdc_t3 = await factoryContract.getPair(usdc.address, t3.address, ethers.BigNumber.from(48), ethers.BigNumber.from(20))
+
+	const liq4 = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pair_usdc_t3, usdc.address, t3.address,
+		BigNumber.from('3472321'),
+		BigNumber.from('1002323212321232321'),
+		BigNumber.from('3472321'),
+		BigNumber.from('1002321232321232321'),
+		localhost,
+		deadline);
+
+	console.log("usdc T3 added")
+
+	const tokens6 = [tusd.address, usdc.address, t3.address]
+	const pools6 = [pool.address, pair_usdc_t3]
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools6,
+		tokens6,
+		BigNumber.from('32321'), // out
+		BigNumber.from('99999999999999999999999'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+	console.log("swapped 7")
+
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools6,
+		tokens6,
+		BigNumber.from('32321332121'), // out
+		BigNumber.from('99999999999999999999999'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+	console.log("swapped 8")
+
+	await factoryContract.createPair(usdt.address, t3.address, ethers.BigNumber.from(48), ethers.BigNumber.from(20))
+	const pair_usdt_t3 = await factoryContract.getPair(usdt.address, t3.address, ethers.BigNumber.from(48), ethers.BigNumber.from(20))
+
+	const liq5 = await execute('RequiemQPairManager', { from: localhost }, 'addLiquidity', pair_usdt_t3, usdt.address, t3.address,
+		BigNumber.from('3472323'),
+		BigNumber.from('1002323212321232321'),
+		BigNumber.from('3472323'),
+		BigNumber.from('1002321232321232321'),
+		localhost,
+		deadline);
+
+	console.log("usdt T3 added")
+
+	const pools8 = [pool.address, pair_usdt_t3]
+	const tokens8 = [tusd.address, usdt.address, t3.address]
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools8,
+		tokens8,
+		BigNumber.from('3232133212212'), // out
+		BigNumber.from('99999999999999999999999'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+
+	console.log("swapped 9")
+
+	const tokens9 = [usdt.address, usdc.address, t3.address]
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		pools6,
+		tokens9,
+		BigNumber.from('3232133212212'), // out
+		BigNumber.from('99999999999999999999999'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+
+	console.log("swapped 10")
+
+
 };
 export default func;
 func.tags = ['swap-localhost-q'];

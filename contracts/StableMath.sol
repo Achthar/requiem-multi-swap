@@ -511,7 +511,7 @@ library StableMath {
             }
         }
 
-        revert("STABLE_GET_BALANCE_DIDNT_CONVERGE");
+        revert("STABLE_BALANCE_DIDNT_CONVERGE");
     }
 
     function _getRate(

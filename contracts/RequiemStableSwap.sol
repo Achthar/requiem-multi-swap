@@ -116,7 +116,6 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
-        // swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
         swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
         // swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, 0, to);
     }
