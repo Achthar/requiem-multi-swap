@@ -100,8 +100,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		log: true,
 	});
 
-	const factory = await deploy("RequiemFactory", {
-		contract: "RequiemFactory",
+	const factory = await deploy("RequiemWeightedPairFactory", {
+		contract: "RequiemWeightedPairFactory",
 		skipIfAlreadyDeployed: true,
 		from: localhost,
 		args: [localhost, formula.address],
@@ -202,7 +202,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 
 
-	const factoryContract = await ethers.getContractAt('RequiemFactory', factory.address);
+	const factoryContract = await ethers.getContractAt('RequiemWeightedPairFactory', factory.address);
 	console.log("--- create t1 t2 pair ----")
 	await factoryContract.createPair(t1.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
 	const pair = await factoryContract.getPair(t1.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
@@ -248,7 +248,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		deadline);
 	console.log("LP received weth t2", liqWeth)
 
-	const pairWethContract = await ethers.getContractAt('RequiemPair', pairWeth);
+	const pairWethContract = await ethers.getContractAt('RequiemWeightedPair', pairWeth);
 
 	console.log("calc swap test")
 	const inT2 = await pairWethContract.calculateSwapGivenOut(weth.address, weth.address, 4321234)
@@ -256,11 +256,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const y = await pairWethContract.calculateSwapGivenIn(weth.address, weth.address, inT2)
 	console.log("amountIn", inT2.toString(), "outs", 4321234, y.toString())
 
+	await pairWethContract.approve(pairManager.address, ethers.constants.MaxInt256);
 
 	const liqWeth32 = await execute('RequiemQPairManager', { from: localhost }, 'removeLiquidity', pairWeth, weth.address, t2.address,
 		BigNumber.from(1000),
-		BigNumber.from('1000000'),
-		BigNumber.from('10000000'),
+		BigNumber.from('0'),
+		BigNumber.from('0'),
 		localhost,
 		deadline);
 	console.log("LP received weth t2", liqWeth32)

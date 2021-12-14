@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.10;
 
-import "./interfaces/IRequiemFactory.sol";
+import "./interfaces/IRequiemWeightedPairFactory.sol";
 import "./interfaces/IRequiemFormula.sol";
 import "./interfaces/IRequiemWeightedPair.sol";
 import "./interfaces/IRequiemSwap.sol";
@@ -26,7 +26,7 @@ contract RequiemQRouter is IRequiemQRouter {
 
     constructor(address _factory, address _WETH) {
         factory = _factory;
-        formula = IRequiemFactory(_factory).formula();
+        formula = IRequiemWeightedPairFactory(_factory).formula();
         WETH = _WETH;
     }
 

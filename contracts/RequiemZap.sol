@@ -8,7 +8,7 @@ import "./libraries/SafeMath.sol";
 import "./interfaces/IWETH.sol";
 import "./interfaces/IUniswapV2Router.sol";
 import "./interfaces/IRequiemRouterLite.sol";
-import "./interfaces/IRequiemFactory.sol";
+import "./interfaces/IRequiemWeightedPairFactory.sol";
 import "./interfaces/IRequiemWeightedPair.sol";
 import "./interfaces/IRequiemFormula.sol";
 import "./libraries/TransferHelper.sol";
@@ -25,7 +25,7 @@ contract RequiemZap is ReentrancyGuard {
 
     IUniswapV2Router public uniRouter;
     IRequiemRouter public requiemRouter;
-    IRequiemFactory public requiemFactory;
+    IRequiemWeightedPairFactory public requiemWeightedPairFactory;
     IRequiemFormula public requiemFormula;
 
     mapping(address => mapping(address => address[])) public RequiemWeightedPairs; // [input -> output] => requiem pair
@@ -50,7 +50,7 @@ contract RequiemZap is ReentrancyGuard {
         governance = msg.sender;
         uniRouter = _uniRouter;
         requiemRouter = _requiemRouter;
-        requiemFactory = IRequiemFactory(_requiemRouter.factory());
+        requiemWeightedPairFactory = IRequiemWeightedPairFactory(_requiemRouter.factory());
         requiemFormula = IRequiemFormula(_requiemRouter.formula());
         WETH = _requiemRouter.WETH();
     }
@@ -77,7 +77,7 @@ contract RequiemZap is ReentrancyGuard {
             uint otherAmount = _swap(_from, sellAmount, other, address(this), _to);
             require(otherAmount >= amounts[1], "Zap: Insufficient Receive Amount");
 
-            lpAmt = _pairDeposit(_to, _from, other, amounts[0].sub(sellAmount), otherAmount, msg.sender, requiemFactory.isPair(_to), transferResidual);
+            lpAmt = _pairDeposit(_to, _from, other, amounts[0].sub(sellAmount), otherAmount, msg.sender, requiemWeightedPairFactory.isPair(_to), transferResidual);
         } else {
             uint bnbAmount = _swapTokenForBNB(_from, amounts[0], address(this), address(0));
             lpAmt = _swapETHToLp(IRequiemWeightedPair(_to), bnbAmount, msg.sender, 0, transferResidual);
@@ -110,7 +110,7 @@ contract RequiemZap is ReentrancyGuard {
             IRequiemWeightedPair pair = IRequiemWeightedPair(_from);
             token0 = pair.token0();
             token1 = pair.token1();
-            bool isRequiemWeightedPair = requiemFactory.isPair(_from);
+            bool isRequiemWeightedPair = requiemWeightedPairFactory.isPair(_from);
             if (isRequiemWeightedPair) {
                 (amountA, amountB) = requiemRouter.removeLiquidity(_from, token0, token1, amount, 1, 1, address(this), block.timestamp);
             } else {
@@ -184,7 +184,7 @@ contract RequiemZap is ReentrancyGuard {
 
         address[] memory path = new address[](1);
         path[0] = lp;
-        uint[] memory amounts = requiemFormula.getFactoryAmountsOut(address(requiemFactory), _from, other, sellAmount, path);
+        uint[] memory amounts = requiemFormula.getFactoryAmountsOut(address(requiemWeightedPairFactory), _from, other, sellAmount, path);
         return (amounts[amounts.length - 1], sellAmount);
     }
 
@@ -214,7 +214,7 @@ contract RequiemZap is ReentrancyGuard {
     }
 
     function calculateSwapInAmount(address pair, address tokenIn, uint256 userIn, address pairToken0) internal view returns (uint256) {
-        (uint32 tokenWeight0, uint32 tokenWeight1,) = requiemFactory.getWeightsAndSwapFee(pair);
+        (uint32 tokenWeight0, uint32 tokenWeight1,) = requiemWeightedPairFactory.getWeightsAndSwapFee(pair);
 
         if (tokenWeight0 == 50) {
             (uint256 res0, uint256 res1,) = IRequiemWeightedPair(pair).getReserves();
@@ -231,7 +231,7 @@ contract RequiemZap is ReentrancyGuard {
     /* ========== Private Functions ========== */
     function _getRemovedReserveAmountOut(address pair, address tokenIn, uint sellAmount, uint amountToRemoved) internal view returns (uint) {
         (, uint reserveIn, uint reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) =
-        requiemFormula.getFactoryReserveAndWeights(address(requiemFactory), pair, tokenIn);
+        requiemFormula.getFactoryReserveAndWeights(address(requiemWeightedPairFactory), pair, tokenIn);
         return requiemFormula.getAmountOut(sellAmount, reserveIn.sub(sellAmount), reserveOut.sub(amountToRemoved), tokenWeightIn, tokenWeightOut, swapFee);
     }
 
@@ -296,20 +296,20 @@ contract RequiemZap is ReentrancyGuard {
 
             uint256 WETHAmount = amount.sub(swapValue);
             IWETH(WETH).deposit{value : WETHAmount}();
-            lpAmt = _pairDeposit(lp, WETH, token, WETHAmount, tokenAmount, receiver, requiemFactory.isPair(lp), transferResidual);
+            lpAmt = _pairDeposit(lp, WETH, token, WETHAmount, tokenAmount, receiver, requiemWeightedPairFactory.isPair(lp), transferResidual);
         } else {
             address token0 = pair.token0();
             address token1 = pair.token1();
             uint token0Amount;
             uint token1Amount;
             {
-                (uint32 tokenWeight0,,) = requiemFactory.getWeightsAndSwapFee(lp);
+                (uint32 tokenWeight0,,) = requiemWeightedPairFactory.getWeightsAndSwapFee(lp);
                 uint swap0Value = amount.mul(uint(tokenWeight0)).div(100);
                 token0Amount = _swapETHForToken(token0, swap0Value, address(this), address(0));
                 token1Amount = _swapETHForToken(token1, amount.sub(swap0Value), address(this), address(0));
             }
 
-            lpAmt = _pairDeposit(lp, token0, token1, token0Amount, token1Amount, receiver, requiemFactory.isPair(lp), transferResidual);
+            lpAmt = _pairDeposit(lp, token0, token1, token0Amount, token1Amount, receiver, requiemWeightedPairFactory.isPair(lp), transferResidual);
         }
     }
 

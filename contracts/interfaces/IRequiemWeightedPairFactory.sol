@@ -2,7 +2,7 @@
 
 pragma solidity >=0.5.16;
 
-interface IRequiemFactory {
+interface IRequiemWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint);
     function feeTo() external view returns (address);
     function formula() external view returns (address);

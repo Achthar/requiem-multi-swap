@@ -9,7 +9,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const {deploy, execute, get, save} = deployments;
 	const {deployer, governance, proxyAdmin} = await getNamedAccounts();
 	const protocolFeeRemover = await get('ProtocolFeeRemover')
-	const RequiemFactory = await get('RequiemFactory')
+	const RequiemWeightedPairFactory = await get('RequiemWeightedPairFactory')
 	const wethAddress = await getWeth(hre);
 	const stakePoolControllerImpl = await deploy("StakePoolControllerImpl", {
 		contract: 'StakePoolController',
@@ -39,7 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 				from: deployer,
 				log: true,
 			}, "initialize",
-			RequiemFactory.address
+			RequiemWeightedPairFactory.address
 		)
 
 		await execute("StakePoolController", {from: deployer, log: true}, "setFeeCollector", protocolFeeRemover.address);

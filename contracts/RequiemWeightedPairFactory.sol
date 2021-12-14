@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.10;
 
-import "./interfaces/IRequiemFactory.sol";
+import "./interfaces/IRequiemWeightedPairFactory.sol";
 import "./RequiemWeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
-contract RequiemFactory is IRequiemFactory {
+contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
     address public feeTo;
     address public formula;
     uint256 public protocolFee;

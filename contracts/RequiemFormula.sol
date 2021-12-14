@@ -4,7 +4,7 @@ pragma solidity >=0.8.10;
 
 import "./interfaces/IRequiemFormula.sol";
 import "./interfaces/IRequiemWeightedPair.sol";
-import "./interfaces/IRequiemFactory.sol";
+import "./interfaces/IRequiemWeightedPairFactory.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
 
@@ -829,7 +829,7 @@ contract RequiemFormula is IRequiemFormula {
             uint32 swapFee
         )
     {
-        return IRequiemFactory(factory).getWeightsAndSwapFee(pair);
+        return IRequiemWeightedPairFactory(factory).getWeightsAndSwapFee(pair);
     }
 
     // Ensure constant value reserve0^(tokenWeight0/50) * reserve1^((100 - tokenWeight0)/50) <= balance0Adjusted^(tokenWeight0/50) * balance1Adjusted^((100 - tokenWeight0)/50)

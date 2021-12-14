@@ -29,9 +29,9 @@ interface RequiemZapInterface extends ethers.utils.Interface {
     "getAmountToZapOut(address,uint256,address)": FunctionFragment;
     "governance()": FunctionFragment;
     "maxResidual()": FunctionFragment;
-    "requiemFactory()": FunctionFragment;
     "requiemFormula()": FunctionFragment;
     "requiemRouter()": FunctionFragment;
+    "requiemWeightedPairFactory()": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setMaxResidual(uint256)": FunctionFragment;
     "setRequiemWeightedPairs(address,address,address[])": FunctionFragment;
@@ -73,15 +73,15 @@ interface RequiemZapInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "requiemFactory",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "requiemFormula",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "requiemRouter",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "requiemWeightedPairFactory",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -164,15 +164,15 @@ interface RequiemZapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "requiemFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "requiemFormula",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "requiemRouter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "requiemWeightedPairFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -339,11 +339,11 @@ export class RequiemZap extends BaseContract {
 
     maxResidual(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    requiemFactory(overrides?: CallOverrides): Promise<[string]>;
-
     requiemFormula(overrides?: CallOverrides): Promise<[string]>;
 
     requiemRouter(overrides?: CallOverrides): Promise<[string]>;
+
+    requiemWeightedPairFactory(overrides?: CallOverrides): Promise<[string]>;
 
     setGovernance(
       _governance: string,
@@ -473,11 +473,11 @@ export class RequiemZap extends BaseContract {
 
   maxResidual(overrides?: CallOverrides): Promise<BigNumber>;
 
-  requiemFactory(overrides?: CallOverrides): Promise<string>;
-
   requiemFormula(overrides?: CallOverrides): Promise<string>;
 
   requiemRouter(overrides?: CallOverrides): Promise<string>;
+
+  requiemWeightedPairFactory(overrides?: CallOverrides): Promise<string>;
 
   setGovernance(
     _governance: string,
@@ -604,11 +604,11 @@ export class RequiemZap extends BaseContract {
 
     maxResidual(overrides?: CallOverrides): Promise<BigNumber>;
 
-    requiemFactory(overrides?: CallOverrides): Promise<string>;
-
     requiemFormula(overrides?: CallOverrides): Promise<string>;
 
     requiemRouter(overrides?: CallOverrides): Promise<string>;
+
+    requiemWeightedPairFactory(overrides?: CallOverrides): Promise<string>;
 
     setGovernance(
       _governance: string,
@@ -821,11 +821,11 @@ export class RequiemZap extends BaseContract {
 
     maxResidual(overrides?: CallOverrides): Promise<BigNumber>;
 
-    requiemFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
     requiemFormula(overrides?: CallOverrides): Promise<BigNumber>;
 
     requiemRouter(overrides?: CallOverrides): Promise<BigNumber>;
+
+    requiemWeightedPairFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
     setGovernance(
       _governance: string,
@@ -945,11 +945,13 @@ export class RequiemZap extends BaseContract {
 
     maxResidual(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    requiemFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     requiemFormula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     requiemRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    requiemWeightedPairFactory(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     setGovernance(
       _governance: string,

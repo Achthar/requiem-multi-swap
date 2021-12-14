@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.10;
 
-import "./interfaces/IRequiemFactory.sol";
+import "./interfaces/IRequiemWeightedPairFactory.sol";
 import "./interfaces/IRequiemFormula.sol";
 import "./interfaces/IRequiemWeightedPair.sol";
 import "./interfaces/IRequiemSwap.sol";
@@ -26,7 +26,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
 
     constructor(address _factory, address _WETH) {
         factory = _factory;
-        formula = IRequiemFactory(_factory).formula();
+        formula = IRequiemWeightedPairFactory(_factory).formula();
         WETH = _WETH;
     }
 
@@ -85,7 +85,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         uint32 swapFee,
         address to
     ) public virtual override returns (uint256 liquidity) {
-        address pair = IRequiemFactory(factory).createPair(tokenA, tokenB, tokenWeightA, swapFee);
+        address pair = IRequiemWeightedPairFactory(factory).createPair(tokenA, tokenB, tokenWeightA, swapFee);
         _addLiquidityToken(pair, tokenA, tokenB, amountA, amountB, 0, 0);
         liquidity = IRequiemWeightedPair(pair).mint(to);
     }
@@ -145,7 +145,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         uint32 swapFee,
         address to
     ) public payable virtual override returns (uint256 liquidity) {
-        address pair = IRequiemFactory(factory).createPair(token, WETH, tokenWeight, swapFee);
+        address pair = IRequiemWeightedPairFactory(factory).createPair(token, WETH, tokenWeight, swapFee);
         (, , liquidity) = _addLiquidityETH(pair, token, amountToken, 0, 0, to);
     }
 
@@ -182,7 +182,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         uint256 amountBMin,
         address to
     ) internal returns (uint256 amountA, uint256 amountB) {
-        require(IRequiemFactory(factory).isPair(pair), "Router: Invalid pair");
+        require(IRequiemWeightedPairFactory(factory).isPair(pair), "Router: Invalid pair");
         IRequiemWeightedPair(pair).transferFrom(msg.sender, pair, liquidity);
         // send liquidity to pair
         (uint256 amount0, uint256 amount1) = IRequiemWeightedPair(pair).burn(to);

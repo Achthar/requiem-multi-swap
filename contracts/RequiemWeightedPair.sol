@@ -10,7 +10,7 @@ import "./libraries/Math.sol";
 import "./libraries/TransferHelper.sol";
 import "./libraries/UQ112x112.sol";
 import "./interfaces/ERC20/IERC20.sol";
-import "./interfaces/IRequiemFactory.sol";
+import "./interfaces/IRequiemWeightedPairFactory.sol";
 import "./interfaces/IUniswapV2Callee.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls
@@ -102,7 +102,7 @@ contract RequiemWeightedPair is IRequiemSwap, IRequiemWeightedPair, RequiemPairE
         tokenWeight0 = _tokenWeight0;
         tokenWeight1 = 100 - tokenWeight0;
         swapFee = _swapFee;
-        formula = IRequiemFactory(factory).formula();
+        formula = IRequiemWeightedPairFactory(factory).formula();
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -131,8 +131,8 @@ contract RequiemWeightedPair is IRequiemSwap, IRequiemWeightedPair, RequiemPairE
     }
 
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
-        address feeTo = IRequiemFactory(factory).feeTo();
-        uint112 protocolFee = uint112(IRequiemFactory(factory).protocolFee());
+        address feeTo = IRequiemWeightedPairFactory(factory).feeTo();
+        uint112 protocolFee = uint112(IRequiemWeightedPairFactory(factory).protocolFee());
         feeOn = feeTo != address(0);
         (uint112 _collectedFee0, uint112 _collectedFee1) = getCollectedFees();
         if (protocolFee > 0 && feeOn && (_collectedFee0 > 0 || _collectedFee1 > 0)) {

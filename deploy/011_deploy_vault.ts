@@ -23,8 +23,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		log: true,
 	});
 
-	const factory = await deploy("RequiemFactory", {
-		contract: "RequiemFactory",
+	const factory = await deploy("RequiemWeightedPairFactory", {
+		contract: "RequiemWeightedPairFactory",
 		skipIfAlreadyDeployed: true,
 		from: deployer,
 		args: [deployer, formula.address],
@@ -61,7 +61,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	await execute('T4', { from: user }, 'approve', router.address, ethers.constants.MaxInt256);
 
-	const factoryContract = await ethers.getContractAt('RequiemFactory', factory.address);
+	const factoryContract = await ethers.getContractAt('RequiemWeightedPairFactory', factory.address);
 	console.log("--- create t1 t2 pair ----")
 	// await factoryContract.createPair(t1.address, t2.address, ethers.BigNumber.from(50), ethers.BigNumber.from(10))
 	console.log("--- get t1 t2 pair ----")
@@ -86,13 +86,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// });
 
 	// if (factoty.newlyDeployed || protocolFeeRemover.newlyDeployed) {
-	// 	await execute("RequiemFactory", { from: deployer, log: true }, "setFeeTo", protocolFeeRemover.address);
+	// 	await execute("RequiemWeightedPairFactory", { from: deployer, log: true }, "setFeeTo", protocolFeeRemover.address);
 	// }
 
 	// if (factoty.newlyDeployed) {
-	// 	await execute("RequiemFactory", { from: deployer, log: true }, "setProtocolFee", BigNumber.from(20000));
+	// 	await execute("RequiemWeightedPairFactory", { from: deployer, log: true }, "setProtocolFee", BigNumber.from(20000));
 	// }
-	// await execute("RequiemFactory", { from: deployer, log: true }, "setFeeToSetter", governance);
+	// await execute("RequiemWeightedPairFactory", { from: deployer, log: true }, "setFeeToSetter", governance);
 	// await execute("ProtocolFeeRemover", { from: deployer, log: true }, "setReceiver", governance);
 	// await execute("ProtocolFeeRemover", { from: deployer, log: true }, "setGovernance", governance);
 	// await execute("RequiemZap", { from: deployer, log: true }, "setGovernance", governance);
