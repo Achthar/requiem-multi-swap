@@ -4,6 +4,8 @@ pragma solidity 0.8.10;
 
 import "./ERC20/IERC20.sol";
 
+import "./IFlashLoanRecipient.sol";
+
 // solhint-disable var-name-mixedcase
 
 interface IRequiemStableSwap {
@@ -22,7 +24,7 @@ interface IRequiemStableSwap {
 
     event StopRampA(uint256 A, uint256 timestamp);
 
-    event NewFee(uint256 fee, uint256 adminFee, uint256 withdrawFee);
+    event NewFee(uint256 fee, uint256 flashFee, uint256 adminFee, uint256 withdrawFee);
 
     event CollectProtocolFee(address token, uint256 amount);
 
@@ -82,6 +84,13 @@ interface IRequiemStableSwap {
         address to,
         uint256 deadline
     ) external returns (uint256);
+
+    function flashLoan(
+        IFlashLoanRecipient recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external;
 
     function addLiquidity(
         uint256[] calldata amounts,

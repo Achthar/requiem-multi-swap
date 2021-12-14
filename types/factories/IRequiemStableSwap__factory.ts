@@ -104,6 +104,12 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "flashFee",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "adminFee",
         type: "uint256",
       },
@@ -455,6 +461,34 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract IFlashLoanRecipient",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        internalType: "contract IERC20[]",
+        name: "tokens",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+      {
+        internalType: "bytes",
+        name: "userData",
+        type: "bytes",
+      },
+    ],
+    name: "flashLoan",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

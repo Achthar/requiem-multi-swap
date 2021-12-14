@@ -2,14 +2,13 @@
 
 pragma solidity ^0.8.10;
 
-import "./interfaces/IRequiemERC20.sol";
-import "./libraries/SafeMath.sol";
+import "./interfaces/IRequiemPairERC20.sol";
 
-contract RequiemERC20 is IRequiemERC20 {
-    using SafeMath for uint256;
+// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
-    string public constant name = "Requiem Liquidity Provider";
-    string public constant symbol = "RLP";
+contract RequiemPairERC20 is IRequiemPairERC20 {
+    string public constant name = "Requiem Pair Liquidity Provider";
+    string public constant symbol = "RPLP";
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
@@ -31,14 +30,14 @@ contract RequiemERC20 is IRequiemERC20 {
     }
 
     function _mint(address to, uint256 value) internal {
-        totalSupply = totalSupply.add(value);
-        balanceOf[to] = balanceOf[to].add(value);
+        totalSupply += value;
+        balanceOf[to] += value;
         emit Transfer(address(0), to, value);
     }
 
     function _burn(address from, uint256 value) internal {
-        balanceOf[from] = balanceOf[from].sub(value);
-        totalSupply = totalSupply.sub(value);
+        balanceOf[from] -= value;
+        totalSupply -= value;
         emit Transfer(from, address(0), value);
     }
 
@@ -56,8 +55,8 @@ contract RequiemERC20 is IRequiemERC20 {
         address to,
         uint256 value
     ) private {
-        balanceOf[from] = balanceOf[from].sub(value);
-        balanceOf[to] = balanceOf[to].add(value);
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
         emit Transfer(from, to, value);
     }
 
@@ -77,7 +76,7 @@ contract RequiemERC20 is IRequiemERC20 {
         uint256 value
     ) external returns (bool) {
         if (allowance[from][msg.sender] != type(uint256).max) {
-            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
+            allowance[from][msg.sender] -= value;
         }
         _transfer(from, to, value);
         return true;

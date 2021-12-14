@@ -358,9 +358,14 @@ const _abi = [
     name: "getCollectedFees",
     outputs: [
       {
-        internalType: "uint256[]",
-        name: "_collectedFees",
-        type: "uint256[]",
+        internalType: "uint112",
+        name: "_collectedFee0",
+        type: "uint112",
+      },
+      {
+        internalType: "uint112",
+        name: "_collectedFee1",
+        type: "uint112",
       },
     ],
     stateMutability: "view",
@@ -371,9 +376,14 @@ const _abi = [
     name: "getReserves",
     outputs: [
       {
-        internalType: "uint256[]",
-        name: "reserves",
-        type: "uint256[]",
+        internalType: "uint112",
+        name: "reserve0",
+        type: "uint112",
+      },
+      {
+        internalType: "uint112",
+        name: "reserve1",
+        type: "uint112",
       },
       {
         internalType: "uint32",
@@ -605,44 +615,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "amount0Out",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "amount1Out",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "index0",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "index1",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
-    ],
-    name: "swapStruct",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "symbol",
     outputs: [
@@ -683,19 +655,6 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "tokens",
-    outputs: [
-      {
-        internalType: "address[]",
-        name: "",
-        type: "address[]",
       },
     ],
     stateMutability: "view",

@@ -27,6 +27,7 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     "calculateRemoveLiquidityOneToken(address,uint256,uint8)": FunctionFragment;
     "calculateSwap(uint8,uint8,uint256)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
+    "flashLoan(address,address[],uint256[],bytes)": FunctionFragment;
     "getA()": FunctionFragment;
     "getAPrecise()": FunctionFragment;
     "getAdminBalance(uint8)": FunctionFragment;
@@ -69,6 +70,10 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calculateTokenAmount",
     values: [BigNumberish[], boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "flashLoan",
+    values: [string, string[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "getA", values?: undefined): string;
   encodeFunctionData(
@@ -164,6 +169,7 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     functionFragment: "calculateTokenAmount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getA", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAPrecise",
@@ -223,7 +229,7 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     "CollectProtocolFee(address,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
-    "NewFee(uint256,uint256,uint256)": EventFragment;
+    "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
     "RampA(uint256,uint256,uint256,uint256)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256[],uint256)": EventFragment;
     "RemoveLiquidityImbalance(address,uint256[],uint256[],uint256,uint256)": EventFragment;
@@ -268,8 +274,9 @@ export type FeeDistributorChangedEvent = TypedEvent<
 >;
 
 export type NewFeeEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber] & {
+  [BigNumber, BigNumber, BigNumber, BigNumber] & {
     fee: BigNumber;
+    flashFee: BigNumber;
     adminFee: BigNumber;
     withdrawFee: BigNumber;
   }
@@ -408,6 +415,14 @@ export class IRequiemStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getA(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getAPrecise(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -522,6 +537,14 @@ export class IRequiemStableSwap extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  flashLoan(
+    recipient: string,
+    tokens: string[],
+    amounts: BigNumberish[],
+    userData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getA(overrides?: CallOverrides): Promise<BigNumber>;
 
   getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
@@ -631,6 +654,14 @@ export class IRequiemStableSwap extends BaseContract {
       deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -771,22 +802,34 @@ export class IRequiemStableSwap extends BaseContract {
       newController?: null
     ): TypedEventFilter<[string], { newController: string }>;
 
-    "NewFee(uint256,uint256,uint256)"(
+    "NewFee(uint256,uint256,uint256,uint256)"(
       fee?: null,
+      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        fee: BigNumber;
+        flashFee: BigNumber;
+        adminFee: BigNumber;
+        withdrawFee: BigNumber;
+      }
     >;
 
     NewFee(
       fee?: null,
+      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        fee: BigNumber;
+        flashFee: BigNumber;
+        adminFee: BigNumber;
+        withdrawFee: BigNumber;
+      }
     >;
 
     "RampA(uint256,uint256,uint256,uint256)"(
@@ -1003,6 +1046,14 @@ export class IRequiemStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1115,6 +1166,14 @@ export class IRequiemStableSwap extends BaseContract {
       amounts: BigNumberish[],
       deposit: boolean,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;

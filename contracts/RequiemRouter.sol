@@ -5,7 +5,7 @@ pragma abicoder v2;
 
 import "./interfaces/IRequiemFactory.sol";
 import "./interfaces/IRequiemFormula.sol";
-import "./interfaces/IRequiemPair.sol";
+import "./interfaces/IRequiemWeightedPair.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/IRequiemRouter.sol";
@@ -89,7 +89,7 @@ contract RequiemRouter is IRequiemRouter {
     ) public virtual override returns (uint256 liquidity) {
         address pair = IRequiemFactory(factory).createPair(tokenA, tokenB, tokenWeightA, swapFee);
         _addLiquidityToken(pair, tokenA, tokenB, amountA, amountB, 0, 0);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
     }
 
     function addLiquidity(
@@ -114,7 +114,7 @@ contract RequiemRouter is IRequiemRouter {
         )
     {
         (amountA, amountB) = _addLiquidityToken(pair, tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
     }
 
     function _addLiquidityETH(
@@ -135,7 +135,7 @@ contract RequiemRouter is IRequiemRouter {
         (amountToken, amountETH) = _addLiquidity(pair, token, WETH, amountTokenDesired, msg.value, amountTokenMin, amountETHMin);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         transferETHTo(amountETH, pair);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
         // refund dust eth, if any
         if (msg.value > amountETH) TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
     }
@@ -184,7 +184,7 @@ contract RequiemRouter is IRequiemRouter {
     ) internal virtual {
         address input = tokenIn;
         for (uint256 i = 0; i < path.length; i++) {
-            IRequiemPair pairV2 = IRequiemPair(path[i]);
+            IRequiemWeightedPair pairV2 = IRequiemWeightedPair(path[i]);
             address token0 = pairV2.token0();
             uint256 amountOut = amounts[i + 1];
             (uint256 amount0Out, uint256 amount1Out, address output) = input == token0 ? (uint256(0), amountOut, pairV2.token1()) : (amountOut, uint256(0), token0);
@@ -292,7 +292,7 @@ contract RequiemRouter is IRequiemRouter {
     ) internal virtual {
         address input = tokenIn;
         for (uint256 i; i < path.length; i++) {
-            IRequiemPair pair = IRequiemPair(path[i]);
+            IRequiemWeightedPair pair = IRequiemWeightedPair(path[i]);
 
             uint256 amountInput;
             uint256 amountOutput;
@@ -486,7 +486,7 @@ contract RequiemRouter is IRequiemRouter {
         uint256 targetOutAmount
     ) internal {
         TransferHelper.safeTransfer(tokenIn, pair, targetSwapAmount);
-        IRequiemPair pairV2 = IRequiemPair(pair);
+        IRequiemWeightedPair pairV2 = IRequiemWeightedPair(pair);
         address token0 = pairV2.token0();
 
         (uint256 amount0Out, uint256 amount1Out, address output) = tokenIn == token0 ? (uint256(0), targetOutAmount, pairV2.token1()) : (targetOutAmount, uint256(0), token0);
@@ -515,8 +515,8 @@ contract RequiemRouter is IRequiemRouter {
             amountOutput = IRequiemFormula(formula).getAmountOut(amountInput, reserveInput, reserveOutput, tokenWeightInput, tokenWeightOutput, swapFee);
         }
         uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
-        (uint256 amount0Out, uint256 amount1Out) = tokenIn == IRequiemPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-        IRequiemPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
+        (uint256 amount0Out, uint256 amount1Out) = tokenIn == IRequiemWeightedPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+        IRequiemWeightedPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
         emit Exchange(pool, amountOutput, tokenOut);
 
         tokenAmountOut = IERC20(tokenOut).balanceOf(address(this)).sub(balanceBefore);
@@ -583,9 +583,9 @@ contract RequiemRouter is IRequiemRouter {
         address to
     ) internal returns (uint256 amountA, uint256 amountB) {
         require(IRequiemFactory(factory).isPair(pair), "Router: Invalid pair");
-        IRequiemPair(pair).transferFrom(msg.sender, pair, liquidity);
+        IRequiemWeightedPair(pair).transferFrom(msg.sender, pair, liquidity);
         // send liquidity to pair
-        (uint256 amount0, uint256 amount1) = IRequiemPair(pair).burn(to);
+        (uint256 amount0, uint256 amount1) = IRequiemWeightedPair(pair).burn(to);
         (address token0, ) = IRequiemFormula(formula).sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
         require(amountA >= amountAMin, "Router: INSUFFICIENT_A_AMOUNT");
@@ -635,7 +635,7 @@ contract RequiemRouter is IRequiemRouter {
     ) external virtual override ensure(deadline) returns (uint256 amountA, uint256 amountB) {
         {
             uint256 value = approveMax ? type(uint256).max : liquidity;
-            IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+            IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         }
         (amountA, amountB) = _removeLiquidity(pair, tokenA, tokenB, liquidity, amountAMin, amountBMin, to);
     }
@@ -654,7 +654,7 @@ contract RequiemRouter is IRequiemRouter {
         bytes32 s
     ) external virtual override returns (uint256 amountToken, uint256 amountETH) {
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(pair, token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 
@@ -687,7 +687,7 @@ contract RequiemRouter is IRequiemRouter {
         bytes32 s
     ) external virtual override returns (uint256 amountETH) {
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         amountETH = removeLiquidityETHSupportingFeeOnTransferTokens(pair, token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 }

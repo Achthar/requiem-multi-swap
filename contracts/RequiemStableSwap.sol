@@ -9,6 +9,7 @@ import "./base/OwnerPausable.sol";
 import "./RequiemStableSwapLib.sol";
 import "./interfaces/IRequiemStableSwap.sol";
 import "./interfaces/IRequiemSwap.sol";
+import "./interfaces/IFlashLoanRecipient.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
@@ -23,6 +24,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     uint256 public constant MAX_ADMIN_FEE = 1e10; // 100%
     uint256 public constant MAX_SWAP_FEE = 1e8; // 1%
     uint256 public constant MAX_WITHDRAW_FEE = 1e8; // 1%
+    uint256 public constant MAX_FLASH_FEE = 1e8; // 1%
 
     /// STATE VARS
     RequiemStableSwapLib.SwapStorage public swapStorage;
@@ -47,6 +49,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         string memory lpTokenSymbol,
         uint256 _A,
         uint256 _fee,
+        uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
         address _feeDistributor
@@ -66,6 +69,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
 
         require(_A < MAX_A, "> maxA");
         require(_fee <= MAX_SWAP_FEE, "> maxSFee");
+        require(_flashFee <= MAX_FLASH_FEE, "> maxFFee");
         require(_adminFee <= MAX_ADMIN_FEE, "> maxAFee");
         require(_withdrawFee <= MAX_WITHDRAW_FEE, "> maxWFee");
 
@@ -76,6 +80,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         swapStorage.initialA = _A * RequiemStableSwapLib.A_PRECISION;
         swapStorage.futureA = _A * RequiemStableSwapLib.A_PRECISION;
         swapStorage.fee = _fee;
+        swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
@@ -142,6 +147,18 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         address to
     ) external override whenNotPaused nonReentrant returns (uint256) {
         return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+    }
+
+     /**
+    * Flash Loan
+     */
+    function flashLoan(
+        IFlashLoanRecipient recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external override nonReentrant whenNotPaused {
+        swapStorage.flashLoan(recipient, tokens, amounts, userData);
     }
 
     function removeLiquidity(
@@ -288,6 +305,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         swapStorage.updateUserWithdrawFee(recipient, transferAmount);
     }
 
+
     /**
      * @notice Sets the admin fee
      * @dev adminFee cannot be higher than 100% of the swap fee
@@ -298,17 +316,19 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
      */
     function setFee(
         uint256 newSwapFee,
+        uint256 newFlashFee,
         uint256 newAdminFee,
         uint256 newWithdrawFee
     ) external onlyOwner {
         require(newSwapFee <= MAX_SWAP_FEE, "> SFee");
+        require(newFlashFee <= MAX_FLASH_FEE, "> SFee");
         require(newAdminFee <= MAX_ADMIN_FEE, "> AFee");
         require(newWithdrawFee <= MAX_WITHDRAW_FEE, "> WFee");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
 
-        emit NewFee(newSwapFee, newAdminFee, newWithdrawFee);
+        emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);
     }
 
     /**

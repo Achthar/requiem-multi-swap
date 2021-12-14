@@ -2,14 +2,16 @@
 
 pragma solidity ^0.8.10;
 
-import "./IRequiemERC20.sol";
-import "./IRequiemSwapInterface.sol";
+import "./IRequiemPairERC20.sol";
 
-interface IRequiemWeightedPair is IRequiemERC20, IRequiemSwapInterface {
+// solhint-disable func-name-mixedcase
+
+interface IRequiemWeightedPair is IRequiemPairERC20 {
 
     event PaidProtocolFee(uint112 collectedFee0, uint112 collectedFee1);
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
+    event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
     function MINIMUM_LIQUIDITY() external pure returns (uint256);
@@ -20,16 +22,16 @@ interface IRequiemWeightedPair is IRequiemERC20, IRequiemSwapInterface {
 
     function token1() external view returns (address);
 
-    // function getReserves()
-    //     external
-    //     view
-    //     returns (
-    //         uint112 reserve0,
-    //         uint112 reserve1,
-    //         uint32 blockTimestampLast
-    //     );
+    function getReserves()
+        external
+        view
+        returns (
+            uint112 reserve0,
+            uint112 reserve1,
+            uint32 blockTimestampLast
+        );
 
-    // function getCollectedFees() external view returns (uint112 _collectedFee0, uint112 _collectedFee1);
+    function getCollectedFees() external view returns (uint112 _collectedFee0, uint112 _collectedFee1);
 
     function getTokenWeights() external view returns (uint32 tokenWeight0, uint32 tokenWeight1);
 

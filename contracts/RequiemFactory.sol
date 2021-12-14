@@ -3,7 +3,7 @@
 pragma solidity ^0.8.10;
 
 import "./interfaces/IRequiemFactory.sol";
-import "./RequiemPair.sol";
+import "./RequiemWeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
@@ -12,7 +12,7 @@ contract RequiemFactory is IRequiemFactory {
     address public formula;
     uint256 public protocolFee;
     address public feeToSetter;
-    bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemPair).creationCode));
+    bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemWeightedPair).creationCode));
 
     mapping(bytes32 => address) private _pairSalts;
     address[] public allPairs;
@@ -55,13 +55,13 @@ contract RequiemFactory is IRequiemFactory {
         (address token0, address token1, uint32 tokenWeight0) = tokenA < tokenB ? (tokenA, tokenB, tokenWeightA) : (tokenB, tokenA, 100 - tokenWeightA);
         require(token0 != address(0), "RLP: ZERO_ADDRESS");
         // single check is sufficient
-        bytes memory bytecode = type(RequiemPair).creationCode;
+        bytes memory bytecode = type(RequiemWeightedPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, tokenWeight0, swapFee));
         require(_pairSalts[salt] == address(0), "RLP: PAIR_EXISTS");
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IRequiemPair(pair).initialize(token0, token1, tokenWeight0, swapFee);
+        IRequiemWeightedPair(pair).initialize(token0, token1, tokenWeight0, swapFee);
         _pairSalts[salt] = address(pair);
         allPairs.push(pair);
         uint64 weightAndFee = uint64(swapFee);

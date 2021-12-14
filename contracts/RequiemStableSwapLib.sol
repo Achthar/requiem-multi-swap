@@ -5,6 +5,7 @@ import "./tokens/LPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 import "./libraries/math/FullMath.sol";
+import "./interfaces/IFlashLoanRecipient.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
@@ -23,6 +24,10 @@ library RequiemStableSwapLib {
     event RemoveLiquidityOne(address indexed provider, uint256 index, uint256 token_amount, uint256 coin_amount);
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
+       /**
+     * @dev Emitted for each individual flash loan performed by `flashLoan`.
+     */
+    event FlashLoan(IFlashLoanRecipient indexed recipient, IERC20 indexed token, uint256 amount, uint256 feeAmount);
 
     uint256 public constant FEE_DENOMINATOR = 1e10;
     // uint256 public constant PRECISION = 1e18;
@@ -43,6 +48,8 @@ library RequiemStableSwapLib {
         uint256[] balances;
         /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
         uint256 fee;
+        /// @dev flash loan fee ratio. Charge on any action which move balance state far from the ideal state
+        uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
         /// @dev observation of A, multiplied with A_PRECISION
@@ -284,6 +291,59 @@ library RequiemStableSwapLib {
         // returns final input amount
         return dx;
     }
+
+ /**
+    * Flash Loan
+     */
+
+    function flashLoan(
+        SwapStorage storage self,
+        IFlashLoanRecipient recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external {
+        require(tokens.length == amounts.length, "inputs");
+        uint256[] memory feeAmounts = new uint256[](tokens.length);
+        uint256[] memory preLoanBalances = new uint256[](tokens.length);
+
+        // Used to ensure `tokens` is sorted in ascending order, which ensures token uniqueness.
+        IERC20 previousToken = IERC20(address(0));
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = tokens[i];
+            uint256 amount = amounts[i];
+
+            RequiemErrors._require(token > previousToken, token ==  IERC20(address(0)) ? Errors.ZERO_TOKEN : Errors.UNSORTED_TOKENS);
+            previousToken = token;
+
+            preLoanBalances[i] = token.balanceOf(address(this));
+            feeAmounts[i] = amount * self.flashFee / FEE_DENOMINATOR;
+
+            RequiemErrors._require(preLoanBalances[i] >= amount, Errors.INSUFFICIENT_FLASH_LOAN_BALANCE);
+            token.safeTransfer(address(recipient), amount);
+        }
+
+        recipient.receiveFlashLoan(tokens, amounts, feeAmounts, userData);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = tokens[i];
+            uint256 preLoanBalance = preLoanBalances[i];
+
+            // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
+            // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
+            uint256 postLoanBalance = token.balanceOf(address(this));
+            RequiemErrors._require(postLoanBalance >= preLoanBalance, Errors.INVALID_POST_LOAN_BALANCE);
+
+            // No need for checked arithmetic since we know the loan was fully repaid.
+            uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
+            RequiemErrors._require(receivedFeeAmount >= feeAmounts[i], Errors.INSUFFICIENT_FLASH_LOAN_FEE_AMOUNT);
+
+            // _payFeeAmount(token, receivedFeeAmount);
+            emit FlashLoan(recipient, token, amounts[i], receivedFeeAmount);
+        }
+    }
+
 
     function removeLiquidity(
         SwapStorage storage self,

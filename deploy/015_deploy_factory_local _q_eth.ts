@@ -227,6 +227,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		'zDollar', //_pool_token
 		600, // _A
 		1e6, //_fee = 0.01%
+		1e6, // flash fee
 		5e9, //_admin_fee, 50%,
 		5e7, //withdraw fee = 0.5%
 		feeDistributor.address

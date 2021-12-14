@@ -24,6 +24,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     "MAX_A()": FunctionFragment;
     "MAX_ADMIN_FEE()": FunctionFragment;
     "MAX_A_CHANGE()": FunctionFragment;
+    "MAX_FLASH_FEE()": FunctionFragment;
     "MAX_SWAP_FEE()": FunctionFragment;
     "MAX_WITHDRAW_FEE()": FunctionFragment;
     "MIN_RAMP_TIME()": FunctionFragment;
@@ -37,6 +38,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
     "feeController()": FunctionFragment;
     "feeDistributor()": FunctionFragment;
+    "flashLoan(address,address[],uint256[],bytes)": FunctionFragment;
     "getA()": FunctionFragment;
     "getAPrecise()": FunctionFragment;
     "getAdminBalance(uint8)": FunctionFragment;
@@ -50,7 +52,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     "getTokenPrecisionMultipliers()": FunctionFragment;
     "getTokens()": FunctionFragment;
     "getVirtualPrice()": FunctionFragment;
-    "initialize(address[],uint8[],string,string,uint256,uint256,uint256,uint256,address)": FunctionFragment;
+    "initialize(address[],uint8[],string,string,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
     "onSwap(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
@@ -62,7 +64,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     "removeLiquidityImbalance(uint256[],uint256,uint256)": FunctionFragment;
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setFee(uint256,uint256,uint256)": FunctionFragment;
+    "setFee(uint256,uint256,uint256,uint256)": FunctionFragment;
     "setFeeController(address)": FunctionFragment;
     "setFeeDistributor(address)": FunctionFragment;
     "stopRampA()": FunctionFragment;
@@ -82,6 +84,10 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "MAX_A_CHANGE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MAX_FLASH_FEE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -135,6 +141,10 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "feeDistributor",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "flashLoan",
+    values: [string, string[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "getA", values?: undefined): string;
   encodeFunctionData(
@@ -193,6 +203,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
+      BigNumberish,
       string
     ]
   ): string;
@@ -233,7 +244,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFee",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeController",
@@ -284,6 +295,10 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "MAX_A_CHANGE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MAX_FLASH_FEE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -338,6 +353,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     functionFragment: "feeDistributor",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getA", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAPrecise",
@@ -446,7 +462,7 @@ interface RequiemStableSwapInterface extends ethers.utils.Interface {
     "CollectProtocolFee(address,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
-    "NewFee(uint256,uint256,uint256)": EventFragment;
+    "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
     "RampA(uint256,uint256,uint256,uint256)": EventFragment;
@@ -497,8 +513,9 @@ export type FeeDistributorChangedEvent = TypedEvent<
 >;
 
 export type NewFeeEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber] & {
+  [BigNumber, BigNumber, BigNumber, BigNumber] & {
     fee: BigNumber;
+    flashFee: BigNumber;
     adminFee: BigNumber;
     withdrawFee: BigNumber;
   }
@@ -613,6 +630,8 @@ export class RequiemStableSwap extends BaseContract {
 
     MAX_A_CHANGE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    MAX_FLASH_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     MAX_SWAP_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -675,6 +694,14 @@ export class RequiemStableSwap extends BaseContract {
 
     feeDistributor(overrides?: CallOverrides): Promise<[string]>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getA(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getAPrecise(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -721,6 +748,7 @@ export class RequiemStableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -796,6 +824,7 @@ export class RequiemStableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -836,10 +865,12 @@ export class RequiemStableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -876,6 +907,8 @@ export class RequiemStableSwap extends BaseContract {
   MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
   MAX_A_CHANGE(overrides?: CallOverrides): Promise<BigNumber>;
+
+  MAX_FLASH_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
   MAX_SWAP_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -939,6 +972,14 @@ export class RequiemStableSwap extends BaseContract {
 
   feeDistributor(overrides?: CallOverrides): Promise<string>;
 
+  flashLoan(
+    recipient: string,
+    tokens: string[],
+    amounts: BigNumberish[],
+    userData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getA(overrides?: CallOverrides): Promise<BigNumber>;
 
   getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
@@ -978,6 +1019,7 @@ export class RequiemStableSwap extends BaseContract {
     lpTokenSymbol: string,
     _A: BigNumberish,
     _fee: BigNumberish,
+    _flashFee: BigNumberish,
     _adminFee: BigNumberish,
     _withdrawFee: BigNumberish,
     _feeDistributor: string,
@@ -1053,6 +1095,7 @@ export class RequiemStableSwap extends BaseContract {
 
   setFee(
     newSwapFee: BigNumberish,
+    newFlashFee: BigNumberish,
     newAdminFee: BigNumberish,
     newWithdrawFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1093,10 +1136,12 @@ export class RequiemStableSwap extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       lpToken: string;
       fee: BigNumber;
+      flashFee: BigNumber;
       adminFee: BigNumber;
       initialA: BigNumber;
       futureA: BigNumber;
@@ -1133,6 +1178,8 @@ export class RequiemStableSwap extends BaseContract {
     MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_A_CHANGE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    MAX_FLASH_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_SWAP_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1196,6 +1243,14 @@ export class RequiemStableSwap extends BaseContract {
 
     feeDistributor(overrides?: CallOverrides): Promise<string>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1237,6 +1292,7 @@ export class RequiemStableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -1308,6 +1364,7 @@ export class RequiemStableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: CallOverrides
@@ -1346,10 +1403,12 @@ export class RequiemStableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -1444,22 +1503,34 @@ export class RequiemStableSwap extends BaseContract {
       newController?: null
     ): TypedEventFilter<[string], { newController: string }>;
 
-    "NewFee(uint256,uint256,uint256)"(
+    "NewFee(uint256,uint256,uint256,uint256)"(
       fee?: null,
+      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        fee: BigNumber;
+        flashFee: BigNumber;
+        adminFee: BigNumber;
+        withdrawFee: BigNumber;
+      }
     >;
 
     NewFee(
       fee?: null,
+      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        fee: BigNumber;
+        flashFee: BigNumber;
+        adminFee: BigNumber;
+        withdrawFee: BigNumber;
+      }
     >;
 
     "OwnershipTransferred(address,address)"(
@@ -1672,6 +1743,8 @@ export class RequiemStableSwap extends BaseContract {
 
     MAX_A_CHANGE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    MAX_FLASH_FEE(overrides?: CallOverrides): Promise<BigNumber>;
+
     MAX_SWAP_FEE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1734,6 +1807,14 @@ export class RequiemStableSwap extends BaseContract {
 
     feeDistributor(overrides?: CallOverrides): Promise<BigNumber>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1776,6 +1857,7 @@ export class RequiemStableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -1851,6 +1933,7 @@ export class RequiemStableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1910,6 +1993,8 @@ export class RequiemStableSwap extends BaseContract {
     MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     MAX_A_CHANGE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    MAX_FLASH_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     MAX_SWAP_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1973,6 +2058,14 @@ export class RequiemStableSwap extends BaseContract {
 
     feeDistributor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAPrecise(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2020,6 +2113,7 @@ export class RequiemStableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -2095,6 +2189,7 @@ export class RequiemStableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

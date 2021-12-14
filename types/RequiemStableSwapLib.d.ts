@@ -53,6 +53,7 @@ interface RequiemStableSwapLibInterface extends ethers.utils.Interface {
 
   events: {
     "AddLiquidity(address,uint256[],uint256[],uint256,uint256)": EventFragment;
+    "FlashLoan(address,address,uint256,uint256)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256[],uint256)": EventFragment;
     "RemoveLiquidityImbalance(address,uint256[],uint256[],uint256,uint256)": EventFragment;
     "RemoveLiquidityOne(address,uint256,uint256,uint256)": EventFragment;
@@ -60,6 +61,7 @@ interface RequiemStableSwapLibInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidityImbalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidityOne"): EventFragment;
@@ -73,6 +75,15 @@ export type AddLiquidityEvent = TypedEvent<
     fees: BigNumber[];
     invariant: BigNumber;
     token_supply: BigNumber;
+  }
+>;
+
+export type FlashLoanEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber] & {
+    recipient: string;
+    token: string;
+    amount: BigNumber;
+    feeAmount: BigNumber;
   }
 >;
 
@@ -211,6 +222,36 @@ export class RequiemStableSwapLib extends BaseContract {
         fees: BigNumber[];
         invariant: BigNumber;
         token_supply: BigNumber;
+      }
+    >;
+
+    "FlashLoan(address,address,uint256,uint256)"(
+      recipient?: string | null,
+      token?: string | null,
+      amount?: null,
+      feeAmount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        recipient: string;
+        token: string;
+        amount: BigNumber;
+        feeAmount: BigNumber;
+      }
+    >;
+
+    FlashLoan(
+      recipient?: string | null,
+      token?: string | null,
+      amount?: null,
+      feeAmount?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber, BigNumber],
+      {
+        recipient: string;
+        token: string;
+        amount: BigNumber;
+        feeAmount: BigNumber;
       }
     >;
 

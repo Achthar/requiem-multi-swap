@@ -4,7 +4,7 @@ pragma solidity >=0.8.10;
 
 import "./interfaces/IRequiemFactory.sol";
 import "./interfaces/IRequiemFormula.sol";
-import "./interfaces/IRequiemPair.sol";
+import "./interfaces/IRequiemWeightedPair.sol";
 import "./interfaces/IRequiemSwap.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -87,7 +87,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
     ) public virtual override returns (uint256 liquidity) {
         address pair = IRequiemFactory(factory).createPair(tokenA, tokenB, tokenWeightA, swapFee);
         _addLiquidityToken(pair, tokenA, tokenB, amountA, amountB, 0, 0);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
     }
 
     function addLiquidity(
@@ -112,7 +112,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         )
     {
         (amountA, amountB) = _addLiquidityToken(pair, tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
     }
 
     function _addLiquidityETH(
@@ -133,7 +133,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         (amountToken, amountETH) = _addLiquidity(pair, token, WETH, amountTokenDesired, msg.value, amountTokenMin, amountETHMin);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         transferETHTo(amountETH, pair);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
         // refund dust eth, if any
         if (msg.value > amountETH) TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
     }
@@ -183,9 +183,9 @@ contract RequiemQPairManager is IRequiemQPairManager {
         address to
     ) internal returns (uint256 amountA, uint256 amountB) {
         require(IRequiemFactory(factory).isPair(pair), "Router: Invalid pair");
-        IRequiemPair(pair).transferFrom(msg.sender, pair, liquidity);
+        IRequiemWeightedPair(pair).transferFrom(msg.sender, pair, liquidity);
         // send liquidity to pair
-        (uint256 amount0, uint256 amount1) = IRequiemPair(pair).burn(to);
+        (uint256 amount0, uint256 amount1) = IRequiemWeightedPair(pair).burn(to);
         (address token0, ) = IRequiemFormula(formula).sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
         require(amountA >= amountAMin, "Router: INSUFFICIENT_A_AMOUNT");
@@ -235,7 +235,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
     ) external virtual override ensure(deadline) returns (uint256 amountA, uint256 amountB) {
         {
             uint256 value = approveMax ? type(uint256).max : liquidity;
-            IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+            IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         }
         (amountA, amountB) = _removeLiquidity(pair, tokenA, tokenB, liquidity, amountAMin, amountBMin, to);
     }
@@ -254,7 +254,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         bytes32 s
     ) external virtual override returns (uint256 amountToken, uint256 amountETH) {
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(pair, token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 
@@ -287,7 +287,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         bytes32 s
     ) external virtual override returns (uint256 amountETH) {
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         amountETH = removeLiquidityETHSupportingFeeOnTransferTokens(pair, token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 

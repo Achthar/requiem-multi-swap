@@ -37,6 +37,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
     "feeController()": FunctionFragment;
     "feeDistributor()": FunctionFragment;
+    "flashLoan(address,address[],uint256[],bytes)": FunctionFragment;
     "getA()": FunctionFragment;
     "getAPrecise()": FunctionFragment;
     "getAdminBalance(uint8)": FunctionFragment;
@@ -135,6 +136,10 @@ interface StableSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "feeDistributor",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "flashLoan",
+    values: [string, string[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "getA", values?: undefined): string;
   encodeFunctionData(
@@ -338,6 +343,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     functionFragment: "feeDistributor",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getA", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAPrecise",
@@ -446,7 +452,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "CollectProtocolFee(address,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
-    "NewFee(uint256,uint256,uint256)": EventFragment;
+    "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
     "RampA(uint256,uint256,uint256,uint256)": EventFragment;
@@ -497,8 +503,9 @@ export type FeeDistributorChangedEvent = TypedEvent<
 >;
 
 export type NewFeeEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber] & {
+  [BigNumber, BigNumber, BigNumber, BigNumber] & {
     fee: BigNumber;
+    flashFee: BigNumber;
     adminFee: BigNumber;
     withdrawFee: BigNumber;
   }
@@ -675,6 +682,14 @@ export class StableSwap extends BaseContract {
 
     feeDistributor(overrides?: CallOverrides): Promise<[string]>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getA(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getAPrecise(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -836,10 +851,12 @@ export class StableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -938,6 +955,14 @@ export class StableSwap extends BaseContract {
   feeController(overrides?: CallOverrides): Promise<string>;
 
   feeDistributor(overrides?: CallOverrides): Promise<string>;
+
+  flashLoan(
+    recipient: string,
+    tokens: string[],
+    amounts: BigNumberish[],
+    userData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getA(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1093,10 +1118,12 @@ export class StableSwap extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       lpToken: string;
       fee: BigNumber;
+      flashFee: BigNumber;
       adminFee: BigNumber;
       initialA: BigNumber;
       futureA: BigNumber;
@@ -1195,6 +1222,14 @@ export class StableSwap extends BaseContract {
     feeController(overrides?: CallOverrides): Promise<string>;
 
     feeDistributor(overrides?: CallOverrides): Promise<string>;
+
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1346,10 +1381,12 @@ export class StableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -1444,22 +1481,34 @@ export class StableSwap extends BaseContract {
       newController?: null
     ): TypedEventFilter<[string], { newController: string }>;
 
-    "NewFee(uint256,uint256,uint256)"(
+    "NewFee(uint256,uint256,uint256,uint256)"(
       fee?: null,
+      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        fee: BigNumber;
+        flashFee: BigNumber;
+        adminFee: BigNumber;
+        withdrawFee: BigNumber;
+      }
     >;
 
     NewFee(
       fee?: null,
+      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        fee: BigNumber;
+        flashFee: BigNumber;
+        adminFee: BigNumber;
+        withdrawFee: BigNumber;
+      }
     >;
 
     "OwnershipTransferred(address,address)"(
@@ -1734,6 +1783,14 @@ export class StableSwap extends BaseContract {
 
     feeDistributor(overrides?: CallOverrides): Promise<BigNumber>;
 
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getA(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1972,6 +2029,14 @@ export class StableSwap extends BaseContract {
     feeController(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     feeDistributor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    flashLoan(
+      recipient: string,
+      tokens: string[],
+      amounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

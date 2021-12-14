@@ -22,7 +22,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface RequiemZapInterface extends ethers.utils.Interface {
   functions: {
-    "RequiemPairs(address,address,uint256)": FunctionFragment;
+    "RequiemWeightedPairs(address,address,uint256)": FunctionFragment;
     "WETH()": FunctionFragment;
     "addTokensResidual(address)": FunctionFragment;
     "getAmountBToZapIn(address,uint256,address)": FunctionFragment;
@@ -34,7 +34,7 @@ interface RequiemZapInterface extends ethers.utils.Interface {
     "requiemRouter()": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setMaxResidual(uint256)": FunctionFragment;
-    "setRequiemPairs(address,address,address[])": FunctionFragment;
+    "setRequiemWeightedPairs(address,address,address[])": FunctionFragment;
     "setTokensResidual(address[])": FunctionFragment;
     "tokensResidual(uint256)": FunctionFragment;
     "uniRouter()": FunctionFragment;
@@ -48,7 +48,7 @@ interface RequiemZapInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
-    functionFragment: "RequiemPairs",
+    functionFragment: "RequiemWeightedPairs",
     values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "WETH", values?: undefined): string;
@@ -93,7 +93,7 @@ interface RequiemZapInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setRequiemPairs",
+    functionFragment: "setRequiemWeightedPairs",
     values: [string, string, string[]]
   ): string;
   encodeFunctionData(
@@ -142,7 +142,7 @@ interface RequiemZapInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "RequiemPairs",
+    functionFragment: "RequiemWeightedPairs",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "WETH", data: BytesLike): Result;
@@ -184,7 +184,7 @@ interface RequiemZapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setRequiemPairs",
+    functionFragment: "setRequiemWeightedPairs",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -296,7 +296,7 @@ export class RequiemZap extends BaseContract {
   interface: RequiemZapInterface;
 
   functions: {
-    RequiemPairs(
+    RequiemWeightedPairs(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -355,7 +355,7 @@ export class RequiemZap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setRequiemPairs(
+    setRequiemWeightedPairs(
       _input: string,
       _output: string,
       _pair: string[],
@@ -430,7 +430,7 @@ export class RequiemZap extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  RequiemPairs(
+  RequiemWeightedPairs(
     arg0: string,
     arg1: string,
     arg2: BigNumberish,
@@ -489,7 +489,7 @@ export class RequiemZap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setRequiemPairs(
+  setRequiemWeightedPairs(
     _input: string,
     _output: string,
     _pair: string[],
@@ -564,7 +564,7 @@ export class RequiemZap extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    RequiemPairs(
+    RequiemWeightedPairs(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -620,7 +620,7 @@ export class RequiemZap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setRequiemPairs(
+    setRequiemWeightedPairs(
       _input: string,
       _output: string,
       _pair: string[],
@@ -789,7 +789,7 @@ export class RequiemZap extends BaseContract {
   };
 
   estimateGas: {
-    RequiemPairs(
+    RequiemWeightedPairs(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -837,7 +837,7 @@ export class RequiemZap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setRequiemPairs(
+    setRequiemWeightedPairs(
       _input: string,
       _output: string,
       _pair: string[],
@@ -913,7 +913,7 @@ export class RequiemZap extends BaseContract {
   };
 
   populateTransaction: {
-    RequiemPairs(
+    RequiemWeightedPairs(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
@@ -961,7 +961,7 @@ export class RequiemZap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setRequiemPairs(
+    setRequiemWeightedPairs(
       _input: string,
       _output: string,
       _pair: string[],

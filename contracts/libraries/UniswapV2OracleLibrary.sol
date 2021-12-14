@@ -2,7 +2,7 @@
 
 pragma solidity >=0.7.6;
 
-import "../interfaces/IRequiemPair.sol";
+import "../interfaces/IRequiemWeightedPair.sol";
 import "./FixedPoint.sol";
 
 // library with helper methods for oracles that are concerned with computing average prices
@@ -19,15 +19,15 @@ library UniswapV2OracleLibrary {
         address pair
     ) internal view returns (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) {
         blockTimestamp = currentBlockTimestamp();
-        price0Cumulative = IRequiemPair(pair).price0CumulativeLast();
-        price1Cumulative = IRequiemPair(pair).price1CumulativeLast();
+        price0Cumulative = IRequiemWeightedPair(pair).price0CumulativeLast();
+        price1Cumulative = IRequiemWeightedPair(pair).price1CumulativeLast();
 
         // if time has elapsed since the last update on the pair, mock the accumulated price values
-        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = IRequiemPair(pair).getReserves();
+        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = IRequiemWeightedPair(pair).getReserves();
         if (blockTimestampLast != blockTimestamp) {
             // subtraction overflow is desired
             uint32 timeElapsed = blockTimestamp - blockTimestampLast;
-            (uint32 _tokenWeight0, uint32 _tokenWeight1) = IRequiemPair(pair).getTokenWeights();
+            (uint32 _tokenWeight0, uint32 _tokenWeight1) = IRequiemWeightedPair(pair).getTokenWeights();
             uint112 mReserve0 = reserve0 * _tokenWeight1;
             uint112 mReserve1 = reserve1 * _tokenWeight0;
             // addition overflow is desired

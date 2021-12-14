@@ -4,7 +4,7 @@ pragma solidity >=0.8.10;
 
 import "./interfaces/IRequiemFactory.sol";
 import "./interfaces/IRequiemFormula.sol";
-import "./interfaces/IRequiemPair.sol";
+import "./interfaces/IRequiemWeightedPair.sol";
 import "./interfaces/IRequiemSwap.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -45,7 +45,7 @@ contract RequiemQRouter is IRequiemQRouter {
     ) internal virtual {
         address input = tokenIn;
         for (uint256 i = 0; i < path.length; i++) {
-            IRequiemPair pairV2 = IRequiemPair(path[i]);
+            IRequiemWeightedPair pairV2 = IRequiemWeightedPair(path[i]);
             address token0 = pairV2.token0();
             uint256 amountOut = amounts[i + 1];
             (uint256 amount0Out, uint256 amount1Out, address output) = input == token0 ? (uint256(0), amountOut, pairV2.token1()) : (amountOut, uint256(0), token0);
@@ -284,7 +284,7 @@ contract RequiemQRouter is IRequiemQRouter {
     ) internal virtual {
         address input = tokenIn;
         for (uint256 i; i < path.length; i++) {
-            IRequiemPair pair = IRequiemPair(path[i]);
+            IRequiemWeightedPair pair = IRequiemWeightedPair(path[i]);
             uint256 amountInput;
             uint256 amountOutput;
             address currentOutput;
@@ -477,7 +477,7 @@ contract RequiemQRouter is IRequiemQRouter {
         uint256 targetOutAmount
     ) internal {
         TransferHelper.safeTransfer(tokenIn, pair, targetSwapAmount);
-        IRequiemPair pairV2 = IRequiemPair(pair);
+        IRequiemWeightedPair pairV2 = IRequiemWeightedPair(pair);
         address token0 = pairV2.token0();
 
         (uint256 amount0Out, uint256 amount1Out, address output) = tokenIn == token0 ? (uint256(0), targetOutAmount, pairV2.token1()) : (targetOutAmount, uint256(0), token0);
@@ -506,8 +506,8 @@ contract RequiemQRouter is IRequiemQRouter {
             amountOutput = IRequiemFormula(formula).getAmountOut(amountInput, reserveInput, reserveOutput, tokenWeightInput, tokenWeightOutput, swapFee);
         }
         uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
-        (uint256 amount0Out, uint256 amount1Out) = tokenIn == IRequiemPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-        IRequiemPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
+        (uint256 amount0Out, uint256 amount1Out) = tokenIn == IRequiemWeightedPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+        IRequiemWeightedPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
         emit Exchange(pool, amountOutput, tokenOut);
 
         tokenAmountOut = IERC20(tokenOut).balanceOf(address(this)) - balanceBefore;
