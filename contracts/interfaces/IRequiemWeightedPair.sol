@@ -7,7 +7,6 @@ import "./IRequiemPairERC20.sol";
 // solhint-disable func-name-mixedcase
 
 interface IRequiemWeightedPair is IRequiemPairERC20 {
-
     event PaidProtocolFee(uint112 collectedFee0, uint112 collectedFee1);
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);

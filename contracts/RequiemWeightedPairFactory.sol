@@ -3,11 +3,14 @@
 pragma solidity ^0.8.10;
 
 import "./interfaces/IRequiemWeightedPairFactory.sol";
+import "./libraries/EnumerableSet.sol";
 import "./RequiemWeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
 contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     address public feeTo;
     address public formula;
     uint256 public protocolFee;
@@ -17,6 +20,8 @@ contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
     mapping(bytes32 => address) private _pairSalts;
     address[] public allPairs;
     mapping(address => uint64) private _pairs;
+
+    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
 
     constructor(address _feeToSetter, address _formula) {
         feeToSetter = _feeToSetter;
@@ -62,6 +67,10 @@ contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IRequiemWeightedPair(pair).initialize(token0, token1, tokenWeight0, swapFee);
+
+        tokenPairs[IERC20(token0)][IERC20(token1)].add(pair);
+        tokenPairs[IERC20(token1)][IERC20(token0)].add(pair);
+
         _pairSalts[salt] = address(pair);
         allPairs.push(pair);
         uint64 weightAndFee = uint64(swapFee);
@@ -103,6 +112,14 @@ contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
         } else {
             // Default is 0.3%
             return (50, 50, 30);
+        }
+    }
+
+    function getPairs(IERC20 token0, IERC20 token1) external view returns (address[] memory _tokenPairs) {
+        uint256 length = tokenPairs[token0][token1].length();
+        _tokenPairs = new address[](length);
+        for (uint256 i = 0; i < length; i++) {
+            _tokenPairs[i] = tokenPairs[token0][token1].at(i);
         }
     }
 }
