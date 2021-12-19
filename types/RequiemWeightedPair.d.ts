@@ -502,7 +502,7 @@ export class RequiemWeightedPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      arg3: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -672,7 +672,7 @@ export class RequiemWeightedPair extends BaseContract {
     amount0Out: BigNumberish,
     amount1Out: BigNumberish,
     to: string,
-    data: BytesLike,
+    arg3: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -838,7 +838,7 @@ export class RequiemWeightedPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      arg3: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1134,7 +1134,7 @@ export class RequiemWeightedPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      arg3: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1296,7 +1296,7 @@ export class RequiemWeightedPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      arg3: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

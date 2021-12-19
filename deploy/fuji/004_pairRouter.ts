@@ -27,46 +27,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	console.log("--- deploy formulas ---")
 
 	const weth = '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
-	const formula = await deploy("RequiemFormula", {
-		contract: "RequiemFormula",
-		skipIfAlreadyDeployed: true,
-		from: deployer,
-		args: [],
-		log: true,
-	});
-
-	const factory = await deploy("RequiemFactory", {
-		contract: "RequiemFactory",
-		skipIfAlreadyDeployed: true,
-		from: deployer,
-		args: [deployer, formula.address],
-		log: true,
-	});
-
-	const protocolFeeRemover = await deploy("ProtocolFeeRemover", {
-		contract: "ProtocolFeeRemover",
-		skipIfAlreadyDeployed: true,
-		from: deployer,
-		args: [],
-		log: true,
-	});
-
-
-	const router = await deploy("RequiemQRouter", {
-		contract: "RequiemQRouter",
-		skipIfAlreadyDeployed: true,
-		from: deployer,
-		args: [factory.address, weth],
-		log: true,
-	});
+	const factoryAddress = '0xacd3602152763C3AAFA705D8a90C36661ecD7d46'
 
 	const pairManager = await deploy("RequiemQPairManager", {
 		contract: "RequiemQPairManager",
 		skipIfAlreadyDeployed: true,
 		from: deployer,
-		args: [factory.address, weth],
+		args: [factoryAddress, weth],
 		log: true,
 	});
+
+	const router = await deploy("RequiemQRouter", {
+		contract: "RequiemQRouter",
+		skipIfAlreadyDeployed: true,
+		from: deployer,
+		args: [factoryAddress, weth],
+		log: true,
+	});
+
+
 };
 export default func;
-func.tags = ['pairs-fuji'];
+func.tags = ['router-fuji'];

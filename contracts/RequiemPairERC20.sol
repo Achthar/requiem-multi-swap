@@ -7,10 +7,12 @@ import "./interfaces/IRequiemPairERC20.sol";
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
 contract RequiemPairERC20 is IRequiemPairERC20 {
+
     string public constant name = "Requiem Pair Liquidity Provider";
     string public constant symbol = "RPLP";
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
+
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
@@ -94,7 +96,7 @@ contract RequiemPairERC20 is IRequiemPairERC20 {
         require(deadline >= block.timestamp, "RLP: EXPIRED");
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))));
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, "RLP: INVALID_SIGNATURE");
+        require(recoveredAddress != address(0) && recoveredAddress == owner, "RLP: IS");
         _approve(owner, spender, value);
     }
 }

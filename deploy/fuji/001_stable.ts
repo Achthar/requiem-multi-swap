@@ -31,26 +31,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // new Token(ChainId.AVAX_TESTNET, '0xaea51e4fee50a980928b4353e852797b54deacd8', 18, 'DAI', 'Dai Stablecoin'),
     // new Token(ChainId.AVAX_TESTNET, '0xccf7ed44c5a0f3cb5c9a9b9f765f8d836fb93ba1', 18, 'TUSD', 'True USD'),
 
-	const usdc = await ethers.getContractAt('ERC20', '0xca9ec7085ed564154a9233e1e7d8fef460438eea');
-	const usdt = await ethers.getContractAt('ERC20', '0xffb3ed4960cac85372e6838fbc9ce47bcf2d073e');
-	const dai =  await ethers.getContractAt('ERC20', '0xaea51e4fee50a980928b4353e852797b54deacd8');
-	const tusd =  await ethers.getContractAt('ERC20', '0xccf7ed44c5a0f3cb5c9a9b9f765f8d836fb93ba1');
+	const usdc = await ethers.getContractAt('MockERC20', '0xca9ec7085ed564154a9233e1e7d8fef460438eea');
+	const usdt = await ethers.getContractAt('MockERC20', '0xffb3ed4960cac85372e6838fbc9ce47bcf2d073e');
+	const dai =  await ethers.getContractAt('MockERC20', '0xaea51e4fee50a980928b4353e852797b54deacd8');
+	const tusd =  await ethers.getContractAt('MockERC20', '0xccf7ed44c5a0f3cb5c9a9b9f765f8d836fb93ba1');
 
 	console.log("--- swap router stable ----")
 
-	const swapRouter = await deploy('RequiemStableSwapRouter', {
-		from: deployer,
-		log: true,
-	});
+	// const swapRouter = await deploy('RequiemStableSwapRouter', {
+	// 	from: deployer,
+	// 	log: true,
+	// });
 
 	const feeDistributor = await deploy('FeeDistributor', {
 		from: deployer,
 		log: true,
+		args:[]
 	});
-
-	// await execute('FeeDistributor', { from: deployer, log: true }, 'initialize', usdc.address, swapRouter.address);
-	// await execute('FeeDistributor', { from: deployer, log: true }, 'toggleOperator', deployer);
-
 
 
 	const stableSwapLib = await deploy('RequiemStableSwapLib', {
@@ -80,15 +77,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// 	[usdc.address, usdt.address, dai.address, tusd.address], //_coins,
 	// 	[6, 6, 18, 18], //token decimals
 	// 	'Requiem Stableswap LP', // pool token name
-	// 	'zDollar', //_pool_token
+	// 	'req4USD', //_pool_token
 	// 	600, // _A
 	// 	1e6, //_fee = 0.01%
+	// 	1e6, // flash fee
 	// 	5e9, //_admin_fee, 50%,
 	// 	5e7, //withdraw fee = 0.5%
 	// 	feeDistributor.address
 	// );
 
-	// await execute('zDollar', {from: deployer, log: true}, 'setMinter', pool.address);
+	// await execute('req4USD', {from: deployer, log: true}, 'setMinter', pool.address);
 
 	// await execute(
 	// 	'FeeDistributor',
@@ -105,14 +103,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const deadline = Math.floor(Date.now() / 1000 + 7200);
 
 	const poolContract = await ethers.getContractAt('RequiemStableSwap', pool.address);
-	const lpContract = await ethers.getContractAt('ERC20', await poolContract.getLpToken());
+	// const lpContract = await ethers.getContractAt('ERC20', await poolContract.getLpToken());
 
-	console.log("approve spending")
+	console.log("approve spending", pool.address, ethers.constants.MaxInt256)
 
-	// await usdc.approve(pool.address, ethers.constants.MaxInt256)
-	// await usdt.approve(pool.address, ethers.constants.MaxInt256)
-	// await dai.approve(pool.address, ethers.constants.MaxInt256)
-	await tusd.approve(pool.address, ethers.constants.MaxInt256)
+	// await usdc.approve(pool.address, ethers.constants.MaxUint256)
+	// console.log("usdc spending")
+	// await usdt.approve(pool.address, ethers.constants.MaxUint256)
+	// console.log("usdt spending")
+	// await dai.approve(pool.address, ethers.constants.MaxUint256)
+	// console.log("dai spending")
+	// await tusd.approve(pool.address, ethers.constants.MaxUint256)
+	// console.log("tusd spending")
 
 	// await execute('USDC', { from: deployer }, 'approve', pool.address, ethers.constants.MaxInt256);
 	// await execute('USDT', { from: deployer }, 'approve', pool.address, ethers.constants.MaxInt256);
@@ -120,13 +122,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// await execute('TUSD', { from: deployer }, 'approve', pool.address, ethers.constants.MaxInt256);
 
 
-	console.log('add_liquidity');
-	const tokenAmount = await poolContract.calculateTokenAmount(
-		[parseUnits('101', 6), parseUnits('102', 6), parseUnits('103', 18), parseUnits('104', 18)],
-		true
-	);
+	// console.log('add_liquidity');
+	// const tokenAmount = await poolContract.calculateTokenAmount(
+	// 	[parseUnits('1011', 6), parseUnits('1022', 6), parseUnits('1033', 18), parseUnits('1024', 18)],
+	// 	true
+	// );
 
-	console.log('Estimated LP', tokenAmount.toString());
+	// console.log('Estimated LP', tokenAmount.toString());
 
 	await execute(
 		'RequiemStableSwap',

@@ -21,8 +21,8 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface IRequiemFormulaInterface extends ethers.utils.Interface {
   functions: {
     "ensureConstantValue(uint256,uint256,uint256,uint256,uint32)": FunctionFragment;
-    "getAmountIn(uint256,uint256,uint256,uint32,uint32,uint32)": FunctionFragment;
-    "getAmountOut(uint256,uint256,uint256,uint32,uint32,uint32)": FunctionFragment;
+    "getAmountIn(uint256,uint256,uint256,uint256,uint256,uint32)": FunctionFragment;
+    "getAmountOut(uint256,uint256,uint256,uint256,uint256,uint32)": FunctionFragment;
     "getAmountsIn(address,address,uint256,address[])": FunctionFragment;
     "getAmountsOut(address,address,uint256,address[])": FunctionFragment;
     "getFactoryAmountsIn(address,address,address,uint256,address[])": FunctionFragment;
@@ -33,7 +33,7 @@ interface IRequiemFormulaInterface extends ethers.utils.Interface {
     "getPairAmountOut(address,address,uint256)": FunctionFragment;
     "getReserveAndWeights(address,address)": FunctionFragment;
     "getReserves(address,address,address)": FunctionFragment;
-    "mintLiquidityFee(uint256,uint112,uint112,uint32,uint32,uint112,uint112)": FunctionFragment;
+    "mintLiquidityFee(uint256,uint256,uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
     "quote(uint256,uint256,uint256)": FunctionFragment;
     "sortTokens(address,address)": FunctionFragment;
   };
@@ -306,12 +306,12 @@ export class IRequiemFormula extends BaseContract {
       tokenA: string,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, number, number, number] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, number] & {
         tokenB: string;
         reserveA: BigNumber;
         reserveB: BigNumber;
-        tokenWeightA: number;
-        tokenWeightB: number;
+        tokenWeightA: BigNumber;
+        tokenWeightB: BigNumber;
         swapFee: number;
       }
     >;
@@ -341,12 +341,12 @@ export class IRequiemFormula extends BaseContract {
       tokenA: string,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, number, number, number] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, number] & {
         tokenB: string;
         reserveA: BigNumber;
         reserveB: BigNumber;
-        tokenWeightA: number;
-        tokenWeightB: number;
+        tokenWeightA: BigNumber;
+        tokenWeightB: BigNumber;
         swapFee: number;
       }
     >;
@@ -454,12 +454,12 @@ export class IRequiemFormula extends BaseContract {
     tokenA: string,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, number, number, number] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, number] & {
       tokenB: string;
       reserveA: BigNumber;
       reserveB: BigNumber;
-      tokenWeightA: number;
-      tokenWeightB: number;
+      tokenWeightA: BigNumber;
+      tokenWeightB: BigNumber;
       swapFee: number;
     }
   >;
@@ -489,12 +489,12 @@ export class IRequiemFormula extends BaseContract {
     tokenA: string,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, number, number, number] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, number] & {
       tokenB: string;
       reserveA: BigNumber;
       reserveB: BigNumber;
-      tokenWeightA: number;
-      tokenWeightB: number;
+      tokenWeightA: BigNumber;
+      tokenWeightB: BigNumber;
       swapFee: number;
     }
   >;
@@ -602,12 +602,12 @@ export class IRequiemFormula extends BaseContract {
       tokenA: string,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, number, number, number] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, number] & {
         tokenB: string;
         reserveA: BigNumber;
         reserveB: BigNumber;
-        tokenWeightA: number;
-        tokenWeightB: number;
+        tokenWeightA: BigNumber;
+        tokenWeightB: BigNumber;
         swapFee: number;
       }
     >;
@@ -637,12 +637,12 @@ export class IRequiemFormula extends BaseContract {
       tokenA: string,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, number, number, number] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, number] & {
         tokenB: string;
         reserveA: BigNumber;
         reserveB: BigNumber;
-        tokenWeightA: number;
-        tokenWeightB: number;
+        tokenWeightA: BigNumber;
+        tokenWeightB: BigNumber;
         swapFee: number;
       }
     >;

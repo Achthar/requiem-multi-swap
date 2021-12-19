@@ -47,6 +47,140 @@ interface IRequiemSwap {
     ) external view returns (uint256);
 }
 
+// File: contracts/libraries/math/FullMath.sol
+
+
+
+pragma solidity >=0.8.10;
+
+// solhint-disable no-inline-assembly, reason-string
+
+/// @title Contains 512-bit math functions
+/// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision
+/// @dev Handles "phantom overflow" i.e., allows multiplication and division where an intermediate value overflows 256 bits
+library FullMath {
+    /// @notice Calculates floor(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+    /// @param a The multiplicand
+    /// @param b The multiplier
+    /// @param denominator The divisor
+    /// @return result The 256-bit result
+    /// @dev Credit to Remco Bloemen under MIT license https://xn--2-umb.com/21/muldiv
+    function mulDiv(
+        uint256 a,
+        uint256 b,
+        uint256 denominator
+    ) internal pure returns (uint256 result) {
+        unchecked {
+            // 512-bit multiply [prod1 prod0] = a * b
+            // Compute the product mod 2**256 and mod 2**256 - 1
+            // then use the Chinese Remainder Theorem to reconstruct
+            // the 512 bit result. The result is stored in two 256
+            // variables such that product = prod1 * 2**256 + prod0
+            uint256 prod0; // Least significant 256 bits of the product
+            uint256 prod1; // Most significant 256 bits of the product
+            assembly {
+                let mm := mulmod(a, b, not(0))
+                prod0 := mul(a, b)
+                prod1 := sub(sub(mm, prod0), lt(mm, prod0))
+            }
+
+            // Handle non-overflow cases, 256 by 256 division
+            if (prod1 == 0) {
+                require(denominator > 0);
+                assembly {
+                    result := div(prod0, denominator)
+                }
+                return result;
+            }
+
+            // Make sure the result is less than 2**256.
+            // Also prevents denominator == 0
+            require(denominator > prod1);
+
+            ///////////////////////////////////////////////
+            // 512 by 256 division.
+            ///////////////////////////////////////////////
+
+            // Make division exact by subtracting the remainder from [prod1 prod0]
+            // Compute remainder using mulmod
+            uint256 remainder;
+            assembly {
+                remainder := mulmod(a, b, denominator)
+            }
+            // Subtract 256 bit number from 512 bit number
+            assembly {
+                prod1 := sub(prod1, gt(remainder, prod0))
+                prod0 := sub(prod0, remainder)
+            }
+
+            // Factor powers of two out of denominator
+            // Compute largest power of two divisor of denominator.
+            // Always >= 1.
+            // EDIT for 0.8 compatibility:
+            // see: https://ethereum.stackexchange.com/questions/96642/unary-operator-cannot-be-applied-to-type-uint256
+            uint256 twos = denominator & (~denominator + 1);
+
+            // Divide denominator by power of two
+            assembly {
+                denominator := div(denominator, twos)
+            }
+
+            // Divide [prod1 prod0] by the factors of two
+            assembly {
+                prod0 := div(prod0, twos)
+            }
+            // Shift in bits from prod1 into prod0. For this we need
+            // to flip `twos` such that it is 2**256 / twos.
+            // If twos is zero, then it becomes one
+            assembly {
+                twos := add(div(sub(0, twos), twos), 1)
+            }
+            prod0 |= prod1 * twos;
+
+            // Invert denominator mod 2**256
+            // Now that denominator is an odd number, it has an inverse
+            // modulo 2**256 such that denominator * inv = 1 mod 2**256.
+            // Compute the inverse by starting with a seed that is correct
+            // correct for four bits. That is, denominator * inv = 1 mod 2**4
+            uint256 inv = (3 * denominator) ^ 2;
+            // Now use Newton-Raphson iteration to improve the precision.
+            // Thanks to Hensel's lifting lemma, this also works in modular
+            // arithmetic, doubling the correct bits in each step.
+            inv *= 2 - denominator * inv; // inverse mod 2**8
+            inv *= 2 - denominator * inv; // inverse mod 2**16
+            inv *= 2 - denominator * inv; // inverse mod 2**32
+            inv *= 2 - denominator * inv; // inverse mod 2**64
+            inv *= 2 - denominator * inv; // inverse mod 2**128
+            inv *= 2 - denominator * inv; // inverse mod 2**256
+
+            // Because the division is now exact we can divide by multiplying
+            // with the modular inverse of denominator. This will give us the
+            // correct result modulo 2**256. Since the precoditions guarantee
+            // that the outcome is less than 2**256, this is the final result.
+            // We don't need to compute the high bits of the result and prod1
+            // is no longer required.
+            result = prod0 * inv;
+            return result;
+        }
+    }
+
+    /// @notice Calculates ceil(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
+    /// @param a The multiplicand
+    /// @param b The multiplier
+    /// @param denominator The divisor
+    /// @return result The 256-bit result
+    function mulDivRoundingUp(
+        uint256 a,
+        uint256 b,
+        uint256 denominator
+    ) internal pure returns (uint256 result) {
+        result = mulDiv(a, b, denominator);
+        if (mulmod(a, b, denominator) > 0) {
+            require(result < type(uint256).max);
+            result++;
+        }
+    }
+}
 // File: contracts/libraries/Context.sol
 
 
@@ -491,239 +625,6 @@ library Errors {
     uint256 internal constant INSUFFICIENT_FLASH_LOAN_FEE_AMOUNT = 602;
 }
 
-// File: contracts/libraries/SafeMath.sol
-
-
-
-pragma solidity ^0.8.10;
-
-
-/**
- * @dev Wrappers over Solidity's arithmetic operations with added overflow
- * checks.
- *
- * Arithmetic operations in Solidity wrap on overflow. This can easily result
- * in bugs, because programmers usually assume that an overflow raises an
- * error, which is the standard behavior in high level programming languages.
- * `SafeMath` restores this intuition by reverting the transaction when an
- * operation overflows.
- *
- * Using this library instead of the unchecked operations eliminates an entire
- * class of bugs, so it's recommended to use it always.
- */
-library SafeMath {
-    /**
-     * @dev Returns the addition of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `+` operator.
-     *
-     * Requirements:
-     *
-     * - Addition cannot overflow.
-     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        RequiemErrors._require(c >= a, Errors.ADD_OVERFLOW);
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return sub(a, b, Errors.SUB_OVERFLOW);
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(
-        uint256 a,
-        uint256 b,
-        uint256 errorCode
-    ) internal pure returns (uint256) {
-        RequiemErrors._require(b <= a, errorCode);
-        uint256 c = a - b;
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers, reverting with custom message on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        unchecked {
-            require(b > 0, errorMessage);
-            return a / b;
-        }
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `*` operator.
-     *
-     * Requirements:
-     *
-     * - Multiplication cannot overflow.
-     */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a * b;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers, reverting on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator.
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a / b;
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * reverting when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a % b;
-    }
-
-    /**
-     * @dev Returns the addition of two unsigned integers, with an overflow flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            uint256 c = a + b;
-            if (c < a) return (false, 0);
-            return (true, c);
-        }
-    }
-
-    /**
-     * @dev Returns the substraction of two unsigned integers, with an overflow flag.
-     *
-     * _Available since v3.4._
-     */
-    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            if (b > a) return (false, 0);
-            return (true, a - b);
-        }
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-            // benefit is lost if 'b' is also tested.
-            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-            if (a == 0) return (true, 0);
-            uint256 c = a * b;
-            if (c / a != b) return (false, 0);
-            return (true, c);
-        }
-    }
-
-    /**
-     * @dev Returns the division of two unsigned integers, with a division by zero flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            if (b == 0) return (false, 0);
-            return (true, a / b);
-        }
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            if (b == 0) return (false, 0);
-            return (true, a % b);
-        }
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * reverting with custom message when dividing by zero.
-     *
-     * CAUTION: This function is deprecated because it requires allocating memory for the error
-     * message unnecessarily. For custom revert reasons use {tryMod}.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        unchecked {
-            require(b > 0, errorMessage);
-            return a % b;
-        }
-    }
-}
-
 // File: contracts/interfaces/ERC20/IERC20.sol
 
 
@@ -807,11 +708,51 @@ interface IERC20 {
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
+// File: contracts/interfaces/IFlashLoanRecipient.sol
+
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+pragma solidity ^0.8.10;
+
+// Inspired by Aave Protocol's IFlashLoanReceiver.
+
+
+interface IFlashLoanRecipient {
+    /**
+     * @dev When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.
+     *
+     * At the time of the call, the Vault will have transferred `amounts` for `tokens` to the recipient. Before this
+     * call returns, the recipient must have transferred `amounts` plus `feeAmounts` for each token back to the
+     * Vault, or else the entire flash loan will revert.
+     *
+     * `userData` is the same value passed in the `IVault.flashLoan` call.
+     */
+    function receiveFlashLoan(
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        uint256[] memory feeAmounts,
+        bytes memory userData
+    ) external;
+}
+
 // File: contracts/interfaces/IRequiemStableSwap.sol
 
 
 
 pragma solidity 0.8.10;
+
 
 
 // solhint-disable var-name-mixedcase
@@ -832,7 +773,7 @@ interface IRequiemStableSwap {
 
     event StopRampA(uint256 A, uint256 timestamp);
 
-    event NewFee(uint256 fee, uint256 adminFee, uint256 withdrawFee);
+    event NewFee(uint256 fee, uint256 flashFee, uint256 adminFee, uint256 withdrawFee);
 
     event CollectProtocolFee(address token, uint256 amount);
 
@@ -892,6 +833,13 @@ interface IRequiemStableSwap {
         address to,
         uint256 deadline
     ) external returns (uint256);
+
+    function flashLoan(
+        IFlashLoanRecipient recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external;
 
     function addLiquidity(
         uint256[] calldata amounts,
@@ -1316,21 +1264,21 @@ pragma solidity ^0.8.10;
 
 
 
+// solhint-disable reason-string
+
 /**
  * @dev Extension of {ERC20} that allows token holders to destroy both their own
  * tokens and those that they have an allowance for, in a way that can be
  * recognized off-chain (via event analysis).
  */
-abstract contract ERC20Burnable is ERC20 {
-    using SafeMath for uint256;
-
+abstract contract ERC20Burnable is Context, ERC20 {
     /**
      * @dev Destroys `amount` tokens from the caller.
      *
      * See {ERC20-_burn}.
      */
     function burn(uint256 amount) public virtual {
-        _burn(msg.sender, amount);
+        _burn(_msgSender(), amount);
     }
 
     /**
@@ -1345,9 +1293,14 @@ abstract contract ERC20Burnable is ERC20 {
      * `amount`.
      */
     function burnFrom(address account, uint256 amount) public virtual {
-        uint256 decreasedAllowance = allowance(account, msg.sender).sub(amount, Errors.ERC20_BURN_EXCEEDS_ALLOWANCE);
-
-        _approve(account, msg.sender, decreasedAllowance);
+        uint256 currentAllowance = allowance(account, _msgSender());
+        require(
+            currentAllowance >= amount,
+            "ERC20: burn amount exceeds allowance"
+        );
+        unchecked {
+            _approve(account, _msgSender(), currentAllowance - amount);
+        }
         _burn(account, amount);
     }
 }
@@ -1467,6 +1420,8 @@ pragma solidity ^0.8.10;
 
 
 
+
+
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 /**
@@ -1484,6 +1439,10 @@ library RequiemStableSwapLib {
     event RemoveLiquidityOne(address indexed provider, uint256 index, uint256 token_amount, uint256 coin_amount);
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
+    /**
+     * @dev Emitted for each individual flash loan performed by `flashLoan`.
+     */
+    event FlashLoan(IFlashLoanRecipient indexed recipient, IERC20 indexed token, uint256 amount, uint256 feeAmount);
 
     uint256 public constant FEE_DENOMINATOR = 1e10;
     // uint256 public constant PRECISION = 1e18;
@@ -1504,6 +1463,8 @@ library RequiemStableSwapLib {
         uint256[] balances;
         /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
         uint256 fee;
+        /// @dev flash loan fee ratio. Charge on any action which move balance state far from the ideal state
+        uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
         /// @dev observation of A, multiplied with A_PRECISION
@@ -1613,6 +1574,50 @@ library RequiemStableSwapLib {
      *  the same function as swap, but it expects that amounts already have been
      *  sent to the contract
      *   - designed to be used in the Requiem Swap framework
+     *   - deducts the fee from the output and caps it at outAmount to
+     *   - this is to avoid issues with the rounding when using the calculateSwapGivenOut function to determine the input
+     *          -> that is because e.g. a 6 digit input can never exactly hit a 18 digit output, so the input is selected slightly higher
+     *              such that the output also is essentially rounded up at the sixth digit
+     *          -> the outAmount can only be lower than the actual calculated dy
+     *   - viable function for batch swapping
+     * @param i token index in
+     * @param j token index out
+     * @param outAmount the target out amount - only a cap at the decimalplaces of the lower one, the rest is taken as fee
+     *                  - that fee is always about the lowes amount possible of the one with the lower decimal number
+     *                  this will have a negative
+     */
+    function onSwap(
+        SwapStorage storage self,
+        uint256 i,
+        uint256 j,
+        uint256 inAmount,
+        uint256 outAmount,
+        address to
+    ) external returns (uint256) {
+        uint256[] memory normalizedBalances = _xp(self);
+
+        uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
+
+        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
+        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
+
+        dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
+
+        // the control outAmount has to be lower or equal than the "actual" one
+        require(outAmount <= dy, "dy too low");
+
+        self.balances[i] += inAmount;
+        self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+
+        self.pooledTokens[j].safeTransfer(to, outAmount);
+        emit TokenExchange(to, i, inAmount, j, outAmount);
+        return dy;
+    }
+
+    /**
+     *  the same function as swap, but it expects that amounts already have been
+     *  sent to the contract
+     *   - designed to be used in the Requiem Swap framework
      *   - deducts the fee from the output, in this case simple as the output is the calculated value
      *   - viable function for batch swapping
      * @param i token index in
@@ -1672,7 +1677,7 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
 
         // thre fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
-        uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+        uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
 
         // calculate out balance
         uint256 y = normalizedBalances[j] - (_amountOutInclFee * self.tokenMultipliers[j]);
@@ -1700,6 +1705,58 @@ library RequiemStableSwapLib {
 
         // returns final input amount
         return dx;
+    }
+
+    /**
+     * Flash Loan
+     */
+
+    function flashLoan(
+        SwapStorage storage self,
+        IFlashLoanRecipient recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external {
+        require(tokens.length == amounts.length, "inputs");
+        uint256[] memory feeAmounts = new uint256[](tokens.length);
+        uint256[] memory preLoanBalances = new uint256[](tokens.length);
+
+        // Used to ensure `tokens` is sorted in ascending order, which ensures token uniqueness.
+        IERC20 previousToken = IERC20(address(0));
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = tokens[i];
+            uint256 amount = amounts[i];
+
+            RequiemErrors._require(token > previousToken, token == IERC20(address(0)) ? Errors.ZERO_TOKEN : Errors.UNSORTED_TOKENS);
+            previousToken = token;
+
+            preLoanBalances[i] = token.balanceOf(address(this));
+            feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
+
+            RequiemErrors._require(preLoanBalances[i] >= amount, Errors.INSUFFICIENT_FLASH_LOAN_BALANCE);
+            token.safeTransfer(address(recipient), amount);
+        }
+
+        recipient.receiveFlashLoan(tokens, amounts, feeAmounts, userData);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            IERC20 token = tokens[i];
+            uint256 preLoanBalance = preLoanBalances[i];
+
+            // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
+            // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
+            uint256 postLoanBalance = token.balanceOf(address(this));
+            RequiemErrors._require(postLoanBalance >= preLoanBalance, Errors.INVALID_POST_LOAN_BALANCE);
+
+            // No need for checked arithmetic since we know the loan was fully repaid.
+            uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
+            RequiemErrors._require(receivedFeeAmount >= feeAmounts[i], Errors.INSUFFICIENT_FLASH_LOAN_FEE_AMOUNT);
+
+            // _payFeeAmount(token, receivedFeeAmount);
+            emit FlashLoan(recipient, token, amounts[i], receivedFeeAmount);
+        }
     }
 
     function removeLiquidity(
@@ -1870,7 +1927,7 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
         uint256 newInBalance = normalizedBalances[inIndex] + (inAmount * self.tokenMultipliers[inIndex]);
         uint256 outBalance = _getY(self, inIndex, outIndex, newInBalance, normalizedBalances);
-        uint256 outAmount = divDown(normalizedBalances[outIndex] - outBalance, self.tokenMultipliers[outIndex]);
+        uint256 outAmount = (normalizedBalances[outIndex] - outBalance) / self.tokenMultipliers[outIndex];
         uint256 _fee = (self.fee * outAmount) / FEE_DENOMINATOR;
         return outAmount - _fee;
     }
@@ -1886,11 +1943,12 @@ library RequiemStableSwapLib {
     ) external view returns (uint256) {
         uint256[] memory normalizedBalances = _xp(self);
         // fee has to be deducted on the output
-        uint256 _amountOutInclFee = divDown(outAmount * FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+        uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
         uint256 newOutBalance = normalizedBalances[outIndex] - (_amountOutInclFee * self.tokenMultipliers[outIndex]);
         // switch index on regulat _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
         uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
+
         return inAmount;
     }
 
@@ -2040,7 +2098,7 @@ library RequiemStableSwapLib {
 
         for (uint256 index = 0; index < MAX_ITERATION; index++) {
             lastY = y;
-            y = (y * y + c) / (2 * y + b - D);
+            y = divUp(y * y + c, 2 * y + b - D);
             if (_distance(lastY, y) <= 1) {
                 return y;
             }
@@ -2357,6 +2415,7 @@ pragma solidity ^0.8.10;
 
 
 
+
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IRequiemStableSwap {
@@ -2370,6 +2429,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     uint256 public constant MAX_ADMIN_FEE = 1e10; // 100%
     uint256 public constant MAX_SWAP_FEE = 1e8; // 1%
     uint256 public constant MAX_WITHDRAW_FEE = 1e8; // 1%
+    uint256 public constant MAX_FLASH_FEE = 1e8; // 1%
 
     /// STATE VARS
     RequiemStableSwapLib.SwapStorage public swapStorage;
@@ -2394,6 +2454,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         string memory lpTokenSymbol,
         uint256 _A,
         uint256 _fee,
+        uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
         address _feeDistributor
@@ -2413,6 +2474,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
 
         require(_A < MAX_A, "> maxA");
         require(_fee <= MAX_SWAP_FEE, "> maxSFee");
+        require(_flashFee <= MAX_FLASH_FEE, "> maxFFee");
         require(_adminFee <= MAX_ADMIN_FEE, "> maxAFee");
         require(_withdrawFee <= MAX_WITHDRAW_FEE, "> maxWFee");
 
@@ -2423,6 +2485,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         swapStorage.initialA = _A * RequiemStableSwapLib.A_PRECISION;
         swapStorage.futureA = _A * RequiemStableSwapLib.A_PRECISION;
         swapStorage.fee = _fee;
+        swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
@@ -2455,15 +2518,16 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
     // has no check for slippage, that should be wrapped arount that funtion if used
     // calculation-wise not really less efficient than just validating input amounts
     // since the invariant would have to be calculated twice
+    // expects amounts to be sent to the contract alreaddy
     function onSwap(
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        uint256,
+        uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
-        // swapStorage._swap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
-        swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, 0, to);
+        swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+        // swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, 0, to);
     }
 
     // expects amount alrady to be sent to this address
@@ -2488,6 +2552,18 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         address to
     ) external override whenNotPaused nonReentrant returns (uint256) {
         return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+    }
+
+     /**
+    * Flash Loan
+     */
+    function flashLoan(
+        IFlashLoanRecipient recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external override nonReentrant whenNotPaused {
+        swapStorage.flashLoan(recipient, tokens, amounts, userData);
     }
 
     function removeLiquidity(
@@ -2634,6 +2710,7 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
         swapStorage.updateUserWithdrawFee(recipient, transferAmount);
     }
 
+
     /**
      * @notice Sets the admin fee
      * @dev adminFee cannot be higher than 100% of the swap fee
@@ -2644,17 +2721,19 @@ contract RequiemStableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Init
      */
     function setFee(
         uint256 newSwapFee,
+        uint256 newFlashFee,
         uint256 newAdminFee,
         uint256 newWithdrawFee
     ) external onlyOwner {
         require(newSwapFee <= MAX_SWAP_FEE, "> SFee");
+        require(newFlashFee <= MAX_FLASH_FEE, "> SFee");
         require(newAdminFee <= MAX_ADMIN_FEE, "> AFee");
         require(newWithdrawFee <= MAX_WITHDRAW_FEE, "> WFee");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
 
-        emit NewFee(newSwapFee, newAdminFee, newWithdrawFee);
+        emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);
     }
 
     /**

@@ -53,16 +53,16 @@ contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
         uint32 tokenWeightA,
         uint32 swapFee
     ) external returns (address pair) {
-        require(tokenA != tokenB, "RLP: IDENTICAL_ADDRESSES");
-        require(tokenWeightA >= 2 && tokenWeightA <= 98 && (tokenWeightA % 2) == 0, "RLP: INVALID_TOKEN_WEIGHT");
+        require(tokenA != tokenB, "RLP: IA");
+        require(tokenWeightA >= 2 && tokenWeightA <= 98 && (tokenWeightA % 2) == 0, "RLP: IW");
         // swap fee from [0.01% - 20%]
-        require(swapFee >= 1 && swapFee <= 2000, "RLP: INVALID_SWAP_FEE");
+        require(swapFee >= 1 && swapFee <= 2000, "RLP: ISF");
         (address token0, address token1, uint32 tokenWeight0) = tokenA < tokenB ? (tokenA, tokenB, tokenWeightA) : (tokenB, tokenA, 100 - tokenWeightA);
-        require(token0 != address(0), "RLP: ZERO_ADDRESS");
+        require(token0 != address(0), "RLP: ZA");
         // single check is sufficient
         bytes memory bytecode = type(RequiemWeightedPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, tokenWeight0, swapFee));
-        require(_pairSalts[salt] == address(0), "RLP: PAIR_EXISTS");
+        require(_pairSalts[salt] == address(0), "RLP: PE");
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
@@ -80,18 +80,18 @@ contract RequiemWeightedPairFactory is IRequiemWeightedPairFactory {
     }
 
     function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeToSetter, "RLP: FORBIDDEN");
+        require(msg.sender == feeToSetter, "RLP: F");
         feeTo = _feeTo;
     }
 
     function setFeeToSetter(address _feeToSetter) external {
-        require(msg.sender == feeToSetter, "RLP: FORBIDDEN");
+        require(msg.sender == feeToSetter, "RLP: F");
         feeToSetter = _feeToSetter;
     }
 
     function setProtocolFee(uint256 _protocolFee) external {
-        require(msg.sender == feeToSetter, "RLP: FORBIDDEN");
-        require(_protocolFee == 0 || (_protocolFee >= 10000 && _protocolFee <= 100000), "RLP: Invalid Protocol fee");
+        require(msg.sender == feeToSetter, "RLP: F");
+        require(_protocolFee == 0 || (_protocolFee >= 10000 && _protocolFee <= 100000), "RLP: IPF");
         protocolFee = _protocolFee;
     }
 

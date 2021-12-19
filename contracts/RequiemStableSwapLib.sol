@@ -24,7 +24,7 @@ library RequiemStableSwapLib {
     event RemoveLiquidityOne(address indexed provider, uint256 index, uint256 token_amount, uint256 coin_amount);
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
-       /**
+    /**
      * @dev Emitted for each individual flash loan performed by `flashLoan`.
      */
     event FlashLoan(IFlashLoanRecipient indexed recipient, IERC20 indexed token, uint256 amount, uint256 feeAmount);
@@ -292,8 +292,8 @@ library RequiemStableSwapLib {
         return dx;
     }
 
- /**
-    * Flash Loan
+    /**
+     * Flash Loan
      */
 
     function flashLoan(
@@ -314,11 +314,11 @@ library RequiemStableSwapLib {
             IERC20 token = tokens[i];
             uint256 amount = amounts[i];
 
-            RequiemErrors._require(token > previousToken, token ==  IERC20(address(0)) ? Errors.ZERO_TOKEN : Errors.UNSORTED_TOKENS);
+            RequiemErrors._require(token > previousToken, token == IERC20(address(0)) ? Errors.ZERO_TOKEN : Errors.UNSORTED_TOKENS);
             previousToken = token;
 
             preLoanBalances[i] = token.balanceOf(address(this));
-            feeAmounts[i] = amount * self.flashFee / FEE_DENOMINATOR;
+            feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
             RequiemErrors._require(preLoanBalances[i] >= amount, Errors.INSUFFICIENT_FLASH_LOAN_BALANCE);
             token.safeTransfer(address(recipient), amount);
@@ -343,7 +343,6 @@ library RequiemStableSwapLib {
             emit FlashLoan(recipient, token, amounts[i], receivedFeeAmount);
         }
     }
-
 
     function removeLiquidity(
         SwapStorage storage self,
