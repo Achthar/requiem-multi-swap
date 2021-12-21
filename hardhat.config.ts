@@ -245,6 +245,17 @@ const config: HardhatUserConfig = {
       gas: 80000000,
       gasPrice: 250000000000,
     },
+    'oasis-test': {
+      url: 'https://testnet.emerald.oasis.dev',
+      accounts: [pk1, pk2],
+      chainId: 42261,
+      live: true,
+      saveDeployments: true,
+      // tags: ['staging'],
+      // gasMultiplier: 4,
+      gas: 800000,
+      gasPrice: 2500000000,
+    },
     harmony: {
       url: 'https://api.s0.t.hmny.io',
       accounts,
@@ -340,7 +351,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 999999,
+            runs: 1,
           },
           evmVersion: 'london',
         },

@@ -26,7 +26,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("--- deploy formulas ---")
 
-	const weth = '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
 	const formula = await deploy("RequiemFormula", {
 		contract: "RequiemFormula",
 		skipIfAlreadyDeployed: true,
