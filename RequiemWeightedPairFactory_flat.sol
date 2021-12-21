@@ -13,7 +13,7 @@ interface IUniswapV2Callee {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -96,7 +96,7 @@ interface IERC20 {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 // a library for handling binary fixed point numbers (https://en.wikipedia.org/wiki/Q_(number_format))
 
@@ -121,7 +121,7 @@ library UQ112x112 {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 // solhint-disable avoid-low-level-calls, reason-string
 
@@ -155,7 +155,7 @@ library TransferHelper {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 // a library for performing various math operations
 
@@ -182,7 +182,7 @@ library Math {
 // File: contracts/interfaces/IRequiemFormula.sol
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 /*
     Bancor Formula interface
@@ -274,7 +274,7 @@ interface IRequiemFormula {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 interface IRequiemSwap {
     // this funtion requires the correctly calculated amounts as input
@@ -322,7 +322,7 @@ interface IRequiemSwap {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 // solhint-disable func-name-mixedcase
 
@@ -352,7 +352,7 @@ interface IRequiemPairERC20 {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
@@ -456,7 +456,7 @@ contract RequiemPairERC20 is IRequiemPairERC20 {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 // solhint-disable func-name-mixedcase
@@ -534,7 +534,7 @@ interface IRequiemWeightedPair is IRequiemPairERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 // solhint-disable
 library RequiemErrors {
@@ -761,7 +761,7 @@ library Errors {
 // size and runtime costs.
 // The `unchecked_at` function was also added, which allows for more gas efficient data reads in some scenarios.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 // solhint-disable func-name-mixedcase
@@ -1020,7 +1020,7 @@ library EnumerableSet {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 interface IRequiemWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint256);
@@ -1073,7 +1073,7 @@ interface IRequiemWeightedPairFactory {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 
@@ -1476,7 +1476,7 @@ contract RequiemWeightedPair is IRequiemSwap, IRequiemWeightedPair, RequiemPairE
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 

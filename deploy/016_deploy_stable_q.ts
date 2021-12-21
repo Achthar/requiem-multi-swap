@@ -268,7 +268,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// 5523245322543325293 calculated 5523246259170329363
 
 	console.log("calculate from Out, orig", outAmount5.toString(), "calculated", calcSwap9.toString())
-	console.log("4 --- in",  calcSwap8.toString())
+	console.log("4 --- in", calcSwap8.toString())
 
 
 	const inAmount4 = BigNumber.from('13213121')
@@ -284,7 +284,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		dai.address,
 		calcSwap10
 	)
-	
+
 	console.log("5 --- in", inAmount4.toString(), "inValidated", calcSwap11.toString())
 	// 213213321321213121 inValidated 213212654847395401
 	const outAmount6 = BigNumber.from('21213121')
@@ -301,8 +301,62 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		dai.address,
 		usdc.address,
 		calcSwap13)
-	
+
 	console.log("6 --- out", outAmount6.toString(), "inValidated", calcSwap12.toString())
+
+	// console.log("7--- in", inAmount4.toString(), "inValidated", calcSwap11.toString())
+	// 213213321321213121 inValidated 213212654847395401
+	const outAmount7 = BigNumber.from('21223411323213121')
+	console.log("calculateIn")
+
+
+	console.log("calculate from Out dai in tusd out ", outAmount7.toString())
+	const calcSwap14 = await poolContract.calculateSwapGivenOut(
+		dai.address,
+		tusd.address,
+		outAmount7
+	)
+	const calcSwap15 = await poolContract.calculateSwapGivenIn(
+		dai.address,
+		tusd.address,
+		calcSwap14)
+
+	console.log("7 --- out", outAmount7.toString(), "inValidated", calcSwap15.toString())
+
+
+	console.log("calculate from dai in tusd out ", outAmount7.toString())
+	const calcSwap16 = await poolContract.calculateSwapGivenOut(
+		dai.address,
+		tusd.address,
+		outAmount7
+	)
+	const calcSwap17 = await poolContract.calculateSwapGivenIn(
+		dai.address,
+		tusd.address,
+		calcSwap16)
+
+	const calcSwap18 = await poolContract.onSwapGivenIn(
+		dai.address,
+		tusd.address,
+		calcSwap16,
+		0,
+		localhost)
+
+	console.log("swap from Out dai in tusd out ", calcSwap18)
+	const outAmount8 = BigNumber.from('21321223411323213121')
+
+	console.log("SWAP TEST")
+	const calcSwap19 = await poolContract.onSwapGivenOut(
+		dai.address, // address tokenIn,
+		tusd.address,// address tokenOut,
+		outAmount8,  // uint256 amountOut,
+		ethers.constants.MaxInt256, // uint256 amountInMax,
+		localhost// address to
+	)
+
+	console.log("7 --- out", outAmount7.toString(), "inValidated", calcSwap17.toString())
+
+
 
 };
 export default func;

@@ -70,33 +70,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		},
 	});
 
-	await execute(
-		'RequiemStableSwap',
-		{ from: deployer, log: true },
-		'initialize',
-		[usdc.address, usdt.address, dai.address, tusd.address], //_coins,
-		[6, 6, 18, 18], //token decimals
-		'Requiem Stableswap LP', // pool token name
-		'req4USD', //_pool_token
-		600, // _A
-		1e6, //_fee = 0.01%
-		1e6, // flash fee
-		5e9, //_admin_fee, 50%,
-		5e7, //withdraw fee = 0.5%
-		feeDistributor.address
-	);
+	// await execute(
+	// 	'RequiemStableSwap',
+	// 	{ from: deployer, log: true },
+	// 	'initialize',
+	// 	[usdc.address, usdt.address, dai.address, tusd.address], //_coins,
+	// 	[6, 6, 18, 18], //token decimals
+	// 	'Requiem Stableswap LP', // pool token name
+	// 	'req4USD', //_pool_token
+	// 	600, // _A
+	// 	1e6, //_fee = 0.01%
+	// 	1e6, // flash fee
+	// 	5e9, //_admin_fee, 50%,
+	// 	5e7, //withdraw fee = 0.5%
+	// 	feeDistributor.address
+	// );
 
-	await execute('req4USD', {from: deployer, log: true}, 'setMinter', pool.address);
-
-	await execute(
-		'FeeDistributor',
-		{ from: deployer, log: true },
-		'setSwapConfig',
-		usdt.address,
-		0,
-		pool.address,
-		constants.AddressZero
-	);
+	// await execute(
+	// 	'FeeDistributor',
+	// 	{ from: deployer, log: true },
+	// 	'setSwapConfig',
+	// 	usdt.address,
+	// 	0,
+	// 	pool.address,
+	// 	constants.AddressZero
+	// );
 
 
 
@@ -106,26 +104,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// const lpContract = await ethers.getContractAt('ERC20', await poolContract.getLpToken());
 
 	console.log("approve spending", pool.address, ethers.constants.MaxInt256)
-	console.log("approve spending", pool.address, ethers.constants.MaxInt256)
 
-	await usdt.connect(deployer)
-	await usdc.connect(deployer)
-	await dai.connect(deployer)
-	await tusd.connect(deployer)
+	// await usdt.connect(deployer)
+	// await usdc.connect(deployer)
+	// await dai.connect(deployer)
+	// await tusd.connect(deployer)
+	// console.log("all connected")
+	// await usdc.approve(pool.address, ethers.constants.MaxInt256)
+	// await usdt.approve(pool.address, ethers.constants.MaxInt256)
+	// await dai.approve(pool.address, ethers.constants.MaxInt256)
+	// await tusd.approve(pool.address, ethers.constants.MaxInt256)
 
-	await usdc.approve(pool.address, ethers.constants.MaxInt256)
-	await usdt.approve(pool.address, ethers.constants.MaxInt256)
-	await dai.approve(pool.address, ethers.constants.MaxInt256)
-	await tusd.approve(pool.address, ethers.constants.MaxInt256)
+	// console.log("all approved")
+	// console.log('add_liquidity');
+	// const tokenAmount = await poolContract.calculateTokenAmount(
+	// 	[parseUnits('1011', 6), parseUnits('1022', 6), parseUnits('1033', 18), parseUnits('1024', 18)],
+	// 	true
+	// );
 
-	console.log("all approved")
-	console.log('add_liquidity');
-	const tokenAmount = await poolContract.calculateTokenAmount(
-		[parseUnits('1011', 6), parseUnits('1022', 6), parseUnits('1033', 18), parseUnits('1024', 18)],
-		true
-	);
-
-	console.log('Estimated LP', tokenAmount.toString());
+	// console.log('Estimated LP', tokenAmount.toString());
 
 	await execute(
 		'RequiemStableSwap',

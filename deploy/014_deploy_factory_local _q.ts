@@ -695,6 +695,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	console.log("swapped 10")
 
 
+	const tokens10 = [dai.address, tusd.address]
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		[pool.address],
+		tokens10,
+		BigNumber.from('32321332143212212'), // out
+		BigNumber.from('99999999999999999999999'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+
+	console.log("swapped 11")
+
+
+
 };
 export default func;
 func.tags = ['swap-localhost-q'];

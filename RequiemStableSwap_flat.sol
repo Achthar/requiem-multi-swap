@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 interface IRequiemSwap {
     // this funtion requires the correctly calculated amounts as input
@@ -51,7 +51,7 @@ interface IRequiemSwap {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 // solhint-disable no-inline-assembly, reason-string
 
@@ -185,7 +185,7 @@ library FullMath {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -210,7 +210,7 @@ abstract contract Context {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 /**
@@ -301,7 +301,7 @@ abstract contract Pausable is Context {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 /**
@@ -377,7 +377,7 @@ abstract contract Ownable is Context {
 
 
 
-pragma solidity 0.8.10;
+pragma solidity 0.8.11;
 
 
 
@@ -407,7 +407,7 @@ abstract contract OwnerPausable is Ownable, Pausable {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 // solhint-disable
 library RequiemErrors {
@@ -629,7 +629,7 @@ library Errors {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -724,7 +724,7 @@ interface IERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 // Inspired by Aave Protocol's IFlashLoanReceiver.
 
@@ -751,7 +751,7 @@ interface IFlashLoanRecipient {
 
 
 
-pragma solidity 0.8.10;
+pragma solidity 0.8.11;
 
 
 
@@ -873,7 +873,7 @@ interface IRequiemStableSwap {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 /**
@@ -901,7 +901,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 
@@ -1260,7 +1260,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 
@@ -1309,7 +1309,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 
@@ -1348,7 +1348,7 @@ contract LPToken is Ownable, ERC20Burnable {
 // The `safeTransfer` and `safeTransferFrom` functions assume that `token` is a contract (an account with code), and
 // work differently from the OpenZeppelin version if it is not.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 
@@ -1415,7 +1415,7 @@ library SafeERC20 {
 // File: contracts/RequiemStableSwapLib.sol
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 
@@ -1598,8 +1598,8 @@ library RequiemStableSwapLib {
 
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
-        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
-        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
+        uint256 dy = normalizedBalances[j] - y; // iliminate rouding errors
+        uint256 dy_fee = FullMath.mulDiv(dy , self.fee,FEE_DENOMINATOR);
 
         dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
 
@@ -1676,7 +1676,7 @@ library RequiemStableSwapLib {
     ) external returns (uint256 dx) {
         uint256[] memory normalizedBalances = _xp(self);
 
-        // thre fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
+        // the fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
         uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
 
         // calculate out balance
@@ -2340,7 +2340,7 @@ abstract contract Initializable {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -2405,7 +2405,7 @@ abstract contract ReentrancyGuard {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 

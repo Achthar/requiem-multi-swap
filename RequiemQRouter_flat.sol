@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 interface IRequiemQRouter {
     event Exchange(address pair, uint256 amountOut, address output);
@@ -125,7 +125,7 @@ interface IRequiemQRouter {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -220,7 +220,7 @@ interface IERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 /**
@@ -237,7 +237,7 @@ interface IWETH is IERC20 {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 // solhint-disable avoid-low-level-calls, reason-string
 
@@ -271,7 +271,7 @@ library TransferHelper {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 interface IRequiemSwap {
     // this funtion requires the correctly calculated amounts as input
@@ -319,7 +319,7 @@ interface IRequiemSwap {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 // solhint-disable func-name-mixedcase
 
@@ -349,7 +349,7 @@ interface IRequiemERC20 {
 
 
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 
 // solhint-disable func-name-mixedcase
@@ -533,7 +533,7 @@ interface IRequiemFactory {
 
 
 
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.11;
 
 
 

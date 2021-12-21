@@ -242,8 +242,8 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       // tags: ['staging'],
       // gasMultiplier: 4,
-      gas: 80000000,
-      gasPrice: 250000000000,
+      gas: 800000000,
+      gasPrice: 25000000000,
     },
     'oasis-test': {
       url: 'https://testnet.emerald.oasis.dev',
@@ -347,11 +347,11 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.10',
+        version: '0.8.11',
         settings: {
           optimizer: {
             enabled: true,
-            runs: 1,
+            runs: 200,
           },
           evmVersion: 'london',
         },

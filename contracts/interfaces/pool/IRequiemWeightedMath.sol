@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 // These functions start with an underscore, as if they were part of a contract and not a library. At some point this
 // should be fixed.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 import "./tokens/LPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -183,8 +183,8 @@ library RequiemStableSwapLib {
 
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
-        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
-        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
+        uint256 dy = normalizedBalances[j] - y; // iliminate rouding errors
+        uint256 dy_fee = FullMath.mulDiv(dy , self.fee,FEE_DENOMINATOR);
 
         dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
 
@@ -261,7 +261,7 @@ library RequiemStableSwapLib {
     ) external returns (uint256 dx) {
         uint256[] memory normalizedBalances = _xp(self);
 
-        // thre fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
+        // the fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
         uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
 
         // calculate out balance
