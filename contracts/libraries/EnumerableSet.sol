@@ -7,8 +7,6 @@
 
 pragma solidity ^0.8.11;
 
-import "./helpers/RequiemErrors.sol";
-
 // solhint-disable func-name-mixedcase
 
 /**
@@ -131,7 +129,7 @@ library EnumerableSet {
      * - `index` must be strictly less than {length}.
      */
     function at(AddressSet storage set, uint256 index) internal view returns (address) {
-        RequiemErrors._require(set._values.length > index, Errors.OUT_OF_BOUNDS);
+        require(set._values.length > index, "OUT_OF_BOUNDS");
         return unchecked_at(set, index);
     }
 
@@ -241,7 +239,7 @@ library EnumerableSet {
      * - `index` must be strictly less than {length}.
      */
     function at(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {
-        RequiemErrors._require(set._values.length > index, Errors.OUT_OF_BOUNDS);
+        require(set._values.length > index, "OUT_OF_BOUNDS");
         return unchecked_at(set, index);
     }
 

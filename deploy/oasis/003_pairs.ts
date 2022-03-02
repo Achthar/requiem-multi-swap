@@ -26,7 +26,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("--- deploy formulas ---")
 
-	const formulaAddress = '0xb3a65e1bF6884eC96fdA1e8F09e477d203357BF0'
+	const formulaAddress = '0xCCf7ed44c5A0f3Cb5c9a9B9f765F8D836fb93BA1'
 
 
 	const factory = await deploy("RequiemWeightedPairFactory", {

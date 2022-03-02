@@ -26,18 +26,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("--- deploy formulas ---")
 
-	// const formula = await deploy("RequiemFormula", {
-	// 	contract: "RequiemFormula",
-	// 	skipIfAlreadyDeployed: true,
-	// 	from: deployer,
-	// 	args: [],
-	// 	log: true,
-	// });
+	const formula = await deploy("RequiemFormula", {
+		contract: "RequiemFormula",
+		skipIfAlreadyDeployed: true,
+		from: deployer,
+		args: [],
+		log: true,
+	});
 
-	const formulaFactory = await ethers.getContractFactory('RequiemFormula');
-	console.log("deploy Formula")
-	const formula = await formulaFactory.deploy(
-	);
+	// const formulaFactory = await ethers.getContractFactory('RequiemFormula');
+	// console.log("deploy Formula")
+	// const formula = await formulaFactory.deploy(
+	// );
 	console.log("addr", formula.address)
 
 

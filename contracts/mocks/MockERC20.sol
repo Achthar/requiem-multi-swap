@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.11;
 
 import "../libraries/ERC20.sol";
 
@@ -9,12 +9,13 @@ import "../libraries/ERC20.sol";
  */
 contract MockERC20 is ERC20 {
     uint8 internal decimals_;
+
     constructor(
         string memory _name,
         string memory _symbol,
         uint8 _decimals
     ) ERC20(_name, _symbol) {
-        super._mint(msg.sender, 1e27);
+        super._mint(msg.sender, 1000000 * 10**_decimals);
         decimals_ = _decimals;
     }
 

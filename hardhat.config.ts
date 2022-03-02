@@ -254,6 +254,17 @@ const config: HardhatUserConfig = {
       // tags: ['staging'],
       // gasMultiplier: 4,
       gas: 800000,
+      gasPrice: 25000000000,
+    },
+    'quarkchain-dev-s0': {
+      url: 'http://eth-jrpc.devnet.quarkchain.io:39900',
+      accounts: [pk1, pk2],
+      chainId: 110001,
+      live: true,
+      saveDeployments: true,
+      // tags: ['staging'],
+      // gasMultiplier: 4,
+      gas: 800000,
       gasPrice: 2500000000,
     },
     harmony: {
@@ -351,7 +362,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 999999,
           },
           evmVersion: 'london',
         },

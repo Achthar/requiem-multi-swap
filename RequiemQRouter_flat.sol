@@ -315,7 +315,7 @@ interface IRequiemSwap {
     ) external view returns (uint256);
 }
 
-// File: contracts/interfaces/IRequiemERC20.sol
+// File: contracts/interfaces/IRequiemPairERC20.sol
 
 
 
@@ -323,7 +323,7 @@ pragma solidity ^0.8.11;
 
 // solhint-disable func-name-mixedcase
 
-interface IRequiemERC20 {
+interface IRequiemPairERC20 {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
@@ -345,7 +345,7 @@ interface IRequiemERC20 {
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
 }
 
-// File: contracts/interfaces/IRequiemPair.sol
+// File: contracts/interfaces/IRequiemWeightedPair.sol
 
 
 
@@ -354,8 +354,7 @@ pragma solidity ^0.8.11;
 
 // solhint-disable func-name-mixedcase
 
-interface IRequiemPair is IRequiemERC20 {
-
+interface IRequiemWeightedPair is IRequiemPairERC20 {
     event PaidProtocolFee(uint112 collectedFee0, uint112 collectedFee1);
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
@@ -415,7 +414,7 @@ interface IRequiemPair is IRequiemERC20 {
 // File: contracts/interfaces/IRequiemFormula.sol
 
 
-pragma solidity >=0.5.16;
+pragma solidity >=0.8.11;
 
 /*
     Bancor Formula interface
@@ -503,30 +502,57 @@ interface IRequiemFormula {
         uint112 collectedFee1) external view returns (uint amount);
 }
 
-// File: contracts/interfaces/IRequiemFactory.sol
+// File: contracts/interfaces/IRequiemWeightedPairFactory.sol
 
 
 
-pragma solidity >=0.5.16;
+pragma solidity >=0.8.11;
 
-interface IRequiemFactory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint);
+interface IRequiemWeightedPairFactory {
+    event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint256);
+
     function feeTo() external view returns (address);
+
     function formula() external view returns (address);
-    function protocolFee() external view returns (uint);
+
+    function protocolFee() external view returns (uint256);
+
     function feeToSetter() external view returns (address);
 
-    function getPair(address tokenA, address tokenB, uint32 tokenWeightA, uint32 swapFee) external view returns (address pair);
-    function allPairs(uint) external view returns (address pair);
-    function isPair(address) external view returns (bool);
-    function allPairsLength() external view returns (uint);
+    function getPair(
+        address tokenA,
+        address tokenB,
+        uint32 tokenWeightA,
+        uint32 swapFee
+    ) external view returns (address pair);
 
-    function createPair(address tokenA, address tokenB, uint32 tokenWeightA, uint32 swapFee) external returns (address pair);
-    function getWeightsAndSwapFee(address pair) external view returns (uint32 tokenWeight0, uint32 tokenWeight1, uint32 swapFee);
+    function allPairs(uint256) external view returns (address pair);
+
+    function isPair(address) external view returns (bool);
+
+    function allPairsLength() external view returns (uint256);
+
+    function createPair(
+        address tokenA,
+        address tokenB,
+        uint32 tokenWeightA,
+        uint32 swapFee
+    ) external returns (address pair);
+
+    function getWeightsAndSwapFee(address pair)
+        external
+        view
+        returns (
+            uint32 tokenWeight0,
+            uint32 tokenWeight1,
+            uint32 swapFee
+        );
 
     function setFeeTo(address) external;
+
     function setFeeToSetter(address) external;
-    function setProtocolFee(uint) external;
+
+    function setProtocolFee(uint256) external;
 }
 
 // File: contracts/RequiemQRouter.sol
@@ -558,7 +584,7 @@ contract RequiemQRouter is IRequiemQRouter {
 
     constructor(address _factory, address _WETH) {
         factory = _factory;
-        formula = IRequiemFactory(_factory).formula();
+        formula = IRequiemWeightedPairFactory(_factory).formula();
         WETH = _WETH;
     }
 
@@ -577,7 +603,7 @@ contract RequiemQRouter is IRequiemQRouter {
     ) internal virtual {
         address input = tokenIn;
         for (uint256 i = 0; i < path.length; i++) {
-            IRequiemPair pairV2 = IRequiemPair(path[i]);
+            IRequiemWeightedPair pairV2 = IRequiemWeightedPair(path[i]);
             address token0 = pairV2.token0();
             uint256 amountOut = amounts[i + 1];
             (uint256 amount0Out, uint256 amount1Out, address output) = input == token0 ? (uint256(0), amountOut, pairV2.token1()) : (amountOut, uint256(0), token0);
@@ -816,7 +842,7 @@ contract RequiemQRouter is IRequiemQRouter {
     ) internal virtual {
         address input = tokenIn;
         for (uint256 i; i < path.length; i++) {
-            IRequiemPair pair = IRequiemPair(path[i]);
+            IRequiemWeightedPair pair = IRequiemWeightedPair(path[i]);
             uint256 amountInput;
             uint256 amountOutput;
             address currentOutput;
@@ -1009,7 +1035,7 @@ contract RequiemQRouter is IRequiemQRouter {
         uint256 targetOutAmount
     ) internal {
         TransferHelper.safeTransfer(tokenIn, pair, targetSwapAmount);
-        IRequiemPair pairV2 = IRequiemPair(pair);
+        IRequiemWeightedPair pairV2 = IRequiemWeightedPair(pair);
         address token0 = pairV2.token0();
 
         (uint256 amount0Out, uint256 amount1Out, address output) = tokenIn == token0 ? (uint256(0), targetOutAmount, pairV2.token1()) : (targetOutAmount, uint256(0), token0);
@@ -1038,8 +1064,8 @@ contract RequiemQRouter is IRequiemQRouter {
             amountOutput = IRequiemFormula(formula).getAmountOut(amountInput, reserveInput, reserveOutput, tokenWeightInput, tokenWeightOutput, swapFee);
         }
         uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
-        (uint256 amount0Out, uint256 amount1Out) = tokenIn == IRequiemPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-        IRequiemPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
+        (uint256 amount0Out, uint256 amount1Out) = tokenIn == IRequiemWeightedPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+        IRequiemWeightedPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
         emit Exchange(pool, amountOutput, tokenOut);
 
         tokenAmountOut = IERC20(tokenOut).balanceOf(address(this)) - balanceBefore;

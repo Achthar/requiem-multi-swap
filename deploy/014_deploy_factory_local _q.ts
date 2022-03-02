@@ -35,7 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		contract: 'MockERC20',
 		from: localhost,
 		log: true,
-		args: ['T2 Coin', 'T2', 6],
+		args: ['T2 Coin', 'T2', 8],
 	});
 
 	const t3 = await deploy('T3', {
@@ -60,10 +60,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		args: [localhost],
 	});
 
-	await execute('T1', { from: localhost, log: true }, 'mint', localhost, parseUnits('100002143000', 6));
-	await execute('T2', { from: localhost, log: true }, 'mint', localhost, parseUnits('100000414100', 6));
-	await execute('T3', { from: localhost, log: true }, 'mint', localhost, parseUnits('100002112000', 18));
-	await execute('T4', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000011400', 18));
+	await execute('T1', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000000000002143000', 6));
+	await execute('T2', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000000000000000414100', 6));
+	await execute('T3', { from: localhost, log: true }, 'mint', localhost, parseUnits('1000s00000000002112000', 18));
+	await execute('T4', { from: localhost, log: true }, 'mint', localhost, parseUnits('100000000000000000011400', 18));
 	// await execute('T1', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 6) );
 	// await execute('T2', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 6) );
 	// await execute('T3', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 18) );
@@ -706,6 +706,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	);
 
 	console.log("swapped 11")
+
+
+	const tokens11 = [dai.address, usdt.address, t2.address]
+	await execute('RequiemQRouter', { from: localhost }, 'onSwapTokensForExactTokens',
+		[pool.address, pair2],
+		tokens11,
+		BigNumber.from('323242323'), // out
+		BigNumber.from('99999999999999999999999'), //in max
+		localhost,// address to,
+		deadline,// uint256 deadline
+	);
+
+	console.log("swapped 12")
 
 
 

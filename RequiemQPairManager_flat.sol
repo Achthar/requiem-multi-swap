@@ -5,16 +5,9 @@
 
 pragma solidity ^0.8.11;
 
+// solhint-disable func-name-mixedcase
+
 interface IRequiemQPairManager {
-    event Exchange(address pair, uint256 amountOut, address output);
-    struct Swap {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount; // tokenInAmount / tokenOutAmount
-        uint256 limitReturnAmount; // minAmountOut / maxAmountIn
-        uint256 maxPrice;
-    }
 
     function factory() external view returns (address);
 
@@ -344,7 +337,7 @@ interface IRequiemSwap {
     ) external view returns (uint256);
 }
 
-// File: contracts/interfaces/IRequiemERC20.sol
+// File: contracts/interfaces/IRequiemPairERC20.sol
 
 
 
@@ -352,7 +345,7 @@ pragma solidity ^0.8.11;
 
 // solhint-disable func-name-mixedcase
 
-interface IRequiemERC20 {
+interface IRequiemPairERC20 {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
@@ -374,7 +367,7 @@ interface IRequiemERC20 {
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
 }
 
-// File: contracts/interfaces/IRequiemPair.sol
+// File: contracts/interfaces/IRequiemWeightedPair.sol
 
 
 
@@ -383,8 +376,7 @@ pragma solidity ^0.8.11;
 
 // solhint-disable func-name-mixedcase
 
-interface IRequiemPair is IRequiemERC20 {
-
+interface IRequiemWeightedPair is IRequiemPairERC20 {
     event PaidProtocolFee(uint112 collectedFee0, uint112 collectedFee1);
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
@@ -444,7 +436,7 @@ interface IRequiemPair is IRequiemERC20 {
 // File: contracts/interfaces/IRequiemFormula.sol
 
 
-pragma solidity >=0.5.16;
+pragma solidity >=0.8.11;
 
 /*
     Bancor Formula interface
@@ -532,30 +524,57 @@ interface IRequiemFormula {
         uint112 collectedFee1) external view returns (uint amount);
 }
 
-// File: contracts/interfaces/IRequiemFactory.sol
+// File: contracts/interfaces/IRequiemWeightedPairFactory.sol
 
 
 
-pragma solidity >=0.5.16;
+pragma solidity >=0.8.11;
 
-interface IRequiemFactory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint);
+interface IRequiemWeightedPairFactory {
+    event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint256);
+
     function feeTo() external view returns (address);
+
     function formula() external view returns (address);
-    function protocolFee() external view returns (uint);
+
+    function protocolFee() external view returns (uint256);
+
     function feeToSetter() external view returns (address);
 
-    function getPair(address tokenA, address tokenB, uint32 tokenWeightA, uint32 swapFee) external view returns (address pair);
-    function allPairs(uint) external view returns (address pair);
-    function isPair(address) external view returns (bool);
-    function allPairsLength() external view returns (uint);
+    function getPair(
+        address tokenA,
+        address tokenB,
+        uint32 tokenWeightA,
+        uint32 swapFee
+    ) external view returns (address pair);
 
-    function createPair(address tokenA, address tokenB, uint32 tokenWeightA, uint32 swapFee) external returns (address pair);
-    function getWeightsAndSwapFee(address pair) external view returns (uint32 tokenWeight0, uint32 tokenWeight1, uint32 swapFee);
+    function allPairs(uint256) external view returns (address pair);
+
+    function isPair(address) external view returns (bool);
+
+    function allPairsLength() external view returns (uint256);
+
+    function createPair(
+        address tokenA,
+        address tokenB,
+        uint32 tokenWeightA,
+        uint32 swapFee
+    ) external returns (address pair);
+
+    function getWeightsAndSwapFee(address pair)
+        external
+        view
+        returns (
+            uint32 tokenWeight0,
+            uint32 tokenWeight1,
+            uint32 swapFee
+        );
 
     function setFeeTo(address) external;
+
     function setFeeToSetter(address) external;
-    function setProtocolFee(uint) external;
+
+    function setProtocolFee(uint256) external;
 }
 
 // File: contracts/RequiemQPairManager.sol
@@ -587,7 +606,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
 
     constructor(address _factory, address _WETH) {
         factory = _factory;
-        formula = IRequiemFactory(_factory).formula();
+        formula = IRequiemWeightedPairFactory(_factory).formula();
         WETH = _WETH;
     }
 
@@ -646,9 +665,9 @@ contract RequiemQPairManager is IRequiemQPairManager {
         uint32 swapFee,
         address to
     ) public virtual override returns (uint256 liquidity) {
-        address pair = IRequiemFactory(factory).createPair(tokenA, tokenB, tokenWeightA, swapFee);
+        address pair = IRequiemWeightedPairFactory(factory).createPair(tokenA, tokenB, tokenWeightA, swapFee);
         _addLiquidityToken(pair, tokenA, tokenB, amountA, amountB, 0, 0);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
     }
 
     function addLiquidity(
@@ -673,7 +692,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         )
     {
         (amountA, amountB) = _addLiquidityToken(pair, tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
     }
 
     function _addLiquidityETH(
@@ -694,7 +713,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         (amountToken, amountETH) = _addLiquidity(pair, token, WETH, amountTokenDesired, msg.value, amountTokenMin, amountETHMin);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         transferETHTo(amountETH, pair);
-        liquidity = IRequiemPair(pair).mint(to);
+        liquidity = IRequiemWeightedPair(pair).mint(to);
         // refund dust eth, if any
         if (msg.value > amountETH) TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
     }
@@ -706,7 +725,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         uint32 swapFee,
         address to
     ) public payable virtual override returns (uint256 liquidity) {
-        address pair = IRequiemFactory(factory).createPair(token, WETH, tokenWeight, swapFee);
+        address pair = IRequiemWeightedPairFactory(factory).createPair(token, WETH, tokenWeight, swapFee);
         (, , liquidity) = _addLiquidityETH(pair, token, amountToken, 0, 0, to);
     }
 
@@ -743,10 +762,10 @@ contract RequiemQPairManager is IRequiemQPairManager {
         uint256 amountBMin,
         address to
     ) internal returns (uint256 amountA, uint256 amountB) {
-        require(IRequiemFactory(factory).isPair(pair), "Router: Invalid pair");
-        IRequiemPair(pair).transferFrom(msg.sender, pair, liquidity);
+        require(IRequiemWeightedPairFactory(factory).isPair(pair), "Router: Invalid pair");
+        IRequiemWeightedPair(pair).transferFrom(msg.sender, pair, liquidity);
         // send liquidity to pair
-        (uint256 amount0, uint256 amount1) = IRequiemPair(pair).burn(to);
+        (uint256 amount0, uint256 amount1) = IRequiemWeightedPair(pair).burn(to);
         (address token0, ) = IRequiemFormula(formula).sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
         require(amountA >= amountAMin, "Router: INSUFFICIENT_A_AMOUNT");
@@ -796,7 +815,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
     ) external virtual override ensure(deadline) returns (uint256 amountA, uint256 amountB) {
         {
             uint256 value = approveMax ? type(uint256).max : liquidity;
-            IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+            IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         }
         (amountA, amountB) = _removeLiquidity(pair, tokenA, tokenB, liquidity, amountAMin, amountBMin, to);
     }
@@ -815,7 +834,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         bytes32 s
     ) external virtual override returns (uint256 amountToken, uint256 amountETH) {
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(pair, token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 
@@ -848,7 +867,7 @@ contract RequiemQPairManager is IRequiemQPairManager {
         bytes32 s
     ) external virtual override returns (uint256 amountETH) {
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        IRequiemPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IRequiemWeightedPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         amountETH = removeLiquidityETHSupportingFeeOnTransferTokens(pair, token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 

@@ -26,8 +26,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("--- deploy formulas ---")
 
-	const weth = '0xfb40cd35C0cF322fA3cfB8D67b533Bd9ad7df056'
-	const factoryAddress = '0x274B1F7F8e66B044B2DC773E017750957f70490c'
+	const weth = '0x792296e2a15e6Ceb5f5039DecaE7A1f25b00B0B0'
+	const factoryAddress = '0x0459e858F17ef5D927625f34602432f4fac6941e'
 
 	const pairManager = await deploy("RequiemQPairManager", {
 		contract: "RequiemQPairManager",

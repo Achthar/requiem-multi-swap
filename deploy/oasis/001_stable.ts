@@ -31,10 +31,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	// new Token(ChainId.AVAX_TESTNET, '0xaea51e4fee50a980928b4353e852797b54deacd8', 18, 'DAI', 'Dai Stablecoin'),
 	// new Token(ChainId.AVAX_TESTNET, '0xccf7ed44c5a0f3cb5c9a9b9f765f8d836fb93ba1', 18, 'TUSD', 'True USD'),
 
-	const usdc = await ethers.getContractAt('MockERC20', '0x9aEeeD65aE87e3b28793aefAeED59c3f10ef956b');
-	const usdt = await ethers.getContractAt('MockERC20', '0xfA0D8065755Fb3b6520149e86Ac5A3Dc3ee5Dc92');
-	const dai = await ethers.getContractAt('MockERC20', '0xf10Bd0dA1f0e69c3334D7F8116C9082746EBC1B4');
-	const tusd = await ethers.getContractAt('MockERC20', '0x4e8848da06E40E866b82f6b52417494936c9509b');
+	const usdc = await ethers.getContractAt('MockERC20', '0x5DA9e3e709701Db2E52e20B5293eF267E854496f');
+	const usdt = await ethers.getContractAt('MockERC20', '0x0bB778E9Ad82Dc009121c70c342cA74e05A1Bc55');
+	const dai = await ethers.getContractAt('MockERC20', '0xe7eFBF11bA5720d6794b04330E5AF84F34204886');
+	const tusd = await ethers.getContractAt('MockERC20', '0xf1C213aCa09F51486dbFc2A3aEFC89F171E4576F');
 
 	console.log("--- swap router stable ----")
 

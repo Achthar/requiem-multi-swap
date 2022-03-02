@@ -314,13 +314,13 @@ library RequiemStableSwapLib {
             IERC20 token = tokens[i];
             uint256 amount = amounts[i];
 
-            RequiemErrors._require(token > previousToken, token == IERC20(address(0)) ? Errors.ZERO_TOKEN : Errors.UNSORTED_TOKENS);
+            require(token > previousToken, token == IERC20(address(0)) ? "token" : "unsorted");
             previousToken = token;
 
             preLoanBalances[i] = token.balanceOf(address(this));
             feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
-            RequiemErrors._require(preLoanBalances[i] >= amount, Errors.INSUFFICIENT_FLASH_LOAN_BALANCE);
+            require(preLoanBalances[i] >= amount, "insufficient balance");
             token.safeTransfer(address(recipient), amount);
         }
 
@@ -333,11 +333,11 @@ library RequiemStableSwapLib {
             // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
             // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
             uint256 postLoanBalance = token.balanceOf(address(this));
-            RequiemErrors._require(postLoanBalance >= preLoanBalance, Errors.INVALID_POST_LOAN_BALANCE);
+            require(postLoanBalance >= preLoanBalance, "invalid post loan balance");
 
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
-            RequiemErrors._require(receivedFeeAmount >= feeAmounts[i], Errors.INSUFFICIENT_FLASH_LOAN_FEE_AMOUNT);
+            require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
 
             // _payFeeAmount(token, receivedFeeAmount);
             emit FlashLoan(recipient, token, amounts[i], receivedFeeAmount);

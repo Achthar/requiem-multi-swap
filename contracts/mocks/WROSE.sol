@@ -20,7 +20,7 @@ pragma solidity >=0.4.22;
 contract WROSE {
     string public name = "Wrapped ROSE";
     string public symbol = "WROSE";
-    uint8 public decimals = 18;
+    uint8 public decimals = 10;
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
