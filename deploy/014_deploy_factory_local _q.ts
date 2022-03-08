@@ -62,7 +62,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	await execute('T1', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000000000002143000', 6));
 	await execute('T2', { from: localhost, log: true }, 'mint', localhost, parseUnits('10000000000000000000414100', 6));
-	await execute('T3', { from: localhost, log: true }, 'mint', localhost, parseUnits('1000s00000000002112000', 18));
+	await execute('T3', { from: localhost, log: true }, 'mint', localhost, parseUnits('100000000000002112000', 18));
 	await execute('T4', { from: localhost, log: true }, 'mint', localhost, parseUnits('100000000000000000011400', 18));
 	// await execute('T1', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 6) );
 	// await execute('T2', { from: localhost, log: true }, 'mint', user, parseUnits('10000000', 6) );
