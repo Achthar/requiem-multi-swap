@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.13;
 
 interface IStakePoolRewardFund {
     function initialize(address _stakePool, address _timelock) external;

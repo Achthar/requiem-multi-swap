@@ -5,7 +5,7 @@
 // size and runtime costs.
 // The `unchecked_at` function was also added, which allows for more gas efficient data reads in some scenarios.
 
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.13;
 
 // solhint-disable func-name-mixedcase
 
