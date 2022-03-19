@@ -25,25 +25,12 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     "calculateCurrentWithdrawFee(address)": FunctionFragment;
     "calculateRemoveLiquidity(address,uint256)": FunctionFragment;
     "calculateRemoveLiquidityOneToken(address,uint256,uint8)": FunctionFragment;
-    "calculateSwap(uint8,uint8,uint256)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
     "flashLoan(address,address[],uint256[],bytes)": FunctionFragment;
-    "getA()": FunctionFragment;
-    "getAPrecise()": FunctionFragment;
-    "getAdminBalance(uint8)": FunctionFragment;
-    "getAdminBalances()": FunctionFragment;
-    "getLpToken()": FunctionFragment;
-    "getNumberOfTokens()": FunctionFragment;
-    "getToken(uint8)": FunctionFragment;
-    "getTokenBalance(uint8)": FunctionFragment;
-    "getTokenBalances()": FunctionFragment;
-    "getTokenIndex(address)": FunctionFragment;
-    "getTokens()": FunctionFragment;
     "getVirtualPrice()": FunctionFragment;
     "removeLiquidity(uint256,uint256[],uint256)": FunctionFragment;
     "removeLiquidityImbalance(uint256[],uint256,uint256)": FunctionFragment;
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
-    "swap(uint8,uint8,uint256,uint256,address,uint256)": FunctionFragment;
     "updateUserWithdrawFee(address,uint256)": FunctionFragment;
   };
 
@@ -64,10 +51,6 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "calculateSwap",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "calculateTokenAmount",
     values: [BigNumberish[], boolean]
   ): string;
@@ -75,44 +58,6 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     functionFragment: "flashLoan",
     values: [string, string[], BigNumberish[], BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "getA", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getAPrecise",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAdminBalance",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAdminBalances",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLpToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getNumberOfTokens",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getToken",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenBalance",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenBalances",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenIndex",
-    values: [string]
-  ): string;
-  encodeFunctionData(functionFragment: "getTokens", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getVirtualPrice",
     values?: undefined
@@ -128,17 +73,6 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "removeLiquidityOneToken",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swap",
-    values: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
   ): string;
   encodeFunctionData(
     functionFragment: "updateUserWithdrawFee",
@@ -162,46 +96,10 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "calculateSwap",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "calculateTokenAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getA", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getAPrecise",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAdminBalance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAdminBalances",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getLpToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getNumberOfTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenBalance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenBalances",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getTokens", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getVirtualPrice",
     data: BytesLike
@@ -218,7 +116,6 @@ interface IRequiemStableSwapInterface extends ethers.utils.Interface {
     functionFragment: "removeLiquidityOneToken",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateUserWithdrawFee",
     data: BytesLike
@@ -402,13 +299,6 @@ export class IRequiemStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { availableTokenAmount: BigNumber }>;
 
-    calculateSwap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     calculateTokenAmount(
       amounts: BigNumberish[],
       deposit: boolean,
@@ -422,41 +312,6 @@ export class IRequiemStableSwap extends BaseContract {
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    getA(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getAdminBalances(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { adminBalances: BigNumber[] }>;
-
-    getLpToken(
-      overrides?: CallOverrides
-    ): Promise<[string] & { lpToken: string }>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getToken(index: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
-
-    getTokenIndex(
-      tokenAddress: string,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    getTokens(overrides?: CallOverrides): Promise<[string[]]>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -478,16 +333,6 @@ export class IRequiemStableSwap extends BaseContract {
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       minAmount: BigNumberish,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    swap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      minDy: BigNumberish,
-      to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -524,13 +369,6 @@ export class IRequiemStableSwap extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  calculateSwap(
-    tokenIndexFrom: BigNumberish,
-    tokenIndexTo: BigNumberish,
-    dx: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   calculateTokenAmount(
     amounts: BigNumberish[],
     deposit: boolean,
@@ -544,37 +382,6 @@ export class IRequiemStableSwap extends BaseContract {
     userData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  getA(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getAdminBalance(
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getAdminBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-  getLpToken(overrides?: CallOverrides): Promise<string>;
-
-  getNumberOfTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getToken(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  getTokenBalance(
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-  getTokenIndex(
-    tokenAddress: string,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  getTokens(overrides?: CallOverrides): Promise<string[]>;
 
   getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -596,16 +403,6 @@ export class IRequiemStableSwap extends BaseContract {
     tokenAmount: BigNumberish,
     tokenIndex: BigNumberish,
     minAmount: BigNumberish,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  swap(
-    tokenIndexFrom: BigNumberish,
-    tokenIndexTo: BigNumberish,
-    dx: BigNumberish,
-    minDy: BigNumberish,
-    to: string,
     deadline: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -642,13 +439,6 @@ export class IRequiemStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    calculateSwap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calculateTokenAmount(
       amounts: BigNumberish[],
       deposit: boolean,
@@ -662,37 +452,6 @@ export class IRequiemStableSwap extends BaseContract {
       userData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    getA(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAdminBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-    getLpToken(overrides?: CallOverrides): Promise<string>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getToken(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-    getTokenIndex(
-      tokenAddress: string,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    getTokens(overrides?: CallOverrides): Promise<string[]>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -714,16 +473,6 @@ export class IRequiemStableSwap extends BaseContract {
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       minAmount: BigNumberish,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    swap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      minDy: BigNumberish,
-      to: string,
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1033,13 +782,6 @@ export class IRequiemStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    calculateSwap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     calculateTokenAmount(
       amounts: BigNumberish[],
       deposit: boolean,
@@ -1053,40 +795,6 @@ export class IRequiemStableSwap extends BaseContract {
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    getA(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAdminBalances(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLpToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getToken(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTokenIndex(
-      tokenAddress: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1108,16 +816,6 @@ export class IRequiemStableSwap extends BaseContract {
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       minAmount: BigNumberish,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    swap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      minDy: BigNumberish,
-      to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1155,13 +853,6 @@ export class IRequiemStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    calculateSwap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     calculateTokenAmount(
       amounts: BigNumberish[],
       deposit: boolean,
@@ -1175,40 +866,6 @@ export class IRequiemStableSwap extends BaseContract {
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAdminBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLpToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getToken(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTokenIndex(
-      tokenAddress: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1230,16 +887,6 @@ export class IRequiemStableSwap extends BaseContract {
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       minAmount: BigNumberish,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swap(
-      tokenIndexFrom: BigNumberish,
-      tokenIndexTo: BigNumberish,
-      dx: BigNumberish,
-      minDy: BigNumberish,
-      to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

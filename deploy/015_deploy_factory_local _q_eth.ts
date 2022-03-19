@@ -250,7 +250,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const deadline = Math.floor(Date.now() / 1000 + 7200);
 
 	const poolContract = await ethers.getContractAt('RequiemStableSwap', pool.address);
-	const lpContract = await ethers.getContractAt('ERC20', await poolContract.getLpToken());
 
 
 	await execute('USDC', { from: localhost }, 'approve', pool.address, ethers.constants.MaxInt256);

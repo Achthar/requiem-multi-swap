@@ -7,13 +7,15 @@ import "./libraries/SafeERC20.sol";
 import "./libraries/math/FullMath.sol";
 import "./interfaces/IFlashLoanRecipient.sol";
 
+
+using SafeERC20 for IERC20 global;
+
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 /**
  * StableSwap main algorithm
  */
 library RequiemStableSwapLib {
-    using SafeERC20 for IERC20;
 
     event AddLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
 
@@ -38,6 +40,16 @@ library RequiemStableSwapLib {
     /// @dev max iteration of converge calccuate
     uint256 internal constant MAX_ITERATION = 256;
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
+
+    // errors
+    string internal constant tokenError = "token(s)";
+    string internal constant dyError = "dy";
+    string internal constant arrayError = "array";
+    string internal constant supplyError = "ts";
+    string internal constant balanceError = "b";
+    string internal constant calcError = "calc";
+    string internal constant slippageError = "s";
+
 
     struct SwapStorage {
         IERC20[] pooledTokens;
@@ -75,7 +87,7 @@ library RequiemStableSwapLib {
         uint256 minMintAmount
     ) external returns (uint256 mintAmount) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "length");
+        require(amounts.length == nCoins, arrayError);
         uint256[] memory fees = new uint256[](nCoins);
         uint256 _fee = _feePerToken(self);
 
@@ -91,7 +103,7 @@ library RequiemStableSwapLib {
 
         for (uint256 i = 0; i < nCoins; i++) {
             if (tokenSupply == 0) {
-                require(amounts[i] > 0, "tokens");
+                require(amounts[i] > 0, tokenError);
             }
             // get real transfer in amount
             newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
@@ -115,44 +127,10 @@ library RequiemStableSwapLib {
             mintAmount = (tokenSupply * (D1 - D0)) / D0;
         }
 
-        require(mintAmount >= minMintAmount, "> s");
+        require(mintAmount >= minMintAmount, slippageError);
 
         self.lpToken.mint(msg.sender, mintAmount);
         emit AddLiquidity(msg.sender, amounts, fees, D1, mintAmount);
-    }
-
-    // implements classic swap function a la compound
-    // here the regular calculations such as balance values are implemented
-    // funds are transferred in in that function and are not required to be sent
-    // to the contract
-    function swap(
-        SwapStorage storage self,
-        uint256 i,
-        uint256 j,
-        uint256 inAmount,
-        uint256 minOutAmount,
-        address to
-    ) external returns (uint256) {
-        IERC20 inCoin = self.pooledTokens[i];
-        uint256[] memory normalizedBalances = _xp(self);
-        inAmount = _doTransferIn(inCoin, inAmount);
-
-        uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
-
-        uint256 dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
-        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
-
-        dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
-
-        require(dy >= minOutAmount, "> s");
-
-        // update balances
-        self.balances[i] += inAmount;
-        self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
-
-        self.pooledTokens[j].safeTransfer(to, dy);
-        emit TokenExchange(to, i, inAmount, j, dy);
-        return dy;
     }
 
     /**
@@ -184,12 +162,12 @@ library RequiemStableSwapLib {
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
         uint256 dy = normalizedBalances[j] - y; // iliminate rouding errors
-        uint256 dy_fee = FullMath.mulDiv(dy , self.fee,FEE_DENOMINATOR);
+        uint256 dy_fee = FullMath.mulDiv(dy , self.fee, FEE_DENOMINATOR);
 
         dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
 
         // the control outAmount has to be lower or equal than the "actual" one
-        require(outAmount <= dy, "dy too low");
+        require(outAmount <= dy, dyError);
 
         self.balances[i] += inAmount;
         self.balances[j] -= dy + (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
@@ -217,7 +195,7 @@ library RequiemStableSwapLib {
         address to
     ) external returns (uint256 dy) {
         // we check whether the balance has increased by the suggested inAmount
-        require(self.balances[i] + inAmount <= IERC20(self.pooledTokens[i]).balanceOf(address(this)), "input");
+        require(self.balances[i] + inAmount <= IERC20(self.pooledTokens[i]).balanceOf(address(this)),  balanceError);
         uint256[] memory normalizedBalances = _xp(self);
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
@@ -227,7 +205,7 @@ library RequiemStableSwapLib {
 
         dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
 
-        require(dy >= minOutAmount, "> s");
+        require(dy >= minOutAmount, slippageError);
 
         uint256 _adminFee = (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
 
@@ -275,7 +253,7 @@ library RequiemStableSwapLib {
 
         dx = dx / self.tokenMultipliers[i]; // denormalize
 
-        require(dx <= maxInAmount, "> s");
+        require(dx <= maxInAmount, slippageError);
 
         // update balances
         self.balances[i] -= dx;
@@ -303,24 +281,18 @@ library RequiemStableSwapLib {
         uint256[] memory amounts,
         bytes memory userData
     ) external {
-        require(tokens.length == amounts.length, "inputs");
+        require(tokens.length == amounts.length, arrayError);
         uint256[] memory feeAmounts = new uint256[](tokens.length);
         uint256[] memory preLoanBalances = new uint256[](tokens.length);
-
-        // Used to ensure `tokens` is sorted in ascending order, which ensures token uniqueness.
-        IERC20 previousToken = IERC20(address(0));
 
         for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20 token = tokens[i];
             uint256 amount = amounts[i];
 
-            require(token > previousToken, token == IERC20(address(0)) ? "token" : "unsorted");
-            previousToken = token;
-
             preLoanBalances[i] = token.balanceOf(address(this));
             feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
-            require(preLoanBalances[i] >= amount, "insufficient balance");
+            require(preLoanBalances[i] >= amount, balanceError);
             token.safeTransfer(address(recipient), amount);
         }
 
@@ -333,7 +305,7 @@ library RequiemStableSwapLib {
             // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
             // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
             uint256 postLoanBalance = token.balanceOf(address(this));
-            require(postLoanBalance >= preLoanBalance, "invalid post loan balance");
+            require(postLoanBalance >= preLoanBalance, balanceError);
 
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
@@ -357,7 +329,7 @@ library RequiemStableSwapLib {
         amounts = _calculateRemoveLiquidity(self, msg.sender, lpAmount);
 
         for (uint256 i = 0; i < amounts.length; i++) {
-            require(amounts[i] >= minAmounts[i], "> s");
+            require(amounts[i] >= minAmounts[i], slippageError);
             self.balances[i] = self.balances[i] - amounts[i];
             self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
         }
@@ -373,18 +345,18 @@ library RequiemStableSwapLib {
         uint256 minAmount
     ) external returns (uint256) {
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(totalSupply > 0, "totalSupply = 0");
+        require(totalSupply > 0, supplyError);
         uint256 numTokens = self.pooledTokens.length;
-        require(lpAmount <= self.lpToken.balanceOf(msg.sender), "> balance");
-        require(lpAmount <= totalSupply, "> totalSupply");
-        require(index < numTokens, "tokenNotFound");
+        require(lpAmount <= self.lpToken.balanceOf(msg.sender), balanceError);
+        require(lpAmount <= totalSupply, supplyError);
+        require(index < numTokens, tokenError);
 
         uint256 dyFee;
         uint256 dy;
 
         (dy, dyFee) = _calculateRemoveLiquidityOneToken(self, msg.sender, lpAmount, index);
 
-        require(dy >= minAmount, "> s");
+        require(dy >= minAmount, slippageError);
 
         self.balances[index] -= (dy + (dyFee * self.adminFee) / FEE_DENOMINATOR);
         self.lpToken.burnFrom(msg.sender, lpAmount);
@@ -401,9 +373,9 @@ library RequiemStableSwapLib {
         uint256 maxBurnAmount
     ) external returns (uint256 burnAmount) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "length");
+        require(amounts.length == nCoins, arrayError);
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(totalSupply != 0, "totalSupply = 0");
+        require(totalSupply != 0, supplyError);
         uint256 _fee = _feePerToken(self);
         uint256 amp = _getAPrecise(self);
 
@@ -430,7 +402,7 @@ library RequiemStableSwapLib {
         burnAmount = ((D0 - D1) * totalSupply) / D0;
         assert(burnAmount > 0);
         burnAmount = (burnAmount + 1) * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender)); //In case of rounding errors - make it unfavorable for the "attacker"
-        require(burnAmount <= maxBurnAmount, "> s");
+        require(burnAmount <= maxBurnAmount, slippageError);
 
         self.lpToken.burnFrom(msg.sender, burnAmount);
 
@@ -459,7 +431,7 @@ library RequiemStableSwapLib {
     }
 
     function getAdminBalance(SwapStorage storage self, uint256 index) external view returns (uint256) {
-        require(index < self.pooledTokens.length, "indexOutOfRange");
+        require(index < self.pooledTokens.length, arrayError);
         return self.pooledTokens[index].balanceOf(address(this)) - (self.balances[index]);
     }
 
@@ -473,7 +445,7 @@ library RequiemStableSwapLib {
         bool deposit
     ) external view returns (uint256) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "length");
+        require(amounts.length == nCoins, arrayError);
         uint256 amp = _getAPrecise(self);
         uint256 D0 = _getD(_xp(self), amp);
 
@@ -634,7 +606,7 @@ library RequiemStableSwapLib {
         // Convergence should occur in 4 loops or less. If this is reached, there may be something wrong
         // with the pool. If this were to occur repeatedly, LPs should withdraw via `removeLiquidity()`
         // function which does not rely on D.
-        revert("invariantCalculationFailed");
+        revert(calcError);
     }
 
     /**
@@ -655,9 +627,9 @@ library RequiemStableSwapLib {
         uint256 inBalance,
         uint256[] memory normalizedBalances
     ) internal view returns (uint256) {
-        require(inIndex != outIndex, "sameToken");
+        require(inIndex != outIndex, tokenError);
         uint256 nCoins = self.pooledTokens.length;
-        require(inIndex < nCoins && outIndex < nCoins, "indexOutOfRange");
+        require(inIndex < nCoins && outIndex < nCoins, arrayError);
 
         uint256 amp = _getAPrecise(self);
         uint256 Ann = amp * nCoins;
@@ -689,7 +661,7 @@ library RequiemStableSwapLib {
             }
         }
 
-        revert("yCalculationFailed");
+        revert(calcError);
     }
 
     function _calculateRemoveLiquidity(
@@ -698,7 +670,7 @@ library RequiemStableSwapLib {
         uint256 amount
     ) internal view returns (uint256[] memory) {
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(amount <= totalSupply, "total supply");
+        require(amount <= totalSupply, supplyError);
 
         uint256 feeAdjustedAmount = (amount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
 
@@ -716,7 +688,7 @@ library RequiemStableSwapLib {
         uint256 tokenAmount,
         uint256 index
     ) internal view returns (uint256 dy, uint256 fee) {
-        require(index < self.pooledTokens.length, "indexOutOfRange");
+        require(index < self.pooledTokens.length, arrayError);
         uint256 amp = _getAPrecise(self);
         uint256[] memory xp = _xp(self);
         uint256 D0 = _getD(xp, amp);
@@ -781,7 +753,7 @@ library RequiemStableSwapLib {
                 return y;
             }
         }
-        revert("invariantCalculationFailed");
+        revert(calcError);
     }
 
     function _updateUserWithdrawFee(
@@ -843,12 +815,12 @@ library RequiemStableSwapLib {
     }
 
     function divDown(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "div");
+        require(b != 0, calcError);
         return a / b;
     }
 
     function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "div");
+        require(b != 0, calcError);
 
         if (a == 0) {
             return 0;

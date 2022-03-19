@@ -6,7 +6,7 @@ import "./libraries/Initializable.sol";
 import "./libraries/Ownable.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
-import "./interfaces/IRequiemStableSwap.sol";
+import "./interfaces/IRequiemSwap.sol";
 import "./RequiemStableSwapRouter.sol";
 
 contract FeeDistributor is Initializable, Ownable {
@@ -73,11 +73,9 @@ contract FeeDistributor is Initializable, Ownable {
         IERC20 fromToken = IERC20(fromTokenAddress);
         uint256 inAmount = fromToken.balanceOf(address(this));
         if (inAmount > 0) {
-            IRequiemStableSwap pool = IRequiemStableSwap(config.pool);
-            uint8 fromIndex = pool.getTokenIndex(fromTokenAddress);
-            uint8 toIndex = pool.getTokenIndex(target);
+            IRequiemSwap pool = IRequiemSwap(config.pool);
             fromToken.safeIncreaseAllowance(config.pool, inAmount);
-            pool.swap(fromIndex, toIndex, inAmount, 0, address(this), block.timestamp + swapTimeout);
+            pool.onSwapGivenIn(fromTokenAddress, target, inAmount, 0, address(this));
         }
     }
 
@@ -88,10 +86,10 @@ contract FeeDistributor is Initializable, Ownable {
         if (inAmount > 0) {
             IRequiemStableSwap pool = IRequiemStableSwap(config.pool);
             IRequiemStableSwap basePool = IRequiemStableSwap(config.basePool);
-            uint8 tokenIndexFrom = pool.getTokenIndex(fromTokenAddress);
-            uint8 tokenIndexTo = basePool.getTokenIndex(target);
+            // uint8 tokenIndexFrom = pool.getTokenIndex(fromTokenAddress);
+            // uint8 tokenIndexTo = basePool.getTokenIndex(target);
             fromToken.safeIncreaseAllowance(address(swapRouter), inAmount);
-            swapRouter.swapToBase(pool, basePool, tokenIndexFrom, tokenIndexTo, inAmount, 0, block.timestamp + swapTimeout);
+            // swapRouter.swapToBase(pool, basePool, tokenIndexFrom, tokenIndexTo, inAmount, 0, block.timestamp + swapTimeout);
         }
     }
 
