@@ -15,7 +15,7 @@ import "./interfaces/IRequiemCallee.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls
 
-contract RequiemWeightedPair is IRequiemSwap, IRequiemWeightedPair, RequiemPairERC20 {
+contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPair, RequiemPairERC20 {
     using UQ112x112 for uint224;
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;

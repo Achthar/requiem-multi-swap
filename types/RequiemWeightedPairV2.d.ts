@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface RequiemWeightedPairInterface extends ethers.utils.Interface {
+interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
     "MINIMUM_LIQUIDITY()": FunctionFragment;
@@ -56,6 +56,7 @@ interface RequiemWeightedPairInterface extends ethers.utils.Interface {
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "withdrawAdminFee()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -167,6 +168,10 @@ interface RequiemWeightedPairInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAdminFee",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DOMAIN_SEPARATOR",
@@ -245,6 +250,10 @@ interface RequiemWeightedPairInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAdminFee",
+    data: BytesLike
+  ): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -316,7 +325,7 @@ export type TransferEvent = TypedEvent<
   [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
-export class RequiemWeightedPair extends BaseContract {
+export class RequiemWeightedPairV2 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -357,7 +366,7 @@ export class RequiemWeightedPair extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: RequiemWeightedPairInterface;
+  interface: RequiemWeightedPairV2Interface;
 
   functions: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
@@ -528,6 +537,10 @@ export class RequiemWeightedPair extends BaseContract {
       from: string,
       to: string,
       value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawAdminFee(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -701,6 +714,10 @@ export class RequiemWeightedPair extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  withdrawAdminFee(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
 
@@ -864,6 +881,8 @@ export class RequiemWeightedPair extends BaseContract {
       value: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    withdrawAdminFee(overrides?: CallOverrides): Promise<boolean>;
   };
 
   filters: {
@@ -1162,6 +1181,10 @@ export class RequiemWeightedPair extends BaseContract {
       value: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    withdrawAdminFee(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1322,6 +1345,10 @@ export class RequiemWeightedPair extends BaseContract {
       from: string,
       to: string,
       value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAdminFee(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
