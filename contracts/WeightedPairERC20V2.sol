@@ -6,10 +6,7 @@ import "./interfaces/IRequiemPairERC20.sol";
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
-contract WeightedPairERC20V2 is IRequiemPairERC20 {
-
-    string public constant name = "Requiem Pair Liquidity Provider";
-    string public constant symbol = "RPLP";
+abstract contract WeightedPairERC20V2 is IRequiemPairERC20 {
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
 
@@ -27,7 +24,7 @@ contract WeightedPairERC20V2 is IRequiemPairERC20 {
             chainId := chainid()
         }
         DOMAIN_SEPARATOR = keccak256(
-            abi.encode(keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak256(bytes(name)), keccak256(bytes("1")), chainId, address(this))
+            abi.encode(keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak256(bytes("Requiem Pair Liquidity Provider")), keccak256(bytes("1")), chainId, address(this))
         );
     }
 

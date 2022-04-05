@@ -19,21 +19,17 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
+interface IRequiemWeightedPairV2Interface extends ethers.utils.Interface {
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
     "MINIMUM_LIQUIDITY()": FunctionFragment;
     "PERMIT_TYPEHASH()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
-    "ampBps()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(address)": FunctionFragment;
-    "calculateSwapGivenIn(address,address,uint256)": FunctionFragment;
-    "calculateSwapGivenOut(address,address,uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "factory()": FunctionFragment;
-    "formula()": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
     "getReserves()": FunctionFragment;
     "getSwapFee()": FunctionFragment;
@@ -42,9 +38,6 @@ interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
     "mint(address)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
-    "onSwap(address,address,uint256,uint256,address)": FunctionFragment;
-    "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
-    "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "setSwapParams(uint32,uint32)": FunctionFragment;
     "skim(address)": FunctionFragment;
@@ -74,24 +67,14 @@ interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
     functionFragment: "allowance",
     values: [string, string]
   ): string;
-  encodeFunctionData(functionFragment: "ampBps", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "burn", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "calculateSwapGivenIn",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calculateSwapGivenOut",
-    values: [string, string, BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
-  encodeFunctionData(functionFragment: "formula", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getCollectedFees",
     values?: undefined
@@ -115,18 +98,6 @@ interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "mint", values: [string]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "onSwap",
-    values: [string, string, BigNumberish, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapGivenIn",
-    values: [string, string, BigNumberish, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapGivenOut",
-    values: [string, string, BigNumberish, BigNumberish, string]
-  ): string;
   encodeFunctionData(
     functionFragment: "permit",
     values: [
@@ -178,21 +149,11 @@ interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "ampBps", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "calculateSwapGivenIn",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "calculateSwapGivenOut",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "formula", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCollectedFees",
     data: BytesLike
@@ -210,15 +171,6 @@ interface RequiemWeightedPairV2Interface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "onSwap", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapGivenIn",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapGivenOut",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setSwapParams",
@@ -310,7 +262,7 @@ export type TransferEvent = TypedEvent<
   [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
-export class RequiemWeightedPairV2 extends BaseContract {
+export class IRequiemWeightedPairV2 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -351,7 +303,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: RequiemWeightedPairV2Interface;
+  interface: IRequiemWeightedPairV2Interface;
 
   functions: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<[string]>;
@@ -361,12 +313,10 @@ export class RequiemWeightedPairV2 extends BaseContract {
     PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    ampBps(overrides?: CallOverrides): Promise<[number]>;
 
     approve(
       spender: string,
@@ -374,32 +324,16 @@ export class RequiemWeightedPairV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    balanceOf(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     burn(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    calculateSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    calculateSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
     factory(overrides?: CallOverrides): Promise<[string]>;
-
-    formula(overrides?: CallOverrides): Promise<[string]>;
 
     getCollectedFees(
       overrides?: CallOverrides
@@ -430,20 +364,18 @@ export class RequiemWeightedPairV2 extends BaseContract {
       }
     >;
 
-    getSwapFee(
-      overrides?: CallOverrides
-    ): Promise<[number] & { _swapFee: number }>;
+    getSwapFee(overrides?: CallOverrides): Promise<[number]>;
 
     getTokenWeights(
       overrides?: CallOverrides
     ): Promise<
-      [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+      [number, number] & { tokenWeight0: number; tokenWeight1: number }
     >;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -454,34 +386,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
-    nonces(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    onSwap(
-      tokenIn: string,
-      arg1: string,
-      arg2: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    onSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    onSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    nonces(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     permit(
       owner: string,
@@ -495,8 +400,8 @@ export class RequiemWeightedPairV2 extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setSwapParams(
-      _newSwapFee: BigNumberish,
-      _newAmp: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -509,7 +414,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      callData: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -546,12 +451,10 @@ export class RequiemWeightedPairV2 extends BaseContract {
   PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
 
   allowance(
-    arg0: string,
-    arg1: string,
+    owner: string,
+    spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  ampBps(overrides?: CallOverrides): Promise<number>;
 
   approve(
     spender: string,
@@ -559,32 +462,16 @@ export class RequiemWeightedPairV2 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+  balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   burn(
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  calculateSwapGivenIn(
-    tokenIn: string,
-    arg1: string,
-    amountIn: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  calculateSwapGivenOut(
-    tokenIn: string,
-    arg1: string,
-    amountOut: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   decimals(overrides?: CallOverrides): Promise<number>;
 
   factory(overrides?: CallOverrides): Promise<string>;
-
-  formula(overrides?: CallOverrides): Promise<string>;
 
   getCollectedFees(
     overrides?: CallOverrides
@@ -610,14 +497,12 @@ export class RequiemWeightedPairV2 extends BaseContract {
 
   getTokenWeights(
     overrides?: CallOverrides
-  ): Promise<
-    [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
-  >;
+  ): Promise<[number, number] & { tokenWeight0: number; tokenWeight1: number }>;
 
   initialize(
-    _token0: string,
-    _token1: string,
-    _tokenWeight0: BigNumberish,
+    arg0: string,
+    arg1: string,
+    arg2: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -628,34 +513,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
 
   name(overrides?: CallOverrides): Promise<string>;
 
-  nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  onSwap(
-    tokenIn: string,
-    arg1: string,
-    arg2: BigNumberish,
-    amountOut: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  onSwapGivenIn(
-    tokenIn: string,
-    arg1: string,
-    amountIn: BigNumberish,
-    arg3: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  onSwapGivenOut(
-    tokenIn: string,
-    arg1: string,
-    amountOut: BigNumberish,
-    arg3: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   permit(
     owner: string,
@@ -669,8 +527,8 @@ export class RequiemWeightedPairV2 extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setSwapParams(
-    _newSwapFee: BigNumberish,
-    _newAmp: BigNumberish,
+    arg0: BigNumberish,
+    arg1: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -683,7 +541,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
     amount0Out: BigNumberish,
     amount1Out: BigNumberish,
     to: string,
-    callData: BytesLike,
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -720,12 +578,10 @@ export class RequiemWeightedPairV2 extends BaseContract {
     PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<string>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    ampBps(overrides?: CallOverrides): Promise<number>;
 
     approve(
       spender: string,
@@ -733,7 +589,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     burn(
       to: string,
@@ -742,25 +598,9 @@ export class RequiemWeightedPairV2 extends BaseContract {
       [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber }
     >;
 
-    calculateSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calculateSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     decimals(overrides?: CallOverrides): Promise<number>;
 
     factory(overrides?: CallOverrides): Promise<string>;
-
-    formula(overrides?: CallOverrides): Promise<string>;
 
     getCollectedFees(
       overrides?: CallOverrides
@@ -787,13 +627,13 @@ export class RequiemWeightedPairV2 extends BaseContract {
     getTokenWeights(
       overrides?: CallOverrides
     ): Promise<
-      [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+      [number, number] & { tokenWeight0: number; tokenWeight1: number }
     >;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -801,34 +641,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<string>;
 
-    nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    onSwap(
-      tokenIn: string,
-      arg1: string,
-      arg2: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    onSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    onSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       owner: string,
@@ -842,8 +655,8 @@ export class RequiemWeightedPairV2 extends BaseContract {
     ): Promise<void>;
 
     setSwapParams(
-      _newSwapFee: BigNumberish,
-      _newAmp: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -853,7 +666,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      callData: BytesLike,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1035,12 +848,10 @@ export class RequiemWeightedPairV2 extends BaseContract {
     PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    ampBps(overrides?: CallOverrides): Promise<BigNumber>;
 
     approve(
       spender: string,
@@ -1048,32 +859,16 @@ export class RequiemWeightedPairV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     burn(
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    calculateSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calculateSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    formula(overrides?: CallOverrides): Promise<BigNumber>;
 
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1084,9 +879,9 @@ export class RequiemWeightedPairV2 extends BaseContract {
     getTokenWeights(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1097,34 +892,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nonces(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    onSwap(
-      tokenIn: string,
-      arg1: string,
-      arg2: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    onSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    onSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     permit(
       owner: string,
@@ -1138,8 +906,8 @@ export class RequiemWeightedPairV2 extends BaseContract {
     ): Promise<BigNumber>;
 
     setSwapParams(
-      _newSwapFee: BigNumberish,
-      _newAmp: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1152,7 +920,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      callData: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1190,12 +958,10 @@ export class RequiemWeightedPairV2 extends BaseContract {
     PERMIT_TYPEHASH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
-      arg0: string,
-      arg1: string,
+      owner: string,
+      spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    ampBps(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     approve(
       spender: string,
@@ -1204,7 +970,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
-      arg0: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1213,25 +979,9 @@ export class RequiemWeightedPairV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    calculateSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calculateSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    formula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1242,9 +992,9 @@ export class RequiemWeightedPairV2 extends BaseContract {
     getTokenWeights(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
-      _token0: string,
-      _token1: string,
-      _tokenWeight0: BigNumberish,
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1256,35 +1006,8 @@ export class RequiemWeightedPairV2 extends BaseContract {
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nonces(
-      arg0: string,
+      owner: string,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    onSwap(
-      tokenIn: string,
-      arg1: string,
-      arg2: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onSwapGivenIn(
-      tokenIn: string,
-      arg1: string,
-      amountIn: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onSwapGivenOut(
-      tokenIn: string,
-      arg1: string,
-      amountOut: BigNumberish,
-      arg3: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     permit(
@@ -1299,8 +1022,8 @@ export class RequiemWeightedPairV2 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setSwapParams(
-      _newSwapFee: BigNumberish,
-      _newAmp: BigNumberish,
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1313,7 +1036,7 @@ export class RequiemWeightedPairV2 extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      callData: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 
 import "./interfaces/IRequiemWeightedPairV2.sol";
 import "./interfaces/IRequiemSwap.sol";
-import "./interfaces/IRequiemFormula.sol";
+import "./interfaces/IWeightedFormulaV2.sol";
 import "./WeightedPairERC20V2.sol";
 import "./libraries/Math.sol";
 import "./libraries/TransferHelper.sol";
@@ -29,31 +29,29 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
     uint112 private reserve1; // uses single storage slot, accessible via getReserves
     uint32 private blockTimestampLast; // uses single storage slot, accessible via getReserves
 
-    uint256 public price0CumulativeLast;
-    uint256 public price1CumulativeLast;
-    uint256 private unlocked = 1;
     address public formula;
-
-    uint112 private collectedAdminFee0; // uses single storage slot, accessible via getReserves
-    uint112 private collectedAdminFee1; // uses single storage slot, accessible via getReserves
-    uint32 private constant adminFee = 10000; // 10% of swapFee
-
+    
     uint112 private collectedFee0; // uses single storage slot, accessible via getReserves
     uint112 private collectedFee1; // uses single storage slot, accessible via getReserves
     uint32 private tokenWeight0;
 
+    // 1 slot
+    uint32 internal constant BPS = 10000;
     uint32 private tokenWeight1;
     uint32 private swapFee;
+    bool private unlocked = true;
 
+    // 1 slot
     uint112 internal vReserve0;
     uint112 internal vReserve1;
     uint32 public ampBps;
 
+    // ===== modifiers =====
     modifier lock() {
-        require(unlocked == 1, "REQLP: L");
-        unlocked = 0;
+        require(unlocked, "REQLP: L");
+        unlocked = false;
         _;
-        unlocked = 1;
+        unlocked = true;
     }
 
     modifier onlyFactory() {
@@ -61,18 +59,12 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _;
     }
 
-    function getReserves()
-        public
-        view
-        returns (
-            uint112 _reserve0,
-            uint112 _reserve1,
-            uint32 _blockTimestampLast
-        )
-    {
-        _reserve0 = reserve0;
-        _reserve1 = reserve1;
-        _blockTimestampLast = blockTimestampLast;
+    // ===== views =====
+    function getReserves() public view returns (ReserveData memory reserveData) {
+        reserveData.reserve0 = reserve0;
+        reserveData.reserve1 = reserve1;
+        reserveData.vReserve0 = vReserve0;
+        reserveData.vReserve1 = vReserve1;
     }
 
     function getCollectedFees() public view returns (uint112 _collectedFee0, uint112 _collectedFee1) {
@@ -89,6 +81,20 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _swapFee = swapFee;
     }
 
+    function name() public view override(IRequiemPairERC20) returns (string memory) {
+        return string(abi.encodePacked("Requiem ", tokenWeight0, "-", tokenWeight1, " LP"));
+    }
+
+    function symbol() public view override returns (string memory) {
+        return string(abi.encodePacked("REQ ", tokenWeight0, "-", tokenWeight1, " LP"));
+    }
+
+    /**
+     * @notice Simple safeTransfer implementation
+     * @param token token to send
+     * @param to receiver
+     * @param value amount to send
+     */
     function _safeTransfer(
         address token,
         address to,
@@ -102,7 +108,12 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         factory = msg.sender;
     }
 
-    // called once by the factory at time of deployment
+    /**
+     * @notice called once by the factory at time of deployment - sets static parameters
+     * @param _token0 first token
+     * @param _token1 second token
+     * @param _tokenWeight0 first token weight
+     */
     function initialize(
         address _token0,
         address _token1,
@@ -118,44 +129,36 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         formula = IRequiemWeightedPairFactory(factory).formula();
     }
 
-    // update reserves and, on the first call per block, price accumulators
-    function _update(
-        uint256 balance0,
-        uint256 balance1,
-        uint112 _reserve0,
-        uint112 _reserve1
-    ) private {
-        uint32 _tokenWeight0 = tokenWeight0;
-        require(balance0 * (100 - _tokenWeight0) <= type(uint112).max && balance1 * _tokenWeight0 <= type(uint112).max, "REQLP: O");
-        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
-        uint32 timeElapsed = blockTimestamp - blockTimestampLast;
-        // overflow is desired
-        if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
-            // * never overflows, and + overflow is desired
-            uint112 mReserve0 = _reserve0 * (100 - _tokenWeight0);
-            uint112 mReserve1 = _reserve1 * _tokenWeight0;
-            price0CumulativeLast += uint256(UQ112x112.encode(mReserve1).uqdiv(mReserve0)) * timeElapsed;
-            price1CumulativeLast += uint256(UQ112x112.encode(mReserve0).uqdiv(mReserve1)) * timeElapsed;
-        }
-        reserve0 = uint112(balance0);
-        reserve1 = uint112(balance1);
-        blockTimestampLast = blockTimestamp;
+    /**
+     * @dev update reserves and, on the first call per block
+     *  @param data new data to sync with
+     */
+    function _update(ReserveData memory data) private {
+        reserve0 = uint112(data.reserve0);
+        reserve1 = uint112(data.reserve1);
+        assert(data.vReserve0 >= data.reserve0 && data.vReserve1 >= data.reserve1); // never happen
+        vReserve0 = uint112(data.vReserve0);
+        vReserve1 = uint112(data.vReserve1);
         emit Sync(reserve0, reserve1);
     }
 
-    function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
+    /**
+     * @notice Calculator of swap fees sent to feeTo address in LP tokens
+     * @param reserveData reserve data in uint256
+     */
+    function _mintFee(ReserveData memory reserveData) private returns (bool feeOn) {
         address feeTo = IRequiemWeightedPairFactory(factory).feeTo();
         uint112 protocolFee = uint112(IRequiemWeightedPairFactory(factory).protocolFee());
         feeOn = feeTo != address(0);
         (uint112 _collectedFee0, uint112 _collectedFee1) = getCollectedFees();
         if (protocolFee > 0 && feeOn && (_collectedFee0 > 0 || _collectedFee1 > 0)) {
             uint32 _tokenWeight0 = tokenWeight0;
-            uint256 liquidity = IRequiemFormula(formula).mintLiquidityFee(
+            uint256 liquidity;
+            liquidity = IWeightedFormulaV2(formula).mintLiquidityFee(
                 totalSupply,
-                _reserve0,
-                _reserve1,
+                reserveData.vReserve0,
+                reserveData.vReserve1,
                 _tokenWeight0,
-                100 - _tokenWeight0,
                 _collectedFee0 / protocolFee,
                 _collectedFee1 / protocolFee
             );
@@ -165,39 +168,53 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         if (_collectedFee1 > 0) collectedFee1 = 0;
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
+    /**
+     * @notice this low-level function should be called from a contract which performs important safety checks
+     * @param to recipient of LP tokens
+     */
     function mint(address to) external lock returns (uint256 liquidity) {
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-        uint256 balance0 = IERC20(token0).balanceOf(address(this)) - uint256(collectedAdminFee0);
-        uint256 balance1 = IERC20(token1).balanceOf(address(this)) - uint256(collectedAdminFee1);
-        uint256 amount0 = balance0 - _reserve0;
-        uint256 amount1 = balance1 - _reserve1;
-        _mintFee(_reserve0, _reserve1);
+        ReserveData memory reserveData = getReserves(); // gas savings
+        ReserveData memory _reserveData;
+        _reserveData.reserve0 = IERC20(token0).balanceOf(address(this));
+        _reserveData.reserve1 = IERC20(token1).balanceOf(address(this));
+        uint256 amount0 = _reserveData.reserve0 - reserveData.reserve0;
+        uint256 amount1 = _reserveData.reserve1 - reserveData.reserve1;
+        _mintFee(_reserveData);
         uint256 _totalSupply = totalSupply;
         // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
+            uint32 _ampBps = ampBps;
+            _reserveData.vReserve0 = (reserveData.reserve0 * _ampBps) / BPS;
+            _reserveData.vReserve1 = (reserveData.reserve1 * _ampBps) / BPS;
+
             liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
             _mint(address(0), MINIMUM_LIQUIDITY);
             // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
+            liquidity = Math.min((amount0 * _totalSupply) / reserveData.reserve0, (amount1 * _totalSupply) / reserveData.reserve1);
+            uint256 b = liquidity + _totalSupply;
+            _reserveData.vReserve0 = uint112(Math.max((reserveData.vReserve0 * b) / _totalSupply, reserve0));
+            _reserveData.vReserve1 = uint112(Math.max((reserveData.vReserve1 * b) / _totalSupply, reserve1));
         }
         require(liquidity > 0, "REQLP: ILM");
         _mint(to, liquidity);
 
-        _update(balance0, balance1, _reserve0, _reserve1);
+        _update(_reserveData);
         emit Mint(msg.sender, amount0, amount1);
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
+    /**
+     * @notice this low-level function should be called from a contract which performs important safety checks
+     * @param to recipient of withdrawn tokens
+     */
     function burn(address to) external lock returns (uint256 amount0, uint256 amount1) {
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
+        ReserveData memory reserveData = getReserves(); // gas savings
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        uint256 balance0 = IERC20(_token0).balanceOf(address(this)) - uint256(collectedAdminFee0);
-        uint256 balance1 = IERC20(_token1).balanceOf(address(this)) - uint256(collectedAdminFee1);
+        uint256 balance0 = IERC20(_token0).balanceOf(address(this));
+        uint256 balance1 = IERC20(_token1).balanceOf(address(this));
         uint256 liquidity = balanceOf[address(this)];
-        _mintFee(_reserve0, _reserve1);
+        _mintFee(reserveData);
         uint256 _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = (liquidity * balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
@@ -205,14 +222,26 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _burn(address(this), liquidity);
         _safeTransfer(_token0, to, amount0);
         _safeTransfer(_token1, to, amount1);
-        balance0 = IERC20(_token0).balanceOf(address(this));
-        balance1 = IERC20(_token1).balanceOf(address(this));
 
-        _update(balance0, balance1, _reserve0, _reserve1);
+        ReserveData memory _reserveData;
+        _reserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
+        _reserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
+
+        uint256 b = Math.min((_reserveData.reserve0 * _totalSupply) / reserveData.reserve0, (_reserveData.reserve1 * _totalSupply) / reserveData.reserve1);
+        _reserveData.vReserve0 = Math.max((reserveData.vReserve0 * b) / _totalSupply, _reserveData.reserve0);
+        _reserveData.vReserve1 = Math.max((reserveData.vReserve1 * b) / _totalSupply, _reserveData.reserve1);
+
+        _update(_reserveData);
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
+    /** @notice this low-level function should be called from a contract which performs important safety checks
+     * works best with using the calculation methods implemented in this contract
+     * @param amount0Out token0 amount out
+     * @param amount1Out token1 amount out
+     * @param to recipient
+     * @param callData info for flash swap exeution
+     */
     function swap(
         uint256 amount0Out,
         uint256 amount1Out,
@@ -222,30 +251,40 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _swap(amount0Out, amount1Out, to, callData);
     }
 
-    //
+    /**
+     * @notice Implementation of Requiem Swap interface - Can be used to swap tokens with this pair
+     * @param tokenIn input token
+     * @param amountIn input amount
+     */
     function calculateSwapGivenIn(
         address tokenIn,
         address,
         uint256 amountIn
     ) external view returns (uint256) {
-        (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
-            ? (reserve0, reserve1, tokenWeight0, tokenWeight1)
-            : (reserve1, reserve0, tokenWeight1, tokenWeight0);
-        return IRequiemFormula(formula).getAmountOut(amountIn, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+        IWeightedFormulaV2.PricingData memory pricingData = tokenIn == token0
+            ? IWeightedFormulaV2.PricingData(reserve0, reserve1, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
+            : IWeightedFormulaV2.PricingData(reserve1, reserve0, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
+
+        return IWeightedFormulaV2(formula).getAmountOut(amountIn, pricingData);
     }
 
+    /**
+     * @notice Implementation of Requiem Swap interface - Has to be used to do exact-out swapss
+     * @param tokenIn input token
+     * @param amountOut output amount
+     */
     function calculateSwapGivenOut(
         address tokenIn,
         address,
         uint256 amountOut
     ) external view returns (uint256) {
-        (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
-            ? (reserve0, reserve1, tokenWeight0, tokenWeight1)
-            : (reserve1, reserve0, tokenWeight1, tokenWeight0);
-        return IRequiemFormula(formula).getAmountIn(amountOut, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+        IWeightedFormulaV2.PricingData memory pricingData = tokenIn == token0
+            ? IWeightedFormulaV2.PricingData(reserve0, reserve1, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
+            : IWeightedFormulaV2.PricingData(reserve1, reserve0, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
+        return IWeightedFormulaV2(formula).getAmountIn(amountOut, pricingData);
     }
 
-    // force balances to match reserves
+    /** @notice force balances to match reserves */
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
@@ -253,14 +292,32 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)) - reserve1);
     }
 
-    // force reserves to match balances
-    function sync() external lock {
-        _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
+    /** @notice force reserves to match balances */
+    function sync() external override {
+        ReserveData memory reserveData = getReserves();
+        _mintFee(reserveData);
+        ReserveData memory newReserveData;
+        newReserveData.reserve0 = IERC20(token0).balanceOf(address(this));
+        newReserveData.reserve1 = IERC20(token1).balanceOf(address(this));
+
+        // update virtual reserves
+        uint256 _totalSupply = totalSupply;
+        uint256 b = Math.min((reserve0 * _totalSupply) / reserve0, (reserve1 * _totalSupply) / reserve1);
+
+        newReserveData.vReserve0 = uint112(Math.max((uint256(vReserve0) * b) / _totalSupply, reserve0));
+        newReserveData.vReserve1 = uint112(Math.max((uint256(vReserve1) * b) / _totalSupply, reserve1));
+
+        _update(newReserveData);
     }
 
-    // calculates output amount for given input and executes the respective trade
-    // viable for use in multi swaps as it returns the output value
-    // requires the amount in to be sent to this address beforehand
+    /**
+     * @notice calculates output amount for given input and executes the respective trade
+     * viable for use in multi swaps as it returns the output value
+     * requires the amount in to be sent to this address beforehand
+     * @param tokenIn input token
+     * @param amountIn input amount
+     * @param to reveiver address
+     */
     function onSwapGivenIn(
         address tokenIn,
         address,
@@ -269,17 +326,22 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         address to
     ) external override lock returns (uint256) {
         bool inToken0 = tokenIn == token0;
-        (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = inToken0
-            ? (reserve0, reserve1, tokenWeight0, tokenWeight1)
-            : (reserve1, reserve0, tokenWeight1, tokenWeight0);
-        uint256 amountOut = IRequiemFormula(formula).getAmountOut(amountIn, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+        IWeightedFormulaV2.PricingData memory pricingData = inToken0
+            ? IWeightedFormulaV2.PricingData(reserve0, reserve1, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
+            : IWeightedFormulaV2.PricingData(reserve1, reserve0, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
+        uint256 amountOut = IWeightedFormulaV2(formula).getAmountOut(amountIn, pricingData);
         (uint256 amount0Out, uint256 amount1Out) = inToken0 ? (uint256(0), amountOut) : (amountOut, uint256(0));
         return _swap(amount0Out, amount1Out, to, new bytes(0));
     }
 
-    // calculates input amount for given output and executes the respective trade
-    // calling this one only makes sense if a single trade is supposd to be executed in the tx
-    // requires the amount in to be sent to this address beforehand
+    /**
+     * @notice calculates input amount for given output and executes the respective trade
+     * calling this one only makes sense if a single trade is supposd to be executed in the tx
+     * requires the amount in to be sent to this address beforehand
+     * @param tokenIn input token
+     * @param amountOut output amount
+     * @param to reveiver address
+     */
     function onSwapGivenOut(
         address tokenIn,
         address,
@@ -288,10 +350,10 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         address to
     ) external override lock returns (uint256) {
         bool inToken0 = tokenIn == token0;
-        (uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
-            ? (reserve0, reserve1, tokenWeight0, tokenWeight1)
-            : (reserve1, reserve0, tokenWeight1, tokenWeight0);
-        uint256 amountIn = IRequiemFormula(formula).getAmountIn(amountOut, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+        IWeightedFormulaV2.PricingData memory pricingData = inToken0
+            ? IWeightedFormulaV2.PricingData(reserve0, reserve1, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
+            : IWeightedFormulaV2.PricingData(reserve1, reserve0, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
+        uint256 amountIn = IWeightedFormulaV2(formula).getAmountIn(amountOut, pricingData);
         (uint256 amount0Out, uint256 amount1Out) = inToken0 ? (uint256(0), amountIn) : (amountIn, uint256(0));
         return _swap(amount0Out, amount1Out, to, new bytes(0));
     }
@@ -308,7 +370,15 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _swap(amount0Out, amount1Out, to, new bytes(0));
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
+    /**
+     * @notice swap function of pair - this low-level function should be called from a contract which performs important safety checks
+     * - The function assumes that the correct amount (e.g. using calculateSwapGivenIn) has been sent to this pair already
+     * - Amounts are sent to the user and sanity checks are done afterwards (e.g. to ensure that the invariant is unchanged)
+     * @param amount0Out token0 output amount
+     * @param amount1Out token1 output amount
+     * @param to reveiver address
+     * @param data flash swap data
+     */
     function _swap(
         uint256 amount0Out,
         uint256 amount1Out,
@@ -316,12 +386,10 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         bytes memory data
     ) internal returns (uint256) {
         require(amount0Out > 0 || amount1Out > 0, "REQLP: IOA");
-        uint112 _reserve0 = reserve0; // gas savings
-        uint112 _reserve1 = reserve1; // gas savings
-        require(amount0Out < _reserve0 && amount1Out < _reserve1, "REQLP: IL");
+        ReserveData memory reserveData = getReserves(); // gas savings
+        require(amount0Out < reserveData.reserve0 && amount1Out < reserveData.reserve1, "REQLP: IL");
 
-        uint256 balance0;
-        uint256 balance1;
+        ReserveData memory newReserveData;
         {
             // scope for _token{0,1}, avoids stack too deep errors
             address _token0 = token0;
@@ -330,55 +398,53 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
             if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
             if (data.length > 0) IRequiemCallee(to).requiemCall(msg.sender, amount0Out, amount1Out, data); // flash swap
-            balance0 = IERC20(_token0).balanceOf(address(this));
-            balance1 = IERC20(_token1).balanceOf(address(this));
+            newReserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
+            newReserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
+            // if (isAmpPool) {
+            newReserveData.vReserve0 = reserveData.vReserve0 + newReserveData.reserve0 - reserveData.reserve0;
+            newReserveData.vReserve1 = reserveData.vReserve1 + newReserveData.reserve1 - reserveData.reserve1;
+            // }
         }
-        uint256 amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
-        uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+        uint256 amount0In = newReserveData.reserve0 > reserveData.reserve0 - amount0Out ? newReserveData.reserve0 - (reserveData.reserve0 - amount0Out) : 0;
+        uint256 amount1In = newReserveData.reserve1 > reserveData.reserve1 - amount1Out ? newReserveData.reserve1 - (reserveData.reserve1 - amount1Out) : 0;
 
         require(amount0In > 0 || amount1In > 0, "REQLP: IIA");
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-            uint256 balance0Adjusted = balance0 * 10000;
-            uint256 balance1Adjusted = balance1 * 10000;
+            uint256 balance0Adjusted = newReserveData.vReserve0 * 10000;
+            uint256 balance1Adjusted = newReserveData.vReserve0 * 10000;
             {
                 // avoids stack too deep errors
                 if (amount0In > 0) {
                     uint256 amount0InFee = amount0In * swapFee;
                     balance0Adjusted -= amount0InFee;
-                    collectedAdminFee0 = uint112(uint256(collectedAdminFee0) + (amount0InFee * adminFee) / 1000000);
+                    collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
                 }
                 if (amount1In > 0) {
                     uint256 amount1InFee = amount1In * swapFee;
                     balance1Adjusted -= amount1InFee;
-                    collectedAdminFee1 = uint112(uint256(collectedAdminFee1) + (amount1InFee * adminFee) / 1000000);
+                    collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
                 }
                 uint32 _tokenWeight0 = tokenWeight0; // gas savings
                 if (_tokenWeight0 == 50) {
                     // gas savings for pair 50/50
-                    require(balance0Adjusted * balance1Adjusted >= uint256(_reserve0) * _reserve1 * (10000**2), "REQLP: K");
+                    require(balance0Adjusted * balance1Adjusted >= reserveData.vReserve0 * reserveData.vReserve1 * (10000**2), "REQLP: K");
                 } else {
-                    require(IRequiemFormula(formula).ensureConstantValue(uint256(_reserve0) * 10000, uint256(_reserve1) * 10000, balance0Adjusted, balance1Adjusted, _tokenWeight0), "REQLP: K");
+                    require(
+                        IWeightedFormulaV2(formula).ensureConstantValue(reserveData.vReserve0 * 10000, reserveData.vReserve1 * 10000, balance0Adjusted, balance1Adjusted, _tokenWeight0),
+                        "REQLP: K"
+                    );
                 }
             }
         }
-        _update(balance0, balance1, _reserve0, _reserve1);
+        _update(newReserveData);
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
         return amount0Out > 0 ? amount0Out : amount1Out;
     }
 
-    function withdrawAdminFee(address _to) public onlyFactory returns (uint112 _collectedAdminFee0, uint112 _collectedAdminFee1) {
-        _safeTransfer(token0, _to, collectedAdminFee0);
-        _safeTransfer(token1, _to, collectedAdminFee1);
-        // return fee collected
-        _collectedAdminFee0 = collectedAdminFee0;
-        _collectedAdminFee1 = collectedAdminFee1;
-
-        // set collected fee to zero
-        collectedAdminFee0 = 0;
-        collectedAdminFee1 = 0;
-    }
-
+    /**
+     * @notice Changes curicial parameters - can only be called by factory - requires a sync() after any change
+     */
     function setSwapParams(uint32 _newSwapFee, uint32 _newAmp) external onlyFactory {
         // 0.01% - 5% fee range
         require(_newSwapFee >= 1 && _newSwapFee <= 500, "RLP: ISF");

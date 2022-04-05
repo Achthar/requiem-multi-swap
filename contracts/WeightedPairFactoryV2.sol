@@ -37,6 +37,7 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         pairGovernance = _pairGovernance;
     }
 
+    // ===== views =====
     function isPair(address b) external view returns (bool) {
         return _pairs[b];
     }
@@ -55,6 +56,14 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         pair = _pairSalts[salt];
     }
 
+    /**
+     * @notice Creates a new pair  with specified parameters
+     * @param tokenA first token
+     * @param tokenB second token
+     * @param tokenWeightA first token weight
+     * @param initialFee initial swapFee
+     * @param initialAmp initial amplification parameter
+     */
     function createPair(
         address tokenA,
         address tokenB,
@@ -88,16 +97,28 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         emit PairCreated(token0, token1, pair, tokenWeight0, allPairs.length);
     }
 
+    /**
+     * @notice Sets receiver of fees
+     * @param _feeTo receiver
+     */
     function setFeeTo(address _feeTo) external {
         require(msg.sender == feeToSetter, "RLP: F");
         feeTo = _feeTo;
     }
 
+    /**
+     * @notice Sets admin which can determine the address to which fees are sent
+     * @param _feeToSetter admin
+     */
     function setFeeToSetter(address _feeToSetter) external {
         require(msg.sender == feeToSetter, "RLP: F");
         feeToSetter = _feeToSetter;
     }
 
+    /**
+     * @notice Sets the protocol fee
+     * @param _protocolFee new protocol fee
+     */
     function setProtocolFee(uint256 _protocolFee) external {
         require(msg.sender == feeToSetter, "RLP: F");
         require(_protocolFee == 0 || (_protocolFee >= 10000 && _protocolFee <= 100000), "RLP: IPF");
@@ -122,6 +143,12 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         }
     }
 
+    /**
+     * @notice Function to get  all deployed configs for a token pair
+     * @param token0 first token
+     * @param token1 second token
+     * @return _tokenPairs array of deployed pairs
+     */
     function getPairs(IERC20 token0, IERC20 token1) external view returns (address[] memory _tokenPairs) {
         uint256 length = tokenPairs[token0][token1].length();
         _tokenPairs = new address[](length);
@@ -130,11 +157,12 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         }
     }
 
-    function withdrawFee(address _pair, address _to) public {
-        require(msg.sender == feeTo, "unauthorized");
-        RequiemWeightedPairV2(_pair).withdrawAdminFee(_to);
-    }
-
+    /**
+     * @notice sets the crucial swap parameters for the pair
+     * @param _pair pair to change
+     * @param _newSwapFee new seleted swap fee
+     * @param _amp new amplification parameter
+     */
     function setSwapParams(
         address _pair,
         uint32 _newSwapFee,
@@ -142,5 +170,6 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
     ) external {
         require(msg.sender == pairGovernance || msg.sender == owner(), "unauthorized");
         RequiemWeightedPairV2(_pair).setSwapParams(_newSwapFee, _amp);
+        RequiemWeightedPairV2(_pair).sync();
     }
 }
