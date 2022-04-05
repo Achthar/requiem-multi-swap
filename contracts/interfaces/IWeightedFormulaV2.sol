@@ -77,19 +77,19 @@ interface IWeightedFormulaV2 {
         uint32 tokenWeight0
     ) external view returns (bool);
 
-    // function getReserves(
-    //     address pair,
-    //     address tokenA,
-    //     address tokenB
-    // )
-    //     external
-    //     view
-    //     returns (
-    //         uint256 reserveA,
-    //         uint256 reserveB,
-    //         uint256 vReserveA,
-    //         uint256 vReserveB
-    //     );
+    function getReserves(
+        address pair,
+        address tokenA,
+        address tokenB
+    )
+        external
+        view
+        returns (
+            uint256 reserveA,
+            uint256 reserveB,
+            uint256 vReserveA,
+            uint256 vReserveB
+        );
 
     function getOtherToken(address pair, address tokenA) external view returns (address tokenB);
 

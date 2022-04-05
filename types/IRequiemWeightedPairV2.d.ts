@@ -198,7 +198,7 @@ interface IRequiemWeightedPairV2Interface extends ethers.utils.Interface {
     "Mint(address,uint256,uint256)": EventFragment;
     "PaidProtocolFee(uint112,uint112)": EventFragment;
     "Swap(address,uint256,uint256,uint256,uint256,address)": EventFragment;
-    "Sync(uint112,uint112)": EventFragment;
+    "Sync(uint112,uint112,uint112,uint112)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
@@ -255,7 +255,12 @@ export type SwapEvent = TypedEvent<
 >;
 
 export type SyncEvent = TypedEvent<
-  [BigNumber, BigNumber] & { reserve0: BigNumber; reserve1: BigNumber }
+  [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    reserve0: BigNumber;
+    reserve1: BigNumber;
+    vReserve0: BigNumber;
+    vReserve1: BigNumber;
+  }
 >;
 
 export type TransferEvent = TypedEvent<
@@ -805,20 +810,34 @@ export class IRequiemWeightedPairV2 extends BaseContract {
       }
     >;
 
-    "Sync(uint112,uint112)"(
+    "Sync(uint112,uint112,uint112,uint112)"(
       reserve0?: null,
-      reserve1?: null
+      reserve1?: null,
+      vReserve0?: null,
+      vReserve1?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { reserve0: BigNumber; reserve1: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      }
     >;
 
     Sync(
       reserve0?: null,
-      reserve1?: null
+      reserve1?: null,
+      vReserve0?: null,
+      vReserve1?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { reserve0: BigNumber; reserve1: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      }
     >;
 
     "Transfer(address,address,uint256)"(

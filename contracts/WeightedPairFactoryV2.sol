@@ -169,6 +169,8 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         uint32 _amp
     ) external {
         require(msg.sender == pairGovernance || msg.sender == owner(), "unauthorized");
+        // 0.01% - 5% fee range for swapFee and amplification parameter has to be >1
+        require(_newSwapFee >= 0 && _newSwapFee <= 500 && _amp >= 10000, "RLP: ISF");
         RequiemWeightedPairV2(_pair).setSwapParams(_newSwapFee, _amp);
         RequiemWeightedPairV2(_pair).sync();
     }

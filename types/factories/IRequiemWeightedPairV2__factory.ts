@@ -168,6 +168,18 @@ const _abi = [
         name: "reserve1",
         type: "uint112",
       },
+      {
+        indexed: false,
+        internalType: "uint112",
+        name: "vReserve0",
+        type: "uint112",
+      },
+      {
+        indexed: false,
+        internalType: "uint112",
+        name: "vReserve1",
+        type: "uint112",
+      },
     ],
     name: "Sync",
     type: "event",

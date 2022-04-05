@@ -25,6 +25,7 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
     "getAmountOut(uint256,(uint256,uint256,uint256,uint256,uint32,uint32,uint32))": FunctionFragment;
     "getFactoryWeightsAndSwapFee(address,address)": FunctionFragment;
     "getOtherToken(address,address)": FunctionFragment;
+    "getReserves(address,address,address)": FunctionFragment;
     "getWeightsAndSwapFee(address)": FunctionFragment;
     "mintLiquidityFee(uint256,uint256,uint256,uint32,uint112,uint112)": FunctionFragment;
     "quote(uint256,uint256,uint256)": FunctionFragment;
@@ -80,6 +81,10 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "getReserves",
+    values: [string, string, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getWeightsAndSwapFee",
     values: [string]
   ): string;
@@ -121,6 +126,10 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getOtherToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserves",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -236,6 +245,20 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { tokenB: string }>;
 
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        vReserveA: BigNumber;
+        vReserveB: BigNumber;
+      }
+    >;
+
     getWeightsAndSwapFee(
       pair: string,
       overrides?: CallOverrides
@@ -325,6 +348,20 @@ export class WeightedFormulaV2 extends BaseContract {
     tokenA: string,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  getReserves(
+    pair: string,
+    tokenA: string,
+    tokenB: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      reserveA: BigNumber;
+      reserveB: BigNumber;
+      vReserveA: BigNumber;
+      vReserveB: BigNumber;
+    }
+  >;
 
   getWeightsAndSwapFee(
     pair: string,
@@ -416,6 +453,20 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        vReserveA: BigNumber;
+        vReserveB: BigNumber;
+      }
+    >;
+
     getWeightsAndSwapFee(
       pair: string,
       overrides?: CallOverrides
@@ -503,6 +554,13 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getWeightsAndSwapFee(
       pair: string,
       overrides?: CallOverrides
@@ -579,6 +637,13 @@ export class WeightedFormulaV2 extends BaseContract {
     getOtherToken(
       pair: string,
       tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -198,6 +198,50 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "pair",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenA",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenB",
+        type: "address",
+      },
+    ],
+    name: "getReserves",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "reserveA",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveB",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "vReserveA",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "vReserveB",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "totalLiquidity",
         type: "uint256",

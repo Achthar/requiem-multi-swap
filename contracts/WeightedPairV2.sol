@@ -30,7 +30,7 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
     uint32 private blockTimestampLast; // uses single storage slot, accessible via getReserves
 
     address public formula;
-    
+
     uint112 private collectedFee0; // uses single storage slot, accessible via getReserves
     uint112 private collectedFee1; // uses single storage slot, accessible via getReserves
     uint32 private tokenWeight0;
@@ -44,7 +44,7 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
     // 1 slot
     uint112 internal vReserve0;
     uint112 internal vReserve1;
-    uint32 public ampBps;
+    uint32 public ampBps; // 10000 is equyivalent to a scale of 1
 
     // ===== modifiers =====
     modifier lock() {
@@ -139,7 +139,7 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         assert(data.vReserve0 >= data.reserve0 && data.vReserve1 >= data.reserve1); // never happen
         vReserve0 = uint112(data.vReserve0);
         vReserve1 = uint112(data.vReserve1);
-        emit Sync(reserve0, reserve1);
+        emit Sync(reserve0, reserve1, vReserve0, vReserve1);
     }
 
     /**
@@ -184,8 +184,8 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
             uint32 _ampBps = ampBps;
-            _reserveData.vReserve0 = (reserveData.reserve0 * _ampBps) / BPS;
-            _reserveData.vReserve1 = (reserveData.reserve1 * _ampBps) / BPS;
+            _reserveData.vReserve0 = (_reserveData.reserve0 * _ampBps) / BPS;
+            _reserveData.vReserve1 = (_reserveData.reserve1 * _ampBps) / BPS;
 
             liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
             _mint(address(0), MINIMUM_LIQUIDITY);
@@ -193,8 +193,8 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         } else {
             liquidity = Math.min((amount0 * _totalSupply) / reserveData.reserve0, (amount1 * _totalSupply) / reserveData.reserve1);
             uint256 b = liquidity + _totalSupply;
-            _reserveData.vReserve0 = uint112(Math.max((reserveData.vReserve0 * b) / _totalSupply, reserve0));
-            _reserveData.vReserve1 = uint112(Math.max((reserveData.vReserve1 * b) / _totalSupply, reserve1));
+            _reserveData.vReserve0 = Math.max((reserveData.vReserve0 * b) / _totalSupply, _reserveData.reserve0);
+            _reserveData.vReserve1 = Math.max((reserveData.vReserve1 * b) / _totalSupply, _reserveData.reserve1);
         }
         require(liquidity > 0, "REQLP: ILM");
         _mint(to, liquidity);
@@ -304,8 +304,8 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         uint256 _totalSupply = totalSupply;
         uint256 b = Math.min((reserve0 * _totalSupply) / reserve0, (reserve1 * _totalSupply) / reserve1);
 
-        newReserveData.vReserve0 = uint112(Math.max((uint256(vReserve0) * b) / _totalSupply, reserve0));
-        newReserveData.vReserve1 = uint112(Math.max((uint256(vReserve1) * b) / _totalSupply, reserve1));
+        newReserveData.vReserve0 = Math.max((uint256(vReserve0) * b) / _totalSupply, reserve0);
+        newReserveData.vReserve1 = Math.max((uint256(vReserve1) * b) / _totalSupply, reserve1);
 
         _update(newReserveData);
     }
@@ -358,7 +358,9 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         return _swap(amount0Out, amount1Out, to, new bytes(0));
     }
 
-    // Wrapps the swap funtion for the Requiem interface whih pre-selects thre respective token amount
+    /**
+     * @notice Wraps the swap funtion for the Requiem interface whih pre-selects the respective token amount
+     */
     function onSwap(
         address tokenIn,
         address,
@@ -400,10 +402,9 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
             if (data.length > 0) IRequiemCallee(to).requiemCall(msg.sender, amount0Out, amount1Out, data); // flash swap
             newReserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
             newReserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
-            // if (isAmpPool) {
+
             newReserveData.vReserve0 = reserveData.vReserve0 + newReserveData.reserve0 - reserveData.reserve0;
             newReserveData.vReserve1 = reserveData.vReserve1 + newReserveData.reserve1 - reserveData.reserve1;
-            // }
         }
         uint256 amount0In = newReserveData.reserve0 > reserveData.reserve0 - amount0Out ? newReserveData.reserve0 - (reserveData.reserve0 - amount0Out) : 0;
         uint256 amount1In = newReserveData.reserve1 > reserveData.reserve1 - amount1Out ? newReserveData.reserve1 - (reserveData.reserve1 - amount1Out) : 0;
@@ -412,7 +413,7 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
             uint256 balance0Adjusted = newReserveData.vReserve0 * 10000;
-            uint256 balance1Adjusted = newReserveData.vReserve0 * 10000;
+            uint256 balance1Adjusted = newReserveData.vReserve1 * 10000;
             {
                 // avoids stack too deep errors
                 if (amount0In > 0) {
@@ -446,8 +447,6 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
      * @notice Changes curicial parameters - can only be called by factory - requires a sync() after any change
      */
     function setSwapParams(uint32 _newSwapFee, uint32 _newAmp) external onlyFactory {
-        // 0.01% - 5% fee range
-        require(_newSwapFee >= 1 && _newSwapFee <= 500, "RLP: ISF");
         swapFee = _newSwapFee;
         ampBps = _newAmp;
     }

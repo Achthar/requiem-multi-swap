@@ -704,16 +704,16 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         require(pricingData.reserveIn > 0 && pricingData.reserveOut > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
         // special case for equal weights
         if (pricingData.tokenWeightIn == pricingData.tokenWeightOut) {
-            uint256 numerator = pricingData.reserveIn * amountOut * 10000;
-            uint256 denominator = (pricingData.reserveOut - amountOut) * (10000 - pricingData.swapFee);
+            uint256 numerator = pricingData.vReserveIn * amountOut * 10000;
+            uint256 denominator = (pricingData.vReserveOut - amountOut) * (10000 - pricingData.swapFee);
             return numerator / denominator + 1;
         }
 
         uint256 result;
         uint8 precision;
-        uint256 baseD = pricingData.reserveOut - amountOut;
-        (result, precision) = power(pricingData.reserveOut, baseD, pricingData.tokenWeightOut, pricingData.tokenWeightIn);
-        uint256 baseReserveIn = pricingData.reserveIn * 10000;
+        uint256 baseD = pricingData.vReserveOut - amountOut;
+        (result, precision) = power(pricingData.vReserveOut, baseD, pricingData.tokenWeightOut, pricingData.tokenWeightIn);
+        uint256 baseReserveIn = pricingData.vReserveIn * 10000;
         uint256 temp1 = baseReserveIn * result;
         uint256 temp2 = baseReserveIn << precision;
         amountIn = ((temp1 - temp2) >> precision) / (10000 - pricingData.swapFee) + 1;
@@ -897,9 +897,11 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             return balance0Adjusted * balance1Adjusted >= reserve0 * reserve1;
         }
         if (balance0Adjusted >= reserve0 && balance1Adjusted >= reserve1) {
+            require(false, "HI1");
             return true;
         }
         if (balance0Adjusted <= reserve0 && balance1Adjusted <= reserve1) {
+            require(false, "HI2");
             return false;
         }
         uint32 w0 = tokenWeight0;
@@ -928,26 +930,26 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         require(token0 != address(0), "RequiemFormula: ZERO_ADDRESS");
     }
 
-    // function getReserves(
-    //     address pair,
-    //     address tokenA,
-    //     address tokenB
-    // )
-    //     external
-    //     view
-    //     override
-    //     returns (
-    //         uint256 reserveA,
-    //         uint256 reserveB,
-    //         uint256 vReserveA,
-    //         uint256 vReserveB
-    //     )
-    // {
-    //     (address token0, address token1) = sortTokens(tokenA, tokenB);
-    //     (uint256 reserve0, uint256 reserve1, , uint256 vReserve0, uint256 vReserve1) = IRequiemWeightedPairV2(pair).getReserves();
-    //     require(token0 == IRequiemWeightedPairV2(pair).token0() && token1 == IRequiemWeightedPairV2(pair).token1(), "RequiemFormula: Invalid token");
-    //     (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-    // }
+    function getReserves(
+        address pair,
+        address tokenA,
+        address tokenB
+    )
+        external
+        view
+        override
+        returns (
+            uint256 reserveA,
+            uint256 reserveB,
+            uint256 vReserveA,
+            uint256 vReserveB
+        )
+    {
+        (address token0, address token1) = sortTokens(tokenA, tokenB);
+        IRequiemWeightedPairV2.ReserveData memory data = IRequiemWeightedPairV2(pair).getReserves();
+        require(token0 == IRequiemWeightedPairV2(pair).token0() && token1 == IRequiemWeightedPairV2(pair).token1(), "RequiemFormula: Invalid token");
+        (reserveA, reserveB, vReserveA, vReserveB) = tokenA == token0 ? (data.reserve0, data.reserve1, data.vReserve0, data.vReserve1) : (data.reserve1, data.reserve0, data.vReserve1, data.vReserve0);
+    }
 
     function getOtherToken(address pair, address tokenA) external view override returns (address tokenB) {
         address token0 = IRequiemWeightedPairV2(pair).token0();

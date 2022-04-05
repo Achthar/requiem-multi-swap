@@ -24,6 +24,7 @@ interface IWeightedFormulaV2Interface extends ethers.utils.Interface {
     "getAmountIn(uint256,(uint256,uint256,uint256,uint256,uint32,uint32,uint32))": FunctionFragment;
     "getAmountOut(uint256,(uint256,uint256,uint256,uint256,uint32,uint32,uint32))": FunctionFragment;
     "getOtherToken(address,address)": FunctionFragment;
+    "getReserves(address,address,address)": FunctionFragment;
     "mintLiquidityFee(uint256,uint256,uint256,uint32,uint112,uint112)": FunctionFragment;
     "quote(uint256,uint256,uint256)": FunctionFragment;
     "sortTokens(address,address)": FunctionFragment;
@@ -74,6 +75,10 @@ interface IWeightedFormulaV2Interface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "getReserves",
+    values: [string, string, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "mintLiquidityFee",
     values: [
       BigNumberish,
@@ -107,6 +112,10 @@ interface IWeightedFormulaV2Interface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getOtherToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReserves",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -206,6 +215,20 @@ export class IWeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { tokenB: string }>;
 
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        vReserveA: BigNumber;
+        vReserveB: BigNumber;
+      }
+    >;
+
     mintLiquidityFee(
       totalLiquidity: BigNumberish,
       reserve0: BigNumberish,
@@ -273,6 +296,20 @@ export class IWeightedFormulaV2 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getReserves(
+    pair: string,
+    tokenA: string,
+    tokenB: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      reserveA: BigNumber;
+      reserveB: BigNumber;
+      vReserveA: BigNumber;
+      vReserveB: BigNumber;
+    }
+  >;
+
   mintLiquidityFee(
     totalLiquidity: BigNumberish,
     reserve0: BigNumberish,
@@ -339,6 +376,20 @@ export class IWeightedFormulaV2 extends BaseContract {
       tokenA: string,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        vReserveA: BigNumber;
+        vReserveB: BigNumber;
+      }
+    >;
 
     mintLiquidityFee(
       totalLiquidity: BigNumberish,
@@ -410,6 +461,13 @@ export class IWeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     mintLiquidityFee(
       totalLiquidity: BigNumberish,
       reserve0: BigNumberish,
@@ -475,6 +533,13 @@ export class IWeightedFormulaV2 extends BaseContract {
     getOtherToken(
       pair: string,
       tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getReserves(
+      pair: string,
+      tokenA: string,
+      tokenB: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
