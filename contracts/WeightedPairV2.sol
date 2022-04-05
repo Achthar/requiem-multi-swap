@@ -44,7 +44,7 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
     // 1 slot
     uint112 internal vReserve0;
     uint112 internal vReserve1;
-    uint32 public ampBps; // 10000 is equyivalent to a scale of 1
+    uint32 private ampBps; // 10000 is equyivalent to a scale of 1
 
     // ===== modifiers =====
     modifier lock() {
@@ -72,13 +72,20 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
         _collectedFee1 = collectedFee1;
     }
 
-    function getTokenWeights() public view returns (uint32 _tokenWeight0, uint32 _tokenWeight1) {
+    function getParameters()
+        public
+        view
+        returns (
+            uint32 _tokenWeight0,
+            uint32 _tokenWeight1,
+            uint32 _swapFee,
+            uint32 _amp
+        )
+    {
         _tokenWeight0 = tokenWeight0;
         _tokenWeight1 = tokenWeight1;
-    }
-
-    function getSwapFee() public view returns (uint32 _swapFee) {
         _swapFee = swapFee;
+        _amp = ampBps;
     }
 
     function name() public view override(IRequiemPairERC20) returns (string memory) {
@@ -359,7 +366,10 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
     }
 
     /**
-     * @notice Wraps the swap funtion for the Requiem interface whih pre-selects the respective token amount
+     * @notice Wraps the swap funtion for the Requiem interface which pre-selects the respective token amount
+     * @param tokenIn input token
+     * @param amountOut output amount
+     * @param to reveiver address
      */
     function onSwap(
         address tokenIn,
@@ -427,15 +437,8 @@ contract RequiemWeightedPairV2 is IRequiemSwap, IRequiemWeightedPairV2, Weighted
                     collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
                 }
                 uint32 _tokenWeight0 = tokenWeight0; // gas savings
-                if (_tokenWeight0 == 50) {
-                    // gas savings for pair 50/50
-                    require(balance0Adjusted * balance1Adjusted >= reserveData.vReserve0 * reserveData.vReserve1 * (10000**2), "REQLP: K");
-                } else {
-                    require(
-                        IWeightedFormulaV2(formula).ensureConstantValue(reserveData.vReserve0 * 10000, reserveData.vReserve1 * 10000, balance0Adjusted, balance1Adjusted, _tokenWeight0),
-                        "REQLP: K"
-                    );
-                }
+                // 50 / 50 weight condition is handled in formula call
+                require(IWeightedFormulaV2(formula).ensureConstantValue(reserveData.vReserve0 * 10000, reserveData.vReserve1 * 10000, balance0Adjusted, balance1Adjusted, _tokenWeight0), "REQLP: K");
             }
         }
         _update(newReserveData);

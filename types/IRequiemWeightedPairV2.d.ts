@@ -31,9 +31,8 @@ interface IRequiemWeightedPairV2Interface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "factory()": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
+    "getParameters()": FunctionFragment;
     "getReserves()": FunctionFragment;
-    "getSwapFee()": FunctionFragment;
-    "getTokenWeights()": FunctionFragment;
     "initialize(address,address,uint32)": FunctionFragment;
     "mint(address)": FunctionFragment;
     "name()": FunctionFragment;
@@ -80,15 +79,11 @@ interface IRequiemWeightedPairV2Interface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getParameters",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getReserves",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSwapFee",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenWeights",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -159,12 +154,11 @@ interface IRequiemWeightedPairV2Interface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getReserves",
+    functionFragment: "getParameters",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getSwapFee", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getTokenWeights",
+    functionFragment: "getReserves",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
@@ -349,6 +343,17 @@ export class IRequiemWeightedPairV2 extends BaseContract {
       }
     >;
 
+    getParameters(
+      overrides?: CallOverrides
+    ): Promise<
+      [number, number, number, number] & {
+        _tokenWeight0: number;
+        _tokenWeight1: number;
+        _swapFee: number;
+        _amp: number;
+      }
+    >;
+
     getReserves(
       overrides?: CallOverrides
     ): Promise<
@@ -367,14 +372,6 @@ export class IRequiemWeightedPairV2 extends BaseContract {
           vReserve1: BigNumber;
         };
       }
-    >;
-
-    getSwapFee(overrides?: CallOverrides): Promise<[number]>;
-
-    getTokenWeights(
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number] & { tokenWeight0: number; tokenWeight1: number }
     >;
 
     initialize(
@@ -487,6 +484,17 @@ export class IRequiemWeightedPairV2 extends BaseContract {
     }
   >;
 
+  getParameters(
+    overrides?: CallOverrides
+  ): Promise<
+    [number, number, number, number] & {
+      _tokenWeight0: number;
+      _tokenWeight1: number;
+      _swapFee: number;
+      _amp: number;
+    }
+  >;
+
   getReserves(
     overrides?: CallOverrides
   ): Promise<
@@ -497,12 +505,6 @@ export class IRequiemWeightedPairV2 extends BaseContract {
       vReserve1: BigNumber;
     }
   >;
-
-  getSwapFee(overrides?: CallOverrides): Promise<number>;
-
-  getTokenWeights(
-    overrides?: CallOverrides
-  ): Promise<[number, number] & { tokenWeight0: number; tokenWeight1: number }>;
 
   initialize(
     arg0: string,
@@ -616,6 +618,17 @@ export class IRequiemWeightedPairV2 extends BaseContract {
       }
     >;
 
+    getParameters(
+      overrides?: CallOverrides
+    ): Promise<
+      [number, number, number, number] & {
+        _tokenWeight0: number;
+        _tokenWeight1: number;
+        _swapFee: number;
+        _amp: number;
+      }
+    >;
+
     getReserves(
       overrides?: CallOverrides
     ): Promise<
@@ -625,14 +638,6 @@ export class IRequiemWeightedPairV2 extends BaseContract {
         vReserve0: BigNumber;
         vReserve1: BigNumber;
       }
-    >;
-
-    getSwapFee(overrides?: CallOverrides): Promise<number>;
-
-    getTokenWeights(
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number] & { tokenWeight0: number; tokenWeight1: number }
     >;
 
     initialize(
@@ -891,11 +896,9 @@ export class IRequiemWeightedPairV2 extends BaseContract {
 
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getParameters(overrides?: CallOverrides): Promise<BigNumber>;
+
     getReserves(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getSwapFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTokenWeights(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
       arg0: string,
@@ -1004,11 +1007,9 @@ export class IRequiemWeightedPairV2 extends BaseContract {
 
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getParameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getSwapFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTokenWeights(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
       arg0: string,

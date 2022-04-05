@@ -32,13 +32,15 @@ interface IRequiemWeightedPairV2 is IRequiemPairERC20 {
 
     function getCollectedFees() external view returns (uint112 _collectedFee0, uint112 _collectedFee1);
 
-    function getTokenWeights() external view returns (uint32 tokenWeight0, uint32 tokenWeight1);
-
-    function getSwapFee() external view returns (uint32);
-
-    // function price0CumulativeLast() external view returns (uint256);
-
-    // function price1CumulativeLast() external view returns (uint256);
+    function getParameters()
+        external
+        view
+        returns (
+            uint32 _tokenWeight0,
+            uint32 _tokenWeight1,
+            uint32 _swapFee,
+            uint32 _amp
+        );
 
     function mint(address to) external returns (uint256 liquidity);
 

@@ -33,13 +33,14 @@ interface IRequiemWeightedPairFactoryV2 {
         uint32 initialAmp
     ) external returns (address pair);
 
-    function getWeightsAndSwapFee(address pair)
+    function getParameters(address pair)
         external
         view
         returns (
             uint32 tokenWeight0,
             uint32 tokenWeight1,
-            uint32 swapFee
+            uint32 swapFee,
+            uint32 amp
         );
 
     function setFeeTo(address) external;

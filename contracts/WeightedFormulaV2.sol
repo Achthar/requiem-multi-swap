@@ -649,17 +649,18 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
     // }
 
     /**
-     * @dev given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset,
+     * @notice given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset,
      *
      * Formula:
      * return = reserveOut * (1 - (reserveIn * 10000 / (reserveIn * 10000 + amountIn * (10000 - swapFee))) ^ (tokenWeightIn / tokenWeightOut))
      *
-     * @param amountIn                  source reserve amount
-     *  reserveIn    source reserve balance
-     *  reserveOut    target reserve balance
-     *  tokenWeightIn     source reserve weight, represented in ppm (2-98)
-     *  tokenWeightOut     target reserve weight, represented in ppm (2-98)
-     *  swapFee                  swap fee of the conversion
+     * @param amountIn      source reserve amount
+     * @param pricingData   contains the following inputs:
+     *  reserveIn       source reserve balance
+     *  reserveOut      target reserve balance
+     *  tokenWeightIn   source reserve weight, represented in ppm (2-98)
+     *  tokenWeightOut  target reserve weight, represented in ppm (2-98)
+     *  swapFee         swap fee of the conversion
      *
      * @return amountOut
      */
@@ -684,17 +685,18 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
     }
 
     /**
-     * @dev given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+     * @notice given an output amount of an asset and pair reserves, returns a required input amount of the other asset
      *
      * Formula:
      * return = reserveIn * ( (reserveOut / (reserveOut - amountOut)) ^ (tokenWeightOut / tokenWeightIn) - 1) * (10000/ (10000 - swapFee)
      *
      * @param amountOut     target reserve amount
-     *  reserveIn    source reserve balance
-     *  reserveOut    target reserve balance
-     *  tokenWeightIn     source reserve weight, represented in ppm (2-98)
-     *  tokenWeightOut     target reserve weight, represented in ppm (2-98)
-     *  swapFee                  swap fee of the conversion
+     * @param pricingData   contains the following inputs:
+     *  reserveIn       source reserve balance
+     *  reserveOut      target reserve balance
+     *  tokenWeightIn   source reserve weight, represented in ppm (2-98)
+     *  tokenWeightOut  target reserve weight, represented in ppm (2-98)
+     *  swapFee         swap fee of the conversion
      *
      * @return amountIn
      */
@@ -851,36 +853,38 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
     //     amountIn = getAmountIn(amountOut, reserveOut, reserveIn, vReserveOut, vReserveIn, tokenWeightOut, tokenWeightIn, swapFee);
     // }
 
-    function getWeightsAndSwapFee(address pair)
+    function getParameters(address pair)
         public
         view
         returns (
             uint32 tokenWeight0,
             uint32 tokenWeight1,
-            uint32 swapFee
+            uint32 swapFee,
+            uint32 amp
         )
     {
-        try IRequiemWeightedPairV2(pair).getTokenWeights() returns (uint32 _tokenWeight0, uint32 _tokenWeight1) {
-            return (_tokenWeight0, _tokenWeight1, IRequiemWeightedPairV2(pair).getSwapFee());
+        try IRequiemWeightedPairV2(pair).getParameters() returns (uint32 _tokenWeight0, uint32 _tokenWeight1, uint32 _swapFee, uint32 _amp) {
+            return (_tokenWeight0, _tokenWeight1, _swapFee, _amp);
         } catch Error(string memory reason) {
             revert(reason);
         } catch (
             bytes memory /*lowLevelData*/
         ) {
-            return (50, 50, 30);
+            return (50, 50, 30, 10000);
         }
     }
 
-    function getFactoryWeightsAndSwapFee(address factory, address pair)
+    function getFactoryParameters(address factory, address pair)
         public
         view
         returns (
             uint32 tokenWeight0,
             uint32 tokenWeight1,
-            uint32 swapFee
+            uint32 swapFee,
+            uint32 amp
         )
     {
-        return IRequiemWeightedPairFactoryV2(factory).getWeightsAndSwapFee(pair);
+        return IRequiemWeightedPairFactoryV2(factory).getParameters(pair);
     }
 
     // Ensure constant value reserve0^(tokenWeight0/50) * reserve1^((100 - tokenWeight0)/50) <= balance0Adjusted^(tokenWeight0/50) * balance1Adjusted^((100 - tokenWeight0)/50)

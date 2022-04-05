@@ -125,21 +125,21 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         protocolFee = _protocolFee;
     }
 
-    function getWeightsAndSwapFee(address pair)
+    function getParameters(address pair)
         public
         view
         returns (
             uint32 tokenWeight0,
             uint32 tokenWeight1,
-            uint32 swapFee
+            uint32 swapFee,
+            uint32 amp
         )
     {
         if (_pairs[pair]) {
-            (tokenWeight0, tokenWeight1) = IRequiemWeightedPairV2(pair).getTokenWeights();
-            swapFee = IRequiemWeightedPairV2(pair).getSwapFee();
+            (tokenWeight0, tokenWeight1, swapFee, amp) = IRequiemWeightedPairV2(pair).getParameters();
         } else {
             // Default is 0.3%
-            return (50, 50, 30);
+            return (50, 50, 30, 10000);
         }
     }
 

@@ -385,6 +385,34 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getParameters",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "_tokenWeight0",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "_tokenWeight1",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "_swapFee",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "_amp",
+        type: "uint32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getReserves",
     outputs: [
       {
@@ -413,37 +441,6 @@ const _abi = [
         internalType: "struct IRequiemWeightedPairV2.ReserveData",
         name: "reserveData",
         type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getSwapFee",
-    outputs: [
-      {
-        internalType: "uint32",
-        name: "",
-        type: "uint32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getTokenWeights",
-    outputs: [
-      {
-        internalType: "uint32",
-        name: "tokenWeight0",
-        type: "uint32",
-      },
-      {
-        internalType: "uint32",
-        name: "tokenWeight1",
-        type: "uint32",
       },
     ],
     stateMutability: "view",

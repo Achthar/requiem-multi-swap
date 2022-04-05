@@ -29,7 +29,7 @@ interface IRequiemWeightedPairFactoryV2Interface
     "feeToSetter()": FunctionFragment;
     "formula()": FunctionFragment;
     "getPair(address,address,uint32)": FunctionFragment;
-    "getWeightsAndSwapFee(address)": FunctionFragment;
+    "getParameters(address)": FunctionFragment;
     "isPair(address)": FunctionFragment;
     "protocolFee()": FunctionFragment;
     "setFeeTo(address)": FunctionFragment;
@@ -60,7 +60,7 @@ interface IRequiemWeightedPairFactoryV2Interface
     values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getWeightsAndSwapFee",
+    functionFragment: "getParameters",
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "isPair", values: [string]): string;
@@ -92,7 +92,7 @@ interface IRequiemWeightedPairFactoryV2Interface
   decodeFunctionResult(functionFragment: "formula", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getPair", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getWeightsAndSwapFee",
+    functionFragment: "getParameters",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "isPair", data: BytesLike): Result;
@@ -200,14 +200,15 @@ export class IRequiemWeightedPairFactoryV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { pair: string }>;
 
-    getWeightsAndSwapFee(
+    getParameters(
       pair: string,
       overrides?: CallOverrides
     ): Promise<
-      [number, number, number] & {
+      [number, number, number, number] & {
         tokenWeight0: number;
         tokenWeight1: number;
         swapFee: number;
+        amp: number;
       }
     >;
 
@@ -257,14 +258,15 @@ export class IRequiemWeightedPairFactoryV2 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getWeightsAndSwapFee(
+  getParameters(
     pair: string,
     overrides?: CallOverrides
   ): Promise<
-    [number, number, number] & {
+    [number, number, number, number] & {
       tokenWeight0: number;
       tokenWeight1: number;
       swapFee: number;
+      amp: number;
     }
   >;
 
@@ -314,14 +316,15 @@ export class IRequiemWeightedPairFactoryV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getWeightsAndSwapFee(
+    getParameters(
       pair: string,
       overrides?: CallOverrides
     ): Promise<
-      [number, number, number] & {
+      [number, number, number, number] & {
         tokenWeight0: number;
         tokenWeight1: number;
         swapFee: number;
+        amp: number;
       }
     >;
 
@@ -402,10 +405,7 @@ export class IRequiemWeightedPairFactoryV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getWeightsAndSwapFee(
-      pair: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getParameters(pair: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     isPair(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -457,7 +457,7 @@ export class IRequiemWeightedPairFactoryV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getWeightsAndSwapFee(
+    getParameters(
       pair: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

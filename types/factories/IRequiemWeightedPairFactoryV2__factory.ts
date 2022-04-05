@@ -194,7 +194,7 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "getWeightsAndSwapFee",
+    name: "getParameters",
     outputs: [
       {
         internalType: "uint32",
@@ -209,6 +209,11 @@ const _abi = [
       {
         internalType: "uint32",
         name: "swapFee",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "amp",
         type: "uint32",
       },
     ],
