@@ -73,6 +73,9 @@ library RequiemStableSwapLib {
         uint256 defaultWithdrawFee;
         mapping(address => uint256) depositTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
+
+        uint256[] collectedFees;
+        /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
     }
 
     /**
@@ -161,7 +164,7 @@ library RequiemStableSwapLib {
 
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
-        uint256 dy = normalizedBalances[j] - y; // iliminate rouding errors
+        uint256 dy = normalizedBalances[j] - y; // eliminate rouding errors
         uint256 dy_fee = FullMath.mulDiv(dy , self.fee, FEE_DENOMINATOR);
 
         dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
@@ -200,7 +203,7 @@ library RequiemStableSwapLib {
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
 
-        dy = normalizedBalances[j] - y - 1; // iliminate rouding errors
+        dy = normalizedBalances[j] - y - 1; // eliminate rouding errors
         uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
 
         dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
@@ -270,10 +273,7 @@ library RequiemStableSwapLib {
         return dx;
     }
 
-    /**
-     * Flash Loan
-     */
-
+    /**  @notice Flash Loan using the stable swap balances*/
     function flashLoan(
         SwapStorage storage self,
         IFlashLoanRecipient recipient,
@@ -473,8 +473,7 @@ library RequiemStableSwapLib {
         return _getAPrecise(self) / A_PRECISION;
     }
 
-    // implements calculation of stable swap interface
-    // represents calculateSwapGivenIn function
+    /**  @notice pre-implements calculation for Requiem interface for exat in swap */
     function calculateSwap(
         SwapStorage storage self,
         uint256 inIndex,
@@ -489,9 +488,11 @@ library RequiemStableSwapLib {
         return outAmount - _fee;
     }
 
-    // implements calculation for Requiem interface
-    // note that due to the fact that the structure is not symmetric (unlike pairs)
-    // we require a separate function to calculate the input for a given output
+    /**
+    * @notice pre-implements calculation for Requiem interface for exat out swap
+    * that due to the fact that the structure is not symmetric (unlike 50/50 pairs)
+    * we require a separate function to calculate the input for a given output
+    */
     function calculateSwapGivenOut(
         SwapStorage storage self,
         uint256 inIndex,
