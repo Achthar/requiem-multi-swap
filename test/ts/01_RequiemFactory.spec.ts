@@ -17,12 +17,11 @@ import { getApprovalDigest } from './shared/common'
 import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
-	RequiemWeightedPairFactoryV2__factory,
-	WeightedFormulaV2__factory,
+	RequiemPairFactory__factory,
+	WeightedFormula__factory,
 	MockERC20__factory,
-	RequiemPairManagerV2__factory,
-	WeightedRouterV2__factory,
-	RequiemWeightedPairV2,
+	SwapRouter__factory,
+	RequiemPair,
 	WETH9__factory
 } from "../../types";
 
@@ -67,10 +66,9 @@ describe('RequiemPair-Test', () => {
 		tokenA = await new MockERC20__factory(wallet).deploy("token A", "A", 18)
 		tokenB = await new MockERC20__factory(wallet).deploy("token B", "B", 18)
 		weth = await new WETH9__factory(wallet).deploy()
-		formula = await new WeightedFormulaV2__factory(wallet).deploy()
-		factory = await new RequiemWeightedPairFactoryV2__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
-		pairManager = await new RequiemPairManagerV2__factory(wallet).deploy(factory.address, weth.address)
-		router = await new WeightedRouterV2__factory(wallet).deploy(factory.address, weth.address)
+		formula = await new WeightedFormula__factory(wallet).deploy()
+		factory = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
+		router = await new SwapRouter__factory(wallet).deploy(factory.address, weth.address)
 
 		await tokenA.approve(pairManager.address, ethers.constants.MaxUint256)
 		await tokenB.approve(pairManager.address, ethers.constants.MaxUint256)
@@ -92,7 +90,7 @@ describe('RequiemPair-Test', () => {
 
 	it('pair data', async () => {
 		const pair = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
-		pairContract = await ethers.getContractAt('RequiemWeightedPairV2', pair)
+		pairContract = await ethers.getContractAt('RequiemPair', pair)
 
 
 		expect(await formula.getAmountOut(1000, 10023423400, 2313453450000, 98, 2, 0)).to.eq(11309403)

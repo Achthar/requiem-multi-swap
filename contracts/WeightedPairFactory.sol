@@ -2,14 +2,14 @@
 
 pragma solidity ^0.8.13;
 
-import "./interfaces/IRequiemWeightedPairFactoryV2.sol";
+import "./interfaces/IWeightedPairFactory.sol";
 import "./libraries/EnumerableSet.sol";
 import "./libraries/Ownable.sol";
-import "./WeightedPairV2.sol";
+import "./WeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
-contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable {
+contract RequiemPairFactory is IWeightedPairFactory, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     address public feeTo;
@@ -17,7 +17,7 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
     uint256 public protocolFee;
     address public feeToSetter;
     address public swapFeeGovernance;
-    bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemWeightedPairV2).creationCode));
+    bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemPair).creationCode));
 
     mapping(bytes32 => address) private _pairSalts;
     address[] public allPairs;
@@ -57,7 +57,7 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
     }
 
     /**
-     * @notice Creates a new pair  with specified parameters
+     * @notice Creates a new pair with specified parameters - only one pair for a fixed set of weights cabn exist
      * @param tokenA first token
      * @param tokenB second token
      * @param tokenWeightA first token weight
@@ -77,14 +77,14 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         (address token0, address token1, uint32 tokenWeight0) = tokenA < tokenB ? (tokenA, tokenB, tokenWeightA) : (tokenB, tokenA, 100 - tokenWeightA);
         require(token0 != address(0), "RLP: ZA");
         // single check is sufficient
-        bytes memory bytecode = type(RequiemWeightedPairV2).creationCode;
+        bytes memory bytecode = type(RequiemPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, tokenWeight0));
         require(_pairSalts[salt] == address(0), "RLP: PE");
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IRequiemWeightedPairV2(pair).initialize(token0, token1, tokenWeight0);
-        IRequiemWeightedPairV2(pair).setSwapParams(initialFee, initialAmp);
+        IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
+        IWeightedPair(pair).setSwapParams(initialFee, initialAmp);
 
         tokenPairs[IERC20(token0)][IERC20(token1)].add(pair);
         tokenPairs[IERC20(token1)][IERC20(token0)].add(pair);
@@ -134,11 +134,8 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         )
     {
         if (_pairs[pair]) {
-            (tokenWeight0, tokenWeight1, swapFee, amp) = IRequiemWeightedPairV2(pair).getParameters();
-        } else {
-            // Default is 0.3%
-            return (50, 50, 30, 10000);
-        }
+            (tokenWeight0, tokenWeight1, swapFee, amp) = IWeightedPair(pair).getParameters();
+        } 
     }
 
     /**
@@ -169,7 +166,7 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
         require(msg.sender == pairGovernance || msg.sender == owner(), "unauthorized");
         // 0.01% - 5% fee range for swapFee and amplification parameter has to be >1
         require(_newSwapFee >= 0 && _newSwapFee <= 500 && _amp >= 10000, "RLP: ISF");
-        RequiemWeightedPairV2(_pair).setSwapParams(_newSwapFee, _amp);
-        RequiemWeightedPairV2(_pair).sync();
+        IWeightedPair(_pair).setSwapParams(_newSwapFee, _amp);
+        IWeightedPair(_pair).sync();
     }
 }

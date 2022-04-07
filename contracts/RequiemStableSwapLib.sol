@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import "./tokens/LPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
-import "./libraries/math/FullMath.sol";
 import "./interfaces/IFlashLoanRecipient.sol";
 
 
@@ -73,8 +72,6 @@ library RequiemStableSwapLib {
         uint256 defaultWithdrawFee;
         mapping(address => uint256) depositTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
-
-        uint256[] collectedFees;
         /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
     }
 
@@ -165,7 +162,7 @@ library RequiemStableSwapLib {
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
         uint256 dy = normalizedBalances[j] - y; // eliminate rouding errors
-        uint256 dy_fee = FullMath.mulDiv(dy , self.fee, FEE_DENOMINATOR);
+        uint256 dy_fee = (dy * self.fee) /  FEE_DENOMINATOR;
 
         dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
 
@@ -243,7 +240,7 @@ library RequiemStableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
 
         // the fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
-        uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+        uint256 _amountOutInclFee = (outAmount *  FEE_DENOMINATOR) / ( FEE_DENOMINATOR - self.fee);
 
         // calculate out balance
         uint256 y = normalizedBalances[j] - (_amountOutInclFee * self.tokenMultipliers[j]);
@@ -501,7 +498,7 @@ library RequiemStableSwapLib {
     ) external view returns (uint256) {
         uint256[] memory normalizedBalances = _xp(self);
         // fee has to be deducted on the output
-        uint256 _amountOutInclFee = FullMath.mulDiv(outAmount, FEE_DENOMINATOR, FEE_DENOMINATOR - self.fee);
+        uint256 _amountOutInclFee = (outAmount *  FEE_DENOMINATOR) / ( FEE_DENOMINATOR - self.fee);
         uint256 newOutBalance = normalizedBalances[outIndex] - (_amountOutInclFee * self.tokenMultipliers[outIndex]);
         // switch index on regulat _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);

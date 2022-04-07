@@ -34,10 +34,9 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "factory()": FunctionFragment;
     "formula()": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
+    "getParameters()": FunctionFragment;
     "getReserves()": FunctionFragment;
-    "getSwapFee()": FunctionFragment;
-    "getTokenWeights()": FunctionFragment;
-    "initialize(address,address,uint32,uint32)": FunctionFragment;
+    "initialize(address,address,uint32)": FunctionFragment;
     "mint(address)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
@@ -45,8 +44,7 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "price0CumulativeLast()": FunctionFragment;
-    "price1CumulativeLast()": FunctionFragment;
+    "setSwapParams(uint32,uint32)": FunctionFragment;
     "skim(address)": FunctionFragment;
     "swap(uint256,uint256,address,bytes)": FunctionFragment;
     "symbol()": FunctionFragment;
@@ -96,20 +94,16 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getParameters",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getReserves",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getSwapFee",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenWeights",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "initialize",
-    values: [string, string, BigNumberish, BigNumberish]
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "mint", values: [string]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
@@ -139,12 +133,8 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "price0CumulativeLast",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "price1CumulativeLast",
-    values?: undefined
+    functionFragment: "setSwapParams",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "skim", values: [string]): string;
   encodeFunctionData(
@@ -200,12 +190,11 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getReserves",
+    functionFragment: "getParameters",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getSwapFee", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getTokenWeights",
+    functionFragment: "getReserves",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
@@ -223,11 +212,7 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "price0CumulativeLast",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "price1CumulativeLast",
+    functionFragment: "setSwapParams",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "skim", data: BytesLike): Result;
@@ -252,7 +237,7 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "Mint(address,uint256,uint256)": EventFragment;
     "PaidProtocolFee(uint112,uint112)": EventFragment;
     "Swap(address,uint256,uint256,uint256,uint256,address)": EventFragment;
-    "Sync(uint112,uint112)": EventFragment;
+    "Sync(uint112,uint112,uint112,uint112)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
@@ -309,7 +294,12 @@ export type SwapEvent = TypedEvent<
 >;
 
 export type SyncEvent = TypedEvent<
-  [BigNumber, BigNumber] & { reserve0: BigNumber; reserve1: BigNumber }
+  [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    reserve0: BigNumber;
+    reserve1: BigNumber;
+    vReserve0: BigNumber;
+    vReserve1: BigNumber;
+  }
 >;
 
 export type TransferEvent = TypedEvent<
@@ -414,31 +404,41 @@ export class RequiemPair extends BaseContract {
       }
     >;
 
-    getReserves(
+    getParameters(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, number] & {
-        _reserve0: BigNumber;
-        _reserve1: BigNumber;
-        _blockTimestampLast: number;
+      [number, number, number, number] & {
+        _tokenWeight0: number;
+        _tokenWeight1: number;
+        _swapFee: number;
+        _amp: number;
       }
     >;
 
-    getSwapFee(
-      overrides?: CallOverrides
-    ): Promise<[number] & { _swapFee: number }>;
-
-    getTokenWeights(
+    getReserves(
       overrides?: CallOverrides
     ): Promise<
-      [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+      [
+        [BigNumber, BigNumber, BigNumber, BigNumber] & {
+          reserve0: BigNumber;
+          reserve1: BigNumber;
+          vReserve0: BigNumber;
+          vReserve1: BigNumber;
+        }
+      ] & {
+        reserveData: [BigNumber, BigNumber, BigNumber, BigNumber] & {
+          reserve0: BigNumber;
+          reserve1: BigNumber;
+          vReserve0: BigNumber;
+          vReserve1: BigNumber;
+        };
+      }
     >;
 
     initialize(
       _token0: string,
       _token1: string,
       _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -489,9 +489,11 @@ export class RequiemPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    price0CumulativeLast(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    price1CumulativeLast(overrides?: CallOverrides): Promise<[BigNumber]>;
+    setSwapParams(
+      _newSwapFee: BigNumberish,
+      _newAmp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     skim(
       to: string,
@@ -502,7 +504,7 @@ export class RequiemPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -586,29 +588,32 @@ export class RequiemPair extends BaseContract {
     }
   >;
 
-  getReserves(
+  getParameters(
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, number] & {
-      _reserve0: BigNumber;
-      _reserve1: BigNumber;
-      _blockTimestampLast: number;
+    [number, number, number, number] & {
+      _tokenWeight0: number;
+      _tokenWeight1: number;
+      _swapFee: number;
+      _amp: number;
     }
   >;
 
-  getSwapFee(overrides?: CallOverrides): Promise<number>;
-
-  getTokenWeights(
+  getReserves(
     overrides?: CallOverrides
   ): Promise<
-    [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      reserve0: BigNumber;
+      reserve1: BigNumber;
+      vReserve0: BigNumber;
+      vReserve1: BigNumber;
+    }
   >;
 
   initialize(
     _token0: string,
     _token1: string,
     _tokenWeight0: BigNumberish,
-    _swapFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -659,9 +664,11 @@ export class RequiemPair extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  price0CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
-
-  price1CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
+  setSwapParams(
+    _newSwapFee: BigNumberish,
+    _newAmp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   skim(
     to: string,
@@ -672,7 +679,7 @@ export class RequiemPair extends BaseContract {
     amount0Out: BigNumberish,
     amount1Out: BigNumberish,
     to: string,
-    data: BytesLike,
+    callData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -758,29 +765,32 @@ export class RequiemPair extends BaseContract {
       }
     >;
 
-    getReserves(
+    getParameters(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, number] & {
-        _reserve0: BigNumber;
-        _reserve1: BigNumber;
-        _blockTimestampLast: number;
+      [number, number, number, number] & {
+        _tokenWeight0: number;
+        _tokenWeight1: number;
+        _swapFee: number;
+        _amp: number;
       }
     >;
 
-    getSwapFee(overrides?: CallOverrides): Promise<number>;
-
-    getTokenWeights(
+    getReserves(
       overrides?: CallOverrides
     ): Promise<
-      [number, number] & { _tokenWeight0: number; _tokenWeight1: number }
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      }
     >;
 
     initialize(
       _token0: string,
       _token1: string,
       _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -828,9 +838,11 @@ export class RequiemPair extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    price0CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
-
-    price1CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
+    setSwapParams(
+      _newSwapFee: BigNumberish,
+      _newAmp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     skim(to: string, overrides?: CallOverrides): Promise<void>;
 
@@ -838,7 +850,7 @@ export class RequiemPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      callData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -977,20 +989,34 @@ export class RequiemPair extends BaseContract {
       }
     >;
 
-    "Sync(uint112,uint112)"(
+    "Sync(uint112,uint112,uint112,uint112)"(
       reserve0?: null,
-      reserve1?: null
+      reserve1?: null,
+      vReserve0?: null,
+      vReserve1?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { reserve0: BigNumber; reserve1: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      }
     >;
 
     Sync(
       reserve0?: null,
-      reserve1?: null
+      reserve1?: null,
+      vReserve0?: null,
+      vReserve1?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { reserve0: BigNumber; reserve1: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      }
     >;
 
     "Transfer(address,address,uint256)"(
@@ -1060,17 +1086,14 @@ export class RequiemPair extends BaseContract {
 
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getParameters(overrides?: CallOverrides): Promise<BigNumber>;
+
     getReserves(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getSwapFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTokenWeights(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
       _token0: string,
       _token1: string,
       _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1121,9 +1144,11 @@ export class RequiemPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    price0CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
-
-    price1CumulativeLast(overrides?: CallOverrides): Promise<BigNumber>;
+    setSwapParams(
+      _newSwapFee: BigNumberish,
+      _newAmp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     skim(
       to: string,
@@ -1134,7 +1159,7 @@ export class RequiemPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1215,17 +1240,14 @@ export class RequiemPair extends BaseContract {
 
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getParameters(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getSwapFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTokenWeights(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
       _token0: string,
       _token1: string,
       _tokenWeight0: BigNumberish,
-      _swapFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1279,12 +1301,10 @@ export class RequiemPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    price0CumulativeLast(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    price1CumulativeLast(
-      overrides?: CallOverrides
+    setSwapParams(
+      _newSwapFee: BigNumberish,
+      _newAmp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     skim(
@@ -1296,7 +1316,7 @@ export class RequiemPair extends BaseContract {
       amount0Out: BigNumberish,
       amount1Out: BigNumberish,
       to: string,
-      data: BytesLike,
+      callData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

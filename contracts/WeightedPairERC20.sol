@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.13;
 
-import "./interfaces/IRequiemPairERC20.sol";
+import "./interfaces/IWeightedPairERC20.sol";
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
- abstract contract WeightedPairERC20V2 is IRequiemPairERC20 {
+ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
 
@@ -15,7 +15,7 @@ import "./interfaces/IRequiemPairERC20.sol";
 
     bytes32 public override DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant override PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+    bytes32 public constant override PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
     mapping(address => uint256) public nonces;
 
     constructor() {

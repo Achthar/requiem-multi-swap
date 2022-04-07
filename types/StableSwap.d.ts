@@ -21,35 +21,17 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface StableSwapInterface extends ethers.utils.Interface {
   functions: {
-    "MAX_A()": FunctionFragment;
-    "MAX_ADMIN_FEE()": FunctionFragment;
-    "MAX_A_CHANGE()": FunctionFragment;
-    "MAX_SWAP_FEE()": FunctionFragment;
-    "MAX_WITHDRAW_FEE()": FunctionFragment;
-    "MIN_RAMP_TIME()": FunctionFragment;
     "addLiquidity(uint256[],uint256,uint256)": FunctionFragment;
     "calculateCurrentWithdrawFee(address)": FunctionFragment;
     "calculateRemoveLiquidity(address,uint256)": FunctionFragment;
     "calculateRemoveLiquidityOneToken(address,uint256,uint8)": FunctionFragment;
-    "calculateSwap(uint8,uint8,uint256)": FunctionFragment;
     "calculateSwapGivenIn(address,address,uint256)": FunctionFragment;
     "calculateSwapGivenOut(address,address,uint256)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
     "feeController()": FunctionFragment;
     "feeDistributor()": FunctionFragment;
     "flashLoan(address,address[],uint256[],bytes)": FunctionFragment;
-    "getA()": FunctionFragment;
-    "getAPrecise()": FunctionFragment;
-    "getAdminBalance(uint8)": FunctionFragment;
-    "getAdminBalances()": FunctionFragment;
-    "getLpToken()": FunctionFragment;
-    "getNumberOfTokens()": FunctionFragment;
-    "getToken(uint8)": FunctionFragment;
-    "getTokenBalance(uint8)": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
-    "getTokenIndex(address)": FunctionFragment;
-    "getTokenPrecisionMultipliers()": FunctionFragment;
-    "getTokens()": FunctionFragment;
     "getVirtualPrice()": FunctionFragment;
     "initialize(address[],uint8[],string,string,uint256,uint256,uint256,uint256,address)": FunctionFragment;
     "onSwap(address,address,uint256,uint256,address)": FunctionFragment;
@@ -63,11 +45,10 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "removeLiquidityImbalance(uint256[],uint256,uint256)": FunctionFragment;
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setFee(uint256,uint256,uint256)": FunctionFragment;
+    "setFee(uint256,uint256,uint256,uint256)": FunctionFragment;
     "setFeeController(address)": FunctionFragment;
     "setFeeDistributor(address)": FunctionFragment;
     "stopRampA()": FunctionFragment;
-    "swap(uint8,uint8,uint256,uint256,address,uint256)": FunctionFragment;
     "swapStorage()": FunctionFragment;
     "tokenIndexes(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -76,27 +57,6 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "withdrawAdminFee()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "MAX_A", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "MAX_ADMIN_FEE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "MAX_A_CHANGE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "MAX_SWAP_FEE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "MAX_WITHDRAW_FEE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "MIN_RAMP_TIME",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "addLiquidity",
     values: [BigNumberish[], BigNumberish, BigNumberish]
@@ -112,10 +72,6 @@ interface StableSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calculateRemoveLiquidityOneToken",
     values: [string, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calculateSwap",
-    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateSwapGivenIn",
@@ -141,48 +97,10 @@ interface StableSwapInterface extends ethers.utils.Interface {
     functionFragment: "flashLoan",
     values: [string, string[], BigNumberish[], BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "getA", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getAPrecise",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAdminBalance",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAdminBalances",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLpToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getNumberOfTokens",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getToken",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenBalance",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(
     functionFragment: "getTokenBalances",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenIndex",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenPrecisionMultipliers",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "getTokens", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getVirtualPrice",
     values?: undefined
@@ -238,7 +156,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFee",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeController",
@@ -249,17 +167,6 @@ interface StableSwapInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "stopRampA", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "swap",
-    values: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
   encodeFunctionData(
     functionFragment: "swapStorage",
     values?: undefined
@@ -282,27 +189,6 @@ interface StableSwapInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "MAX_A", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "MAX_ADMIN_FEE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "MAX_A_CHANGE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "MAX_SWAP_FEE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "MAX_WITHDRAW_FEE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "MIN_RAMP_TIME",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "addLiquidity",
     data: BytesLike
@@ -317,10 +203,6 @@ interface StableSwapInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "calculateRemoveLiquidityOneToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "calculateSwap",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -344,42 +226,10 @@ interface StableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getA", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getAPrecise",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAdminBalance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAdminBalances",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getLpToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getNumberOfTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenBalance",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "getTokenBalances",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenPrecisionMultipliers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getTokens", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getVirtualPrice",
     data: BytesLike
@@ -424,7 +274,6 @@ interface StableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "stopRampA", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "swapStorage",
     data: BytesLike
@@ -614,18 +463,6 @@ export class StableSwap extends BaseContract {
   interface: StableSwapInterface;
 
   functions: {
-    MAX_A(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MAX_A_CHANGE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MAX_SWAP_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MIN_RAMP_TIME(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     addLiquidity(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
@@ -648,13 +485,6 @@ export class StableSwap extends BaseContract {
       account: string,
       amount: BigNumberish,
       index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    calculateSwap(
-      inIndex: BigNumberish,
-      outIndex: BigNumberish,
-      inAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -690,42 +520,7 @@ export class StableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getA(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getAdminBalances(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { adminBalances: BigNumber[] }>;
-
-    getLpToken(overrides?: CallOverrides): Promise<[string]>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getToken(index: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
-
-    getTokenIndex(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<[number] & { index: number }>;
-
-    getTokenPrecisionMultipliers(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
-
-    getTokens(overrides?: CallOverrides): Promise<[string[]]>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -811,6 +606,7 @@ export class StableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -830,16 +626,6 @@ export class StableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    swap(
-      fromIndex: BigNumberish,
-      toIndex: BigNumberish,
-      inAmount: BigNumberish,
-      minOutAmount: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     swapStorage(
       overrides?: CallOverrides
     ): Promise<
@@ -851,12 +637,10 @@ export class StableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
         fee: BigNumber;
-        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -888,18 +672,6 @@ export class StableSwap extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  MAX_A(overrides?: CallOverrides): Promise<BigNumber>;
-
-  MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-  MAX_A_CHANGE(overrides?: CallOverrides): Promise<BigNumber>;
-
-  MAX_SWAP_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-  MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-  MIN_RAMP_TIME(overrides?: CallOverrides): Promise<BigNumber>;
-
   addLiquidity(
     amounts: BigNumberish[],
     minMintAmount: BigNumberish,
@@ -922,13 +694,6 @@ export class StableSwap extends BaseContract {
     account: string,
     amount: BigNumberish,
     index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  calculateSwap(
-    inIndex: BigNumberish,
-    outIndex: BigNumberish,
-    inAmount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -964,35 +729,7 @@ export class StableSwap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getA(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getAdminBalance(
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getAdminBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-  getLpToken(overrides?: CallOverrides): Promise<string>;
-
-  getNumberOfTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getToken(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  getTokenBalance(
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-  getTokenIndex(token: string, overrides?: CallOverrides): Promise<number>;
-
-  getTokenPrecisionMultipliers(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-  getTokens(overrides?: CallOverrides): Promise<string[]>;
 
   getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1078,6 +815,7 @@ export class StableSwap extends BaseContract {
 
   setFee(
     newSwapFee: BigNumberish,
+    newFlashFee: BigNumberish,
     newAdminFee: BigNumberish,
     newWithdrawFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1097,16 +835,6 @@ export class StableSwap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  swap(
-    fromIndex: BigNumberish,
-    toIndex: BigNumberish,
-    inAmount: BigNumberish,
-    minOutAmount: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   swapStorage(
     overrides?: CallOverrides
   ): Promise<
@@ -1118,12 +846,10 @@ export class StableSwap extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      BigNumber,
       BigNumber
     ] & {
       lpToken: string;
       fee: BigNumber;
-      flashFee: BigNumber;
       adminFee: BigNumber;
       initialA: BigNumber;
       futureA: BigNumber;
@@ -1155,18 +881,6 @@ export class StableSwap extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    MAX_A(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_A_CHANGE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_SWAP_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MIN_RAMP_TIME(overrides?: CallOverrides): Promise<BigNumber>;
-
     addLiquidity(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
@@ -1189,13 +903,6 @@ export class StableSwap extends BaseContract {
       account: string,
       amount: BigNumberish,
       index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calculateSwap(
-      inIndex: BigNumberish,
-      outIndex: BigNumberish,
-      inAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1231,37 +938,7 @@ export class StableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    getA(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAdminBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-    getLpToken(overrides?: CallOverrides): Promise<string>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getToken(index: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-    getTokenIndex(token: string, overrides?: CallOverrides): Promise<number>;
-
-    getTokenPrecisionMultipliers(
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getTokens(overrides?: CallOverrides): Promise<string[]>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1343,6 +1020,7 @@ export class StableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: CallOverrides
@@ -1360,16 +1038,6 @@ export class StableSwap extends BaseContract {
 
     stopRampA(overrides?: CallOverrides): Promise<void>;
 
-    swap(
-      fromIndex: BigNumberish,
-      toIndex: BigNumberish,
-      inAmount: BigNumberish,
-      minOutAmount: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     swapStorage(
       overrides?: CallOverrides
     ): Promise<
@@ -1381,12 +1049,10 @@ export class StableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
         fee: BigNumber;
-        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -1715,18 +1381,6 @@ export class StableSwap extends BaseContract {
   };
 
   estimateGas: {
-    MAX_A(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_A_CHANGE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_SWAP_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MIN_RAMP_TIME(overrides?: CallOverrides): Promise<BigNumber>;
-
     addLiquidity(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
@@ -1749,13 +1403,6 @@ export class StableSwap extends BaseContract {
       account: string,
       amount: BigNumberish,
       index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calculateSwap(
-      inIndex: BigNumberish,
-      outIndex: BigNumberish,
-      inAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1791,38 +1438,7 @@ export class StableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getA(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAdminBalances(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLpToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getToken(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTokenIndex(token: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTokenPrecisionMultipliers(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1908,6 +1524,7 @@ export class StableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1924,16 +1541,6 @@ export class StableSwap extends BaseContract {
     ): Promise<BigNumber>;
 
     stopRampA(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    swap(
-      fromIndex: BigNumberish,
-      toIndex: BigNumberish,
-      inAmount: BigNumberish,
-      minOutAmount: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1962,18 +1569,6 @@ export class StableSwap extends BaseContract {
   };
 
   populateTransaction: {
-    MAX_A(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    MAX_ADMIN_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    MAX_A_CHANGE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    MAX_SWAP_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    MAX_WITHDRAW_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    MIN_RAMP_TIME(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     addLiquidity(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
@@ -1996,13 +1591,6 @@ export class StableSwap extends BaseContract {
       account: string,
       amount: BigNumberish,
       index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calculateSwap(
-      inIndex: BigNumberish,
-      outIndex: BigNumberish,
-      inAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2038,43 +1626,7 @@ export class StableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getAPrecise(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getAdminBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAdminBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLpToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getNumberOfTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getToken(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenBalance(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTokenIndex(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenPrecisionMultipliers(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -2160,6 +1712,7 @@ export class StableSwap extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
+      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2176,16 +1729,6 @@ export class StableSwap extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     stopRampA(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swap(
-      fromIndex: BigNumberish,
-      toIndex: BigNumberish,
-      inAmount: BigNumberish,
-      minOutAmount: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

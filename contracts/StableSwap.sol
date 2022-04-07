@@ -7,7 +7,7 @@ import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
 import "./StableSwapLib.sol";
-import "./interfaces/IRequiemStableSwap.sol";
+import "./interfaces/IStableSwap.sol";
 import "./interfaces/IRequiemSwap.sol";
 import "./interfaces/IFlashLoanRecipient.sol";
 
@@ -16,7 +16,7 @@ using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IRequiemStableSwap {
+contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;
@@ -57,7 +57,6 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         string memory lpTokenSymbol,
         uint256 _A,
         uint256 _fee,
-        uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
         address _feeDistributor
@@ -77,7 +76,6 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
 
         require(_A < MAX_A, paramError);
         require(_fee <= MAX_TRANSACTION_FEE, feeError);
-        require(_flashFee <= MAX_TRANSACTION_FEE, feeError);
         require(_adminFee <= MAX_ADMIN_FEE, feeError);
         require(_withdrawFee <= MAX_WITHDRAW_FEE, feeError);
 
@@ -88,10 +86,10 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         swapStorage.initialA = _A * StableSwapLib.A_PRECISION;
         swapStorage.futureA = _A * StableSwapLib.A_PRECISION;
         swapStorage.fee = _fee;
-        swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
+        swapStorage.collectedFees = new uint256[](numberOfCoins);
     }
 
     /// PUBLIC FUNCTIONS
@@ -143,9 +141,7 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
     }
 
-     /**
-    * Flash Loan
-     */
+     /**  @notice Flash loan using stable swap balances  */
     function flashLoan(
         IFlashLoanRecipient recipient,
         IERC20[] memory tokens,
@@ -320,11 +316,16 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
     function withdrawAdminFee() external onlyFeeControllerOrOwner {
         for (uint256 i = 0; i < swapStorage.pooledTokens.length; i++) {
             IERC20 token = swapStorage.pooledTokens[i];
-            uint256 balance = token.balanceOf(address(this)) - (swapStorage.balances[i]);
-            if (balance != 0) {
-                token.safeTransfer(feeDistributor, balance);
-                emit CollectProtocolFee(address(token), balance);
+            uint256 fee = swapStorage.collectedFees[i];
+            if (fee != 0) {
+                token.safeTransfer(feeDistributor, fee);
+                emit CollectProtocolFee(address(token), fee);
+                swapStorage.collectedFees[i] = 0;
             }
         }
+    }
+
+    function getTokenBalances() external view override returns (uint256[] memory) {
+        return swapStorage.balances;
     }
 }

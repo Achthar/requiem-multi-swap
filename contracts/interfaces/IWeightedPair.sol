@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.13;
 
-import "./IRequiemPairERC20.sol";
+import "./IWeightedPairERC20.sol";
 
 // solhint-disable func-name-mixedcase
 
-interface IRequiemWeightedPairV2 is IRequiemPairERC20 {
+interface IWeightedPair is IWeightedPairERC20 {
     struct ReserveData {
         uint256 reserve0;
         uint256 reserve1;

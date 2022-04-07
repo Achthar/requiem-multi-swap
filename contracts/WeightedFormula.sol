@@ -2,13 +2,13 @@
 
 pragma solidity >=0.8.13;
 
-import "./interfaces/IWeightedFormulaV2.sol";
-import "./interfaces/IRequiemWeightedPairV2.sol";
-import "./interfaces/IRequiemWeightedPairFactoryV2.sol";
+import "./interfaces/IWeightedFormula.sol";
+import "./interfaces/IWeightedPair.sol";
+import "./interfaces/IWeightedPairFactory.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-unused-vars
 
-contract WeightedFormulaV2 is IWeightedFormulaV2 {
+contract WeightedFormula is IWeightedFormula {
     uint256 private constant ONE = 1;
     uint8 private constant MIN_PRECISION = 32;
     uint8 private constant MAX_PRECISION = 127;
@@ -592,14 +592,10 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             uint32 amp
         )
     {
-        try IRequiemWeightedPairV2(pair).getParameters() returns (uint32 _tokenWeight0, uint32 _tokenWeight1, uint32 _swapFee, uint32 _amp) {
+        try IWeightedPair(pair).getParameters() returns (uint32 _tokenWeight0, uint32 _tokenWeight1, uint32 _swapFee, uint32 _amp) {
             return (_tokenWeight0, _tokenWeight1, _swapFee, _amp);
         } catch Error(string memory reason) {
             revert(reason);
-        } catch (
-            bytes memory /*lowLevelData*/
-        ) {
-            return (50, 50, 30, 10000);
         }
     }
 
@@ -613,7 +609,7 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             uint32 amp
         )
     {
-        return IRequiemWeightedPairFactoryV2(factory).getParameters(pair);
+        return IWeightedPairFactory(factory).getParameters(pair);
     }
 
     function getPairParameters(address pair, address tokenA)
@@ -629,15 +625,15 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             uint32 swapFee
         )
     {
-        IRequiemWeightedPairV2.ReserveData memory reserveData = IRequiemWeightedPairV2(pair).getReserves();
+        IWeightedPair.ReserveData memory reserveData = IWeightedPair(pair).getReserves();
         uint32 tokenWeight0;
         uint32 tokenWeight1;
         (tokenWeight0, tokenWeight1, swapFee, ) = getPairStaticData(pair);
 
-        if (tokenA == IRequiemWeightedPairV2(pair).token0()) {
-            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
-        } else if (tokenA == IRequiemWeightedPairV2(pair).token1()) {
-            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
+        if (tokenA == IWeightedPair(pair).token0()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IWeightedPair(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
+        } else if (tokenA == IWeightedPair(pair).token1()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IWeightedPair(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
         } else {
             revert("REQF: IA");
         }
@@ -660,15 +656,15 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             uint32 swapFee
         )
     {
-        IRequiemWeightedPairV2.ReserveData memory reserveData = IRequiemWeightedPairV2(pair).getReserves();
+        IWeightedPair.ReserveData memory reserveData = IWeightedPair(pair).getReserves();
         uint32 tokenWeight0;
         uint32 tokenWeight1;
         (tokenWeight0, tokenWeight1, swapFee, ) = getFactoryStaticData(factory, pair);
 
-        if (tokenA == IRequiemWeightedPairV2(pair).token0()) {
-            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
-        } else if (tokenA == IRequiemWeightedPairV2(pair).token1()) {
-            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
+        if (tokenA == IWeightedPair(pair).token0()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IWeightedPair(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
+        } else if (tokenA == IWeightedPair(pair).token1()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IWeightedPair(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
         } else {
             revert("REQF: IA");
         }
@@ -837,11 +833,7 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         amounts[amounts.length - 1] = amountOut;
         address currentTokenIn = tokenOut;
         for (uint256 i = path.length; i > 0; i--) {
-            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryParameters(
-                factory,
-                path[i - 1],
-                currentTokenIn
-            );
+            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryParameters(factory, path[i - 1], currentTokenIn);
             amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
             currentTokenIn = currentTokenOut;
         }
@@ -923,14 +915,14 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         )
     {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
-        IRequiemWeightedPairV2.ReserveData memory data = IRequiemWeightedPairV2(pair).getReserves();
-        require(token0 == IRequiemWeightedPairV2(pair).token0() && token1 == IRequiemWeightedPairV2(pair).token1(), "REQF: T");
+        IWeightedPair.ReserveData memory data = IWeightedPair(pair).getReserves();
+        require(token0 == IWeightedPair(pair).token0() && token1 == IWeightedPair(pair).token1(), "REQF: T");
         (reserveA, reserveB, vReserveA, vReserveB) = tokenA == token0 ? (data.reserve0, data.reserve1, data.vReserve0, data.vReserve1) : (data.reserve1, data.reserve0, data.vReserve1, data.vReserve0);
     }
 
     function getOtherToken(address pair, address tokenA) external view override returns (address tokenB) {
-        address token0 = IRequiemWeightedPairV2(pair).token0();
-        address token1 = IRequiemWeightedPairV2(pair).token1();
+        address token0 = IWeightedPair(pair).token0();
+        address token1 = IWeightedPair(pair).token1();
         require(token0 == tokenA || token1 == tokenA, "REQF: A");
         tokenB = token0 == tokenA ? token1 : token0;
     }

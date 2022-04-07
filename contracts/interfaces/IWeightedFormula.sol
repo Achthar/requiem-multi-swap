@@ -4,7 +4,7 @@ pragma solidity >=0.8.13;
 /*
     Bancor Formula interface
 */
-interface IWeightedFormulaV2 {
+interface IWeightedFormula {
     function getPairParameters(address pair, address tokenA)
         external
         view

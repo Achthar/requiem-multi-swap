@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 import "./interfaces/IPairGovernance.sol";
-import "./interfaces/IRequiemWeightedPairV2.sol";
+import "./interfaces/IWeightedPair.sol";
+import "./interfaces/IWeightedPairFactory.sol";
 
 pragma solidity ^0.8.13;
 
