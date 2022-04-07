@@ -14,10 +14,10 @@ import "./interfaces/IWETH.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract SwapRouter is ISwapRouter, IWeightedPairManager {
-    address public immutable override(ISwapRouter, IWeightedPairManager) factory;
-    address public immutable override(ISwapRouter, IWeightedPairManager) formula;
-    address public immutable override(ISwapRouter, IWeightedPairManager) WETH;
+contract SwapRouter is ISwapRouter {
+    address public immutable override factory;
+    address public immutable override formula;
+    address public immutable override WETH;
     address private constant ETH_ADDRESS = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     uint256 internal constant Q112 = 2**112;
     uint256 internal constant MIN_VRESERVE_RATIO = 0;
@@ -68,7 +68,7 @@ contract SwapRouter is ISwapRouter, IWeightedPairManager {
         uint256 amountOutMin,
         address to,
         uint256 deadline
-    ) public virtual ensure(deadline) returns (uint256 amountLast) {
+    ) external virtual ensure(deadline) returns (uint256 amountLast) {
         amountLast = amountIn;
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn);
         for (uint256 i = 0; i < pools.length; i++) {
@@ -149,7 +149,7 @@ contract SwapRouter is ISwapRouter, IWeightedPairManager {
         uint256 amountOut,
         address to,
         uint256 deadline
-    ) external payable virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external payable override ensure(deadline) returns (uint256[] memory amounts) {
         amounts = new uint256[](tokens.length);
         amounts[pools.length] = amountOut;
         for (uint256 i = amounts.length - 1; i > 0; i--) {
@@ -174,7 +174,7 @@ contract SwapRouter is ISwapRouter, IWeightedPairManager {
         uint256 amountInMax,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external override ensure(deadline) returns (uint256[] memory amounts) {
         amounts = new uint256[](tokens.length);
         amounts[pools.length] = amountOut;
         for (uint256 i = amounts.length - 1; i > 0; i--) {

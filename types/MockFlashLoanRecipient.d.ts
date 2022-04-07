@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface MockFlashLoanRecipientInterface extends ethers.utils.Interface {
   functions: {
+    "pool()": FunctionFragment;
     "receiveFlashLoan(address[],uint256[],uint256[],bytes)": FunctionFragment;
     "reenter()": FunctionFragment;
     "repayInExcess()": FunctionFragment;
@@ -28,9 +29,9 @@ interface MockFlashLoanRecipientInterface extends ethers.utils.Interface {
     "setReenter(bool)": FunctionFragment;
     "setRepayInExcess(bool)": FunctionFragment;
     "setRepayLoan(bool)": FunctionFragment;
-    "vault()": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "receiveFlashLoan",
     values: [string[], BigNumberish[], BigNumberish[], BytesLike]
@@ -50,8 +51,8 @@ interface MockFlashLoanRecipientInterface extends ethers.utils.Interface {
     functionFragment: "setRepayLoan",
     values: [boolean]
   ): string;
-  encodeFunctionData(functionFragment: "vault", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "pool", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "receiveFlashLoan",
     data: BytesLike
@@ -71,7 +72,6 @@ interface MockFlashLoanRecipientInterface extends ethers.utils.Interface {
     functionFragment: "setRepayLoan",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "vault", data: BytesLike): Result;
 
   events: {};
 }
@@ -120,6 +120,8 @@ export class MockFlashLoanRecipient extends BaseContract {
   interface: MockFlashLoanRecipientInterface;
 
   functions: {
+    pool(overrides?: CallOverrides): Promise<[string]>;
+
     receiveFlashLoan(
       tokens: string[],
       amounts: BigNumberish[],
@@ -148,9 +150,9 @@ export class MockFlashLoanRecipient extends BaseContract {
       _repayLoan: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    vault(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  pool(overrides?: CallOverrides): Promise<string>;
 
   receiveFlashLoan(
     tokens: string[],
@@ -181,9 +183,9 @@ export class MockFlashLoanRecipient extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  vault(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
+    pool(overrides?: CallOverrides): Promise<string>;
+
     receiveFlashLoan(
       tokens: string[],
       amounts: BigNumberish[],
@@ -206,13 +208,13 @@ export class MockFlashLoanRecipient extends BaseContract {
     ): Promise<void>;
 
     setRepayLoan(_repayLoan: boolean, overrides?: CallOverrides): Promise<void>;
-
-    vault(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
+    pool(overrides?: CallOverrides): Promise<BigNumber>;
+
     receiveFlashLoan(
       tokens: string[],
       amounts: BigNumberish[],
@@ -241,11 +243,11 @@ export class MockFlashLoanRecipient extends BaseContract {
       _repayLoan: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    vault(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     receiveFlashLoan(
       tokens: string[],
       amounts: BigNumberish[],
@@ -274,7 +276,5 @@ export class MockFlashLoanRecipient extends BaseContract {
       _repayLoan: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    vault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

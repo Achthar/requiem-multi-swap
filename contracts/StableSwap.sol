@@ -24,21 +24,12 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
     uint256 internal constant MAX_A_CHANGE = 10;
     uint256 internal constant MAX_ADMIN_FEE = 1e10; // 100%
     uint256 internal constant MAX_TRANSACTION_FEE = 1e8; // 1%
-    uint256 internal constant MAX_WITHDRAW_FEE = 1e8; // 1%
 
     /// STATE VARS
     StableSwapLib.SwapStorage public swapStorage;
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
-
-
-    // errors
-    string internal constant addressError = "address";
-    string internal constant feeError = "fee";
-    string internal constant arrayError = "array";
-    string internal constant paramError = "p";
-
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -61,23 +52,23 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint256 _withdrawFee,
         address _feeDistributor
     ) external onlyOwner initializer {
-        require(_coins.length == _decimals.length, arrayError);
-        require(_feeDistributor != address(0), addressError);
+        require(_coins.length == _decimals.length, "arrayError");
+        require(_feeDistributor != address(0), "addressError");
         uint256 numberOfCoins = _coins.length;
         uint256[] memory rates = new uint256[](numberOfCoins);
         IERC20[] memory coins = new IERC20[](numberOfCoins);
         for (uint256 i = 0; i < numberOfCoins; i++) {
-            require(_coins[i] != address(0), addressError);
-            require(_decimals[i] <= StableSwapLib.POOL_TOKEN_COMMON_DECIMALS, paramError);
+            require(_coins[i] != address(0), "addressError");
+            require(_decimals[i] <= StableSwapLib.POOL_TOKEN_COMMON_DECIMALS, "paramError");
             rates[i] = 10**(StableSwapLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             coins[i] = IERC20(_coins[i]);
             tokenIndexes[address(coins[i])] = uint8(i);
         }
 
-        require(_A < MAX_A, paramError);
-        require(_fee <= MAX_TRANSACTION_FEE, feeError);
-        require(_adminFee <= MAX_ADMIN_FEE, feeError);
-        require(_withdrawFee <= MAX_WITHDRAW_FEE, feeError);
+        require(_A < MAX_A, "paramError");
+        require(_fee <= MAX_TRANSACTION_FEE, "feeError");
+        require(_adminFee <= MAX_ADMIN_FEE, "feeError");
+        require(_withdrawFee <= MAX_TRANSACTION_FEE, "feeError");
 
         swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
@@ -230,7 +221,7 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
      * @param transferAmount amount of pool token to transfer
      */
     function updateUserWithdrawFee(address recipient, uint256 transferAmount) external override {
-        require(msg.sender == address(swapStorage.lpToken), addressError);
+        require(msg.sender == address(swapStorage.lpToken), "addressError");
         swapStorage.updateUserWithdrawFee(recipient, transferAmount);
     }
 
@@ -249,10 +240,10 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint256 newAdminFee,
         uint256 newWithdrawFee
     ) external onlyOwner {
-        require(newSwapFee <= MAX_TRANSACTION_FEE, feeError);
-        require(newFlashFee <= MAX_TRANSACTION_FEE, feeError);
-        require(newAdminFee <= MAX_ADMIN_FEE, feeError);
-        require(newWithdrawFee <= MAX_WITHDRAW_FEE, feeError);
+        require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
+        require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
+        require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
+        require(newWithdrawFee <= MAX_TRANSACTION_FEE, "feeError");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
@@ -268,17 +259,17 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
      * @param futureATime timestamp when the new A should be reached
      */
     function rampA(uint256 futureA, uint256 futureATime) external onlyOwner {
-        require(block.timestamp >= swapStorage.initialATime + (1 days), paramError); // please wait 1 days before start a new ramping
-        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), paramError);
-        require(0 < futureA && futureA < MAX_A, arrayError);
+        require(block.timestamp >= swapStorage.initialATime + (1 days), "paramError"); // please wait 1 days before start a new ramping
+        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "paramError");
+        require(0 < futureA && futureA < MAX_A, "arrayError");
 
         uint256 initialAPrecise = swapStorage.getAPrecise();
         uint256 futureAPrecise = futureA * StableSwapLib.A_PRECISION;
 
         if (futureAPrecise < initialAPrecise) {
-            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, paramError);
+            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "paramError");
         } else {
-            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), paramError);
+            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "paramError");
         }
 
         swapStorage.initialA = initialAPrecise;
@@ -302,13 +293,13 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
     }
 
     function setFeeController(address _feeController) external onlyOwner {
-        require(_feeController != address(0), addressError);
+        require(_feeController != address(0), "addressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
     }
 
     function setFeeDistributor(address _feeDistributor) external onlyOwner {
-        require(_feeDistributor != address(0), addressError);
+        require(_feeDistributor != address(0), "addressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
     }
@@ -327,5 +318,9 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
 
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;
+    }
+
+    function getCollectedFees() external view returns (uint256[] memory) {
+        return swapStorage.collectedFees;
     }
 }

@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MIT
 
+import "./IWeightedPairManager.sol";
+
 pragma solidity ^0.8.13;
 
-interface ISwapRouter {
+// solhint-disable func-name-mixedcase
+
+interface ISwapRouter is IWeightedPairManager {
     event Exchange(address pair, uint256 amountOut, address output);
     struct Swap {
         address pool;
@@ -19,101 +23,55 @@ interface ISwapRouter {
 
     function WETH() external view returns (address);
 
-    // function swapExactTokensForTokens(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     uint256 amountOutMin,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external returns (uint256[] memory amounts);
+    function onSwapExactTokensForTokens(
+        address[] memory pools,
+        address[] memory tokens,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountLast);
 
-    // function swapTokensForExactTokens(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     uint256 amountInMax,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external returns (uint256[] memory amounts);
+    function onSwapExactETHForTokens(
+        address[] memory pools,
+        address[] memory tokens,
+        uint256 amountOutMin,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256 amountLast);
 
-    // function swapExactETHForTokens(
-    //     address tokenOut,
-    //     uint256 amountOutMin,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external payable returns (uint256[] memory amounts);
+    function onSwapExactTokensForETH(
+        address[] memory pools,
+        address[] memory tokens,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountLast);
 
-    // function swapTokensForExactETH(
-    //     address tokenIn,
-    //     uint256 amountOut,
-    //     uint256 amountInMax,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external returns (uint256[] memory amounts);
+    function onSwapTokensForExactTokens(
+        address[] memory pools,
+        address[] memory tokens,
+        uint256 amountOut,
+        uint256 amountInMax,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
 
-    // function swapExactTokensForETH(
-    //     address tokenIn,
-    //     uint256 amountIn,
-    //     uint256 amountOutMin,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external returns (uint256[] memory amounts);
+    function onSwapETHForExactTokens(
+        address[] memory pools,
+        address[] memory tokens,
+        uint256 amountOut,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
 
-    // function swapETHForExactTokens(
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external payable returns (uint256[] memory amounts);
-
-    // function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     uint256 amountOutMin,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external;
-
-    // function swapExactETHForTokensSupportingFeeOnTransferTokens(
-    //     address tokenOut,
-    //     uint256 amountOutMin,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external payable;
-
-    // function swapExactTokensForETHSupportingFeeOnTransferTokens(
-    //     address tokenIn,
-    //     uint256 amountIn,
-    //     uint256 amountOutMin,
-    //     address[] calldata path,
-    //     address to,
-    //     uint256 deadline
-    // ) external;
-
-    // function multihopBatchSwapExactIn(
-    //     Swap[][] memory swapSequences,
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 totalAmountIn,
-    //     uint256 minTotalAmountOut,
-    //     uint256 deadline
-    // ) external payable returns (uint256 totalAmountOut);
-
-    // function multihopBatchSwapExactOut(
-    //     Swap[][] memory swapSequences,
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 maxTotalAmountIn,
-    //     uint256 deadline
-    // ) external payable returns (uint256 totalAmountIn);
+    function onSwapTokensForExactETH(
+        address[] memory pools,
+        address[] memory tokens,
+        uint256 amountOut,
+        uint256 amountInMax,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
 }

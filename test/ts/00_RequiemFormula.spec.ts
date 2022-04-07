@@ -94,9 +94,6 @@ describe('RequiemFormula-Test', () => {
 		factory = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
 		router = await new SwapRouter__factory(wallet).deploy(factory.address, weth.address)
 
-		await tokenA.approve(pairManager.address, ethers.constants.MaxUint256)
-		await tokenB.approve(pairManager.address, ethers.constants.MaxUint256)
-
 		await tokenA.approve(router.address, ethers.constants.MaxUint256)
 		await tokenB.approve(router.address, ethers.constants.MaxUint256)
 

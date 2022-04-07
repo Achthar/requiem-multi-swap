@@ -281,6 +281,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockERC20__factory>;
     getContractFactory(
+      name: "MockFlashLoanRecipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockFlashLoanRecipient__factory>;
+    getContractFactory(
       name: "WETH9",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WETH9__factory>;
@@ -480,6 +484,10 @@ declare module "hardhat/types/runtime" {
       name: "WeightedPairGovernance",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WeightedPairGovernance__factory>;
+    getContractFactory(
+      name: "Zap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Zap__factory>;
 
     getContractAt(
       name: "OwnerPausable",
@@ -817,6 +825,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.MockERC20>;
     getContractAt(
+      name: "MockFlashLoanRecipient",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockFlashLoanRecipient>;
+    getContractAt(
       name: "WETH9",
       address: string,
       signer?: ethers.Signer
@@ -1066,6 +1079,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.WeightedPairGovernance>;
+    getContractAt(
+      name: "Zap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Zap>;
 
     // default types
     getContractFactory(
