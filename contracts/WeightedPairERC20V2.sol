@@ -6,7 +6,7 @@ import "./interfaces/IRequiemPairERC20.sol";
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
-abstract contract WeightedPairERC20V2 is IRequiemPairERC20 {
+ abstract contract WeightedPairERC20V2 is IRequiemPairERC20 {
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
 
@@ -15,7 +15,7 @@ abstract contract WeightedPairERC20V2 is IRequiemPairERC20 {
 
     bytes32 public override DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant override PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+    bytes32 public constant override PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     mapping(address => uint256) public nonces;
 
     constructor() {
@@ -90,10 +90,10 @@ abstract contract WeightedPairERC20V2 is IRequiemPairERC20 {
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "RLP: EXPIRED");
+        require(deadline >= block.timestamp, "REQ: EXPIRED");
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))));
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, "RLP: IS");
+        require(recoveredAddress != address(0) && recoveredAddress == owner, "REQ: IS");
         _approve(owner, spender, value);
     }
 }

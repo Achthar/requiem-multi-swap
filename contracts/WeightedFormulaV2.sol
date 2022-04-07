@@ -159,7 +159,7 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         uint32 _expN,
         uint32 _expD
     ) internal view returns (uint256, uint8) {
-        require(_baseN >= _baseD, "not support _baseN < _baseD");
+        require(_baseN >= _baseD, "_baseN < _baseD");
         require(_baseN < MAX_NUM);
 
         uint256 baseLog;
@@ -171,6 +171,34 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         }
 
         uint256 baseLogTimesExp = (baseLog * _expN) / _expD;
+        if (baseLogTimesExp < OPT_EXP_MAX_VAL) {
+            return (optimalExp(baseLogTimesExp), MAX_PRECISION);
+        } else {
+            uint8 precision = findPositionInMaxExpArray(baseLogTimesExp);
+            return (generalExp(baseLogTimesExp >> (MAX_PRECISION - precision), precision), precision);
+        }
+    }
+
+    /**
+     * @dev power function using expD = 50
+     */
+    function powerD(
+        uint256 _baseN,
+        uint256 _baseD,
+        uint32 _expN
+    ) internal view returns (uint256, uint8) {
+        require(_baseN >= _baseD, "_baseN < _baseD");
+        require(_baseN < MAX_NUM);
+
+        uint256 baseLog;
+        uint256 base = (_baseN * FIXED_1) / _baseD;
+        if (base < OPT_LOG_MAX_VAL) {
+            baseLog = optimalLog(base);
+        } else {
+            baseLog = generalLog(base);
+        }
+
+        uint256 baseLogTimesExp = (baseLog * _expN) / 50;
         if (baseLogTimesExp < OPT_EXP_MAX_VAL) {
             return (optimalExp(baseLogTimesExp), MAX_PRECISION);
         } else {
@@ -554,306 +582,7 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         return res;
     }
 
-    // function getReserveAndWeights(address pair, address tokenA)
-    //     public
-    //     view
-    //     override
-    //     returns (
-    //         address tokenB,
-    //         uint256 reserveA,
-    //         uint256 reserveB,
-    //         uint256 vReserveA,
-    //         uint256 vReserveB,
-    //         uint32 tokenWeightA,
-    //         uint32 tokenWeightB,
-    //         uint32 swapFee
-    //     )
-    // {
-    //     (uint256 reserve0, uint256 reserve1, , uint256 vReserve0, uint256 vReserve1) = IRequiemWeightedPairV2(pair).getReserves();
-    //     uint32 tokenWeight0;
-    //     uint32 tokenWeight1;
-    //     (tokenWeight0, tokenWeight1, swapFee) = getWeightsAndSwapFee(pair);
-
-    //     if (tokenA == IRequiemWeightedPairV2(pair).token0()) {
-    //         (tokenB, reserveA, reserveB, vReserveA, vReserveB, tokenWeightA, tokenWeightB) = (
-    //             IRequiemWeightedPairV2(pair).token1(),
-    //             reserve0,
-    //             reserve1,
-    //             vReserve0,
-    //             vReserve1,
-    //             tokenWeight0,
-    //             tokenWeight1
-    //         );
-    //     } else if (tokenA == IRequiemWeightedPairV2(pair).token1()) {
-    //         (tokenB, reserveA, reserveB, vReserveA, vReserveB, tokenWeightA, tokenWeightB) = (
-    //             IRequiemWeightedPairV2(pair).token0(),
-    //             reserve1,
-    //             reserve0,
-    //             vReserve1,
-    //             vReserve0,
-    //             tokenWeight1,
-    //             tokenWeight0
-    //         );
-    //     } else {
-    //         revert("RequiemFormula: Invalid tokenA");
-    //     }
-    // }
-
-    // function getFactoryReserveAndWeights(
-    //     address factory,
-    //     address pair,
-    //     address tokenA
-    // )
-    //     public
-    //     view
-    //     override
-    //     returns (
-    //         address tokenB,
-    //         uint256 reserveA,
-    //         uint256 reserveB,
-    //         uint256 vReserveA,
-    //         uint256 vReserveB,
-    //         uint32 tokenWeightA,
-    //         uint32 tokenWeightB,
-    //         uint32 swapFee
-    //     )
-    // {
-    //     (uint256 reserve0, uint256 reserve1, , uint256 vReserve0, uint256 vReserve1) = IRequiemWeightedPairV2(pair).getReserves();
-    //     uint32 tokenWeight0;
-    //     uint32 tokenWeight1;
-    //     (tokenWeight0, tokenWeight1, swapFee) = getFactoryWeightsAndSwapFee(factory, pair);
-
-    //     if (tokenA == IRequiemWeightedPairV2(pair).token0()) {
-    //         (tokenB, reserveA, reserveB, vReserveA, vReserveB, tokenWeightA, tokenWeightB) = (
-    //             IRequiemWeightedPairV2(pair).token1(),
-    //             reserve0,
-    //             reserve1,
-    //             vReserve0,
-    //             vReserve1,
-    //             tokenWeight0,
-    //             tokenWeight1
-    //         );
-    //     } else if (tokenA == IRequiemWeightedPairV2(pair).token1()) {
-    //         (tokenB, reserveA, reserveB, vReserveA, vReserveB, tokenWeightA, tokenWeightB) = (
-    //             IRequiemWeightedPairV2(pair).token0(),
-    //             reserve1,
-    //             reserve0,
-    //             vReserve1,
-    //             vReserve0,
-    //             tokenWeight1,
-    //             tokenWeight0
-    //         );
-    //     } else {
-    //         revert("RequiemFormula: Invalid tokenA");
-    //     }
-    // }
-
-    /**
-     * @notice given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset,
-     *
-     * Formula:
-     * return = reserveOut * (1 - (reserveIn * 10000 / (reserveIn * 10000 + amountIn * (10000 - swapFee))) ^ (tokenWeightIn / tokenWeightOut))
-     *
-     * @param amountIn      source reserve amount
-     * @param pricingData   contains the following inputs:
-     *  reserveIn       source reserve balance
-     *  reserveOut      target reserve balance
-     *  tokenWeightIn   source reserve weight, represented in ppm (2-98)
-     *  tokenWeightOut  target reserve weight, represented in ppm (2-98)
-     *  swapFee         swap fee of the conversion
-     *
-     * @return amountOut
-     */
-    function getAmountOut(uint256 amountIn, PricingData calldata pricingData) public view override returns (uint256 amountOut) {
-        // validate input
-        require(amountIn > 0, "RequiemFormula: INSUFFICIENT_INPUT_AMOUNT");
-        require(pricingData.reserveIn > 0 && pricingData.reserveOut > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
-        uint256 amountInWithFee = amountIn * (10000 - pricingData.swapFee);
-        // special case for equal weights
-        if (pricingData.tokenWeightIn == pricingData.tokenWeightOut) {
-            return (pricingData.vReserveOut * amountInWithFee) / (pricingData.vReserveIn * 10000 + amountInWithFee);
-        }
-
-        uint256 result;
-        uint8 precision;
-        uint256 baseN = pricingData.vReserveIn * 10000 + amountInWithFee;
-        (result, precision) = power(baseN, pricingData.vReserveIn * 10000, pricingData.tokenWeightIn, pricingData.tokenWeightOut);
-
-        uint256 temp1 = pricingData.vReserveOut * result;
-        uint256 temp2 = pricingData.vReserveOut << precision;
-        amountOut = (temp1 - temp2) / result;
-    }
-
-    /**
-     * @notice given an output amount of an asset and pair reserves, returns a required input amount of the other asset
-     *
-     * Formula:
-     * return = reserveIn * ( (reserveOut / (reserveOut - amountOut)) ^ (tokenWeightOut / tokenWeightIn) - 1) * (10000/ (10000 - swapFee)
-     *
-     * @param amountOut     target reserve amount
-     * @param pricingData   contains the following inputs:
-     *  reserveIn       source reserve balance
-     *  reserveOut      target reserve balance
-     *  tokenWeightIn   source reserve weight, represented in ppm (2-98)
-     *  tokenWeightOut  target reserve weight, represented in ppm (2-98)
-     *  swapFee         swap fee of the conversion
-     *
-     * @return amountIn
-     */
-    function getAmountIn(uint256 amountOut, PricingData calldata pricingData) public view override returns (uint256 amountIn) {
-        // validate input
-        require(amountOut > 0, "RequiemFormula: INSUFFICIENT_OUTPUT_AMOUNT");
-        require(pricingData.reserveIn > 0 && pricingData.reserveOut > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
-        // special case for equal weights
-        if (pricingData.tokenWeightIn == pricingData.tokenWeightOut) {
-            uint256 numerator = pricingData.vReserveIn * amountOut * 10000;
-            uint256 denominator = (pricingData.vReserveOut - amountOut) * (10000 - pricingData.swapFee);
-            return numerator / denominator + 1;
-        }
-
-        uint256 result;
-        uint8 precision;
-        uint256 baseD = pricingData.vReserveOut - amountOut;
-        (result, precision) = power(pricingData.vReserveOut, baseD, pricingData.tokenWeightOut, pricingData.tokenWeightIn);
-        uint256 baseReserveIn = pricingData.vReserveIn * 10000;
-        uint256 temp1 = baseReserveIn * result;
-        uint256 temp2 = baseReserveIn << precision;
-        amountIn = ((temp1 - temp2) >> precision) / (10000 - pricingData.swapFee) + 1;
-    }
-
-    // // performs chained getAmountOut calculations on any number of pairs
-    // function getAmountsOut(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     address[] calldata path
-    // ) external view override returns (uint256[] memory amounts) {
-    //     require(path.length > 0, "RequiemFormula: INVALID_PATH");
-    //     amounts = new uint256[](path.length + 1);
-    //     amounts[0] = amountIn;
-    //     address currentTokenIn = tokenIn;
-    //     for (uint256 i = 0; i < path.length; i++) {
-    //         (
-    //             address currentTokenOut,
-    //             uint256 reserveIn,
-    //             uint256 reserveOut,
-    //             uint256 vReserveIn,
-    //             uint256 vReserveOut,
-    //             uint32 tokenWeightIn,
-    //             uint32 tokenWeightOut,
-    //             uint32 swapFee
-    //         ) = getReserveAndWeights(path[i], currentTokenIn);
-    //         amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, vReserveIn, vReserveOut, tokenWeightIn, tokenWeightOut, swapFee);
-    //         currentTokenIn = currentTokenOut;
-    //     }
-    //     require(currentTokenIn == tokenOut, "RequiemFormula: INVALID_TOKEN_OUT_PATH");
-    // }
-
-    // function getFactoryAmountsOut(
-    //     address factory,
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     address[] calldata path
-    // ) external view override returns (uint256[] memory amounts) {
-    //     require(path.length > 0, "RequiemFormula: INVALID_PATH");
-    //     amounts = new uint256[](path.length + 1);
-    //     amounts[0] = amountIn;
-    //     address currentTokenIn = tokenIn;
-
-    //     for (uint256 i = 0; i < path.length; i++) {
-    //         (
-    //             address currentTokenOut,
-    //             uint256 reserveIn,
-    //             uint256 reserveOut,
-    //             uint256 vReserveIn,
-    //             uint256 vReserveOut,
-    //             uint32 tokenWeightIn,
-    //             uint32 tokenWeightOut,
-    //             uint32 swapFee
-    //         ) = getFactoryReserveAndWeights(factory, path[i], currentTokenIn);
-
-    //         amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, vReserveIn, vReserveOut, tokenWeightIn, tokenWeightOut, swapFee);
-    //         currentTokenIn = currentTokenOut;
-    //     }
-    //     require(currentTokenIn == tokenOut, "RequiemFormula: INVALID_TOKEN_OUT_PATH");
-    // }
-
-    // function getPairAmountOut(
-    //     address pair,
-    //     address tokenIn,
-    //     uint256 amountIn
-    // ) external view override returns (uint256 amountOut) {
-    //     (, uint256 reserveIn, uint256 reserveOut, uint256 vReserveIn, uint256 vReserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
-    //     amountOut = getAmountOut(amountIn, reserveIn, reserveOut, vReserveIn, vReserveOut, tokenWeightIn, tokenWeightOut, swapFee);
-    // }
-
-    // // performs chained getAmountIn calculations on any number of pairs
-    // function getAmountsIn(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     address[] calldata path
-    // ) external view override returns (uint256[] memory amounts) {
-    //     require(path.length > 0, "RequiemFormula: INVALID_PATH");
-    //     amounts = new uint256[](path.length + 1);
-    //     amounts[amounts.length - 1] = amountOut;
-    //     address currentTokenIn = tokenOut;
-    //     for (uint256 i = path.length; i > 0; i--) {
-    //         (
-    //             address currentTokenOut,
-    //             uint256 reserveIn,
-    //             uint256 reserveOut,
-    //             uint256 vReserveIn,
-    //             uint256 vReserveOut,
-    //             uint32 tokenWeightIn,
-    //             uint32 tokenWeightOut,
-    //             uint32 swapFee
-    //         ) = getReserveAndWeights(path[i - 1], currentTokenIn);
-    //         amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, vReserveOut, vReserveIn, tokenWeightOut, tokenWeightIn, swapFee);
-    //         currentTokenIn = currentTokenOut;
-    //     }
-    //     require(currentTokenIn == tokenIn, "RequiemFormula: INVALID_TOKEN_IN_PATH");
-    // }
-
-    // function getFactoryAmountsIn(
-    //     address factory,
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     address[] calldata path
-    // ) external view override returns (uint256[] memory amounts) {
-    //     require(path.length > 0, "RequiemFormula: INVALID_PATH");
-    //     amounts = new uint256[](path.length + 1);
-    //     amounts[amounts.length - 1] = amountOut;
-    //     address currentTokenIn = tokenOut;
-    //     for (uint256 i = path.length; i > 0; i--) {
-    //         (
-    //             address currentTokenOut,
-    //             uint256 reserveIn,
-    //             uint256 reserveOut,
-    //             uint256 vReserveIn,
-    //             uint256 vReserveOut,
-    //             uint32 tokenWeightIn,
-    //             uint32 tokenWeightOut,
-    //             uint32 swapFee
-    //         ) = getFactoryReserveAndWeights(factory, path[i - 1], currentTokenIn);
-    //         amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, vReserveOut, vReserveIn, tokenWeightOut, tokenWeightIn, swapFee);
-    //         currentTokenIn = currentTokenOut;
-    //     }
-    //     require(currentTokenIn == tokenIn, "RequiemFormula: INVALID_TOKEN_IN_PATH");
-    // }
-
-    // function getPairAmountIn(
-    //     address pair,
-    //     address tokenIn,
-    //     uint256 amountOut
-    // ) external view override returns (uint256 amountIn) {
-    //     (, uint256 reserveIn, uint256 reserveOut, uint256 vReserveIn, uint256 vReserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getReserveAndWeights(pair, tokenIn);
-    //     amountIn = getAmountIn(amountOut, reserveOut, reserveIn, vReserveOut, vReserveIn, tokenWeightOut, tokenWeightIn, swapFee);
-    // }
-
-    function getParameters(address pair)
+    function getPairStaticData(address pair)
         public
         view
         returns (
@@ -874,7 +603,7 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         }
     }
 
-    function getFactoryParameters(address factory, address pair)
+    function getFactoryStaticData(address factory, address pair)
         public
         view
         returns (
@@ -887,9 +616,255 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         return IRequiemWeightedPairFactoryV2(factory).getParameters(pair);
     }
 
-    // Ensure constant value reserve0^(tokenWeight0/50) * reserve1^((100 - tokenWeight0)/50) <= balance0Adjusted^(tokenWeight0/50) * balance1Adjusted^((100 - tokenWeight0)/50)
-    //  1 <= (balance0Adjusted / reserve0 )^(tokenWeight0/50) * (balance1Adjusted/reserve1)^((100 - tokenWeight0)/50)
-    //  (reserve0 / balance0Adjusted) ^ (tokenWeight0/50) <=  (balance1Adjusted / reserve1) ^ ((100 - tokenWeight0)/50)
+    function getPairParameters(address pair, address tokenA)
+        public
+        view
+        override
+        returns (
+            address tokenB,
+            uint256 reserveA,
+            uint256 reserveB,
+            uint32 tokenWeightA,
+            uint32 tokenWeightB,
+            uint32 swapFee
+        )
+    {
+        IRequiemWeightedPairV2.ReserveData memory reserveData = IRequiemWeightedPairV2(pair).getReserves();
+        uint32 tokenWeight0;
+        uint32 tokenWeight1;
+        (tokenWeight0, tokenWeight1, swapFee, ) = getPairStaticData(pair);
+
+        if (tokenA == IRequiemWeightedPairV2(pair).token0()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
+        } else if (tokenA == IRequiemWeightedPairV2(pair).token1()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
+        } else {
+            revert("REQF: IA");
+        }
+    }
+
+    function getFactoryParameters(
+        address factory,
+        address pair,
+        address tokenA
+    )
+        public
+        view
+        override
+        returns (
+            address tokenB,
+            uint256 reserveA,
+            uint256 reserveB,
+            uint32 tokenWeightA,
+            uint32 tokenWeightB,
+            uint32 swapFee
+        )
+    {
+        IRequiemWeightedPairV2.ReserveData memory reserveData = IRequiemWeightedPairV2(pair).getReserves();
+        uint32 tokenWeight0;
+        uint32 tokenWeight1;
+        (tokenWeight0, tokenWeight1, swapFee, ) = getFactoryStaticData(factory, pair);
+
+        if (tokenA == IRequiemWeightedPairV2(pair).token0()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
+        } else if (tokenA == IRequiemWeightedPairV2(pair).token1()) {
+            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IRequiemWeightedPairV2(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
+        } else {
+            revert("REQF: IA");
+        }
+    }
+
+    /**
+     * @notice given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset,
+     *
+     * Formula:
+     * return = reserveOut * (1 - (reserveIn * 10000 / (reserveIn * 10000 + amountIn * (10000 - swapFee))) ^ (tokenWeightIn / tokenWeightOut))
+     *
+     * @param amountIn      source reserve amount
+     *    contains the following inputs:
+     *  reserveIn       source reserve balance
+     *  reserveOut      target reserve balance
+     *  tokenWeightIn   source reserve weight, represented in ppm (2-98)
+     *  tokenWeightOut  target reserve weight, represented in ppm (2-98)
+     *  swapFee         swap fee of the conversion
+     *
+     * @return amountOut
+     */
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint32 tokenWeightIn,
+        uint32 tokenWeightOut,
+        uint32 swapFee
+    ) public view override returns (uint256 amountOut) {
+        // validate input
+        uint256 amountInWithFee = amountIn * (10000 - swapFee);
+        // special case for equal weights
+        if (tokenWeightIn == tokenWeightOut) {
+            return (reserveOut * amountInWithFee) / (reserveIn * 10000 + amountInWithFee);
+        }
+
+        uint256 result;
+        uint8 precision;
+        uint256 baseN = reserveIn * 10000 + amountInWithFee;
+        (result, precision) = power(baseN, reserveIn * 10000, tokenWeightIn, tokenWeightOut);
+
+        uint256 temp1 = reserveOut * result;
+        uint256 temp2 = reserveOut << precision;
+        amountOut = (temp1 - temp2) / result;
+    }
+
+    /**
+     * @notice given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+     *
+     * Formula:
+     * return = reserveIn * ( (reserveOut / (reserveOut - amountOut)) ^ (tokenWeightOut / tokenWeightIn) - 1) * (10000/ (10000 - swapFee)
+     *
+     * @param amountOut     target reserve amount
+     *    contains the following inputs:
+     *  reserveIn       source reserve balance
+     *  reserveOut      target reserve balance
+     *  tokenWeightIn   source reserve weight, represented in ppm (2-98)
+     *  tokenWeightOut  target reserve weight, represented in ppm (2-98)
+     *  swapFee         swap fee of the conversion
+     *
+     * @return amountIn
+     */
+    function getAmountIn(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint32 tokenWeightIn,
+        uint32 tokenWeightOut,
+        uint32 swapFee
+    ) public view override returns (uint256 amountIn) {
+        // validate input
+        // special case for equal weights
+        if (tokenWeightIn == tokenWeightOut) {
+            uint256 numerator = reserveIn * amountOut * 10000;
+            uint256 denominator = (reserveOut - amountOut) * (10000 - swapFee);
+            return numerator / denominator + 1;
+        }
+
+        uint256 result;
+        uint8 precision;
+        uint256 baseD = reserveOut - amountOut;
+        (result, precision) = power(reserveOut, baseD, tokenWeightOut, tokenWeightIn);
+        uint256 baseReserveIn = reserveIn * 10000;
+        uint256 temp1 = baseReserveIn * result;
+        uint256 temp2 = baseReserveIn << precision;
+        amountIn = ((temp1 - temp2) >> precision) / (10000 - swapFee) + 1;
+    }
+
+    // performs chained getAmountOut calculations on any number of pairs
+    function getAmountsOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address[] calldata path
+    ) external view override returns (uint256[] memory amounts) {
+        require(path.length > 0, "REQF: IP");
+        amounts = new uint256[](path.length + 1);
+        amounts[0] = amountIn;
+        address currentTokenIn = tokenIn;
+        for (uint256 i = 0; i < path.length; i++) {
+            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getPairParameters(path[i], currentTokenIn);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+            currentTokenIn = currentTokenOut;
+        }
+        require(currentTokenIn == tokenOut, "REQF: IOP");
+    }
+
+    function getFactoryAmountsOut(
+        address factory,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address[] calldata path
+    ) external view override returns (uint256[] memory amounts) {
+        require(path.length > 0, "REQF: IP");
+        amounts = new uint256[](path.length + 1);
+        amounts[0] = amountIn;
+        address currentTokenIn = tokenIn;
+
+        for (uint256 i = 0; i < path.length; i++) {
+            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryParameters(factory, path[i], currentTokenIn);
+
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+            currentTokenIn = currentTokenOut;
+        }
+        require(currentTokenIn == tokenOut, "REQF: IOP");
+    }
+
+    function getPairAmountOut(
+        address pair,
+        address tokenIn,
+        uint256 amountIn
+    ) external view override returns (uint256 amountOut) {
+        (, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getPairParameters(pair, tokenIn);
+        amountOut = getAmountOut(amountIn, reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+    }
+
+    // performs chained getAmountIn calculations on any number of pairs
+    function getAmountsIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address[] calldata path
+    ) external view override returns (uint256[] memory amounts) {
+        require(path.length > 0, "REQF: IP");
+        amounts = new uint256[](path.length + 1);
+        amounts[amounts.length - 1] = amountOut;
+        address currentTokenIn = tokenOut;
+        for (uint256 i = path.length; i > 0; i--) {
+            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getPairParameters(path[i - 1], currentTokenIn);
+            amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
+            currentTokenIn = currentTokenOut;
+        }
+        require(currentTokenIn == tokenIn, "REQF: IIP");
+    }
+
+    function getFactoryAmountsIn(
+        address factory,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address[] calldata path
+    ) external view override returns (uint256[] memory amounts) {
+        require(path.length > 0, "REQF: IP");
+        amounts = new uint256[](path.length + 1);
+        amounts[amounts.length - 1] = amountOut;
+        address currentTokenIn = tokenOut;
+        for (uint256 i = path.length; i > 0; i--) {
+            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryParameters(
+                factory,
+                path[i - 1],
+                currentTokenIn
+            );
+            amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
+            currentTokenIn = currentTokenOut;
+        }
+        require(currentTokenIn == tokenIn, "REQF: IIP");
+    }
+
+    function getPairAmountIn(
+        address pair,
+        address tokenIn,
+        uint256 amountOut
+    ) external view override returns (uint256 amountIn) {
+        (, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getPairParameters(pair, tokenIn);
+        amountIn = getAmountIn(amountOut, reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
+    }
+
+    /**
+     * @notice Ensure constant value
+     * reserve0^(tokenWeight0/50) * reserve1^((100 - tokenWeight0)/50) <= balance0Adjusted^(tokenWeight0/50) * balance1Adjusted^((100 - tokenWeight0)/50)
+     * or
+     *  1 <= (balance0Adjusted / reserve0 )^(tokenWeight0/50) * (balance1Adjusted/reserve1)^((100 - tokenWeight0)/50)
+     * or
+     *  (reserve0 / balance0Adjusted) ^ (tokenWeight0/50) <=  (balance1Adjusted / reserve1) ^ ((100 - tokenWeight0)/50)
+     */
     function ensureConstantValue(
         uint256 reserve0,
         uint256 reserve1,
@@ -901,11 +876,9 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             return balance0Adjusted * balance1Adjusted >= reserve0 * reserve1;
         }
         if (balance0Adjusted >= reserve0 && balance1Adjusted >= reserve1) {
-            require(false, "HI1");
             return true;
         }
         if (balance0Adjusted <= reserve0 && balance1Adjusted <= reserve1) {
-            require(false, "HI2");
             return false;
         }
         uint32 w0 = tokenWeight0;
@@ -916,11 +889,11 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
         uint256 r1;
         uint256 p1;
         if (balance0Adjusted >= reserve0) {
-            (r0, p0) = power(reserve1, balance1Adjusted, w1, 50);
-            (r1, p1) = power(balance0Adjusted, reserve0, w0, 50);
+            (r0, p0) = powerD(reserve1, balance1Adjusted, w1);
+            (r1, p1) = powerD(balance0Adjusted, reserve0, w0);
         } else {
-            (r0, p0) = power(reserve0, balance0Adjusted, w0, 50);
-            (r1, p1) = power(balance1Adjusted, reserve1, w1, 50);
+            (r0, p0) = powerD(reserve0, balance0Adjusted, w0);
+            (r1, p1) = powerD(balance1Adjusted, reserve1, w1);
         }
         uint256 minP = p0 < p1 ? p0 : p1;
         p0 = p0 - minP;
@@ -929,9 +902,9 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
     }
 
     function sortTokens(address tokenA, address tokenB) public pure override returns (address token0, address token1) {
-        require(tokenA != tokenB, "RequiemFormula: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "REQF: A");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), "RequiemFormula: ZERO_ADDRESS");
+        require(token0 != address(0), "REQF: ZA");
     }
 
     function getReserves(
@@ -951,33 +924,51 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
     {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
         IRequiemWeightedPairV2.ReserveData memory data = IRequiemWeightedPairV2(pair).getReserves();
-        require(token0 == IRequiemWeightedPairV2(pair).token0() && token1 == IRequiemWeightedPairV2(pair).token1(), "RequiemFormula: Invalid token");
+        require(token0 == IRequiemWeightedPairV2(pair).token0() && token1 == IRequiemWeightedPairV2(pair).token1(), "REQF: T");
         (reserveA, reserveB, vReserveA, vReserveB) = tokenA == token0 ? (data.reserve0, data.reserve1, data.vReserve0, data.vReserve1) : (data.reserve1, data.reserve0, data.vReserve1, data.vReserve0);
     }
 
     function getOtherToken(address pair, address tokenA) external view override returns (address tokenB) {
         address token0 = IRequiemWeightedPairV2(pair).token0();
         address token1 = IRequiemWeightedPairV2(pair).token1();
-        require(token0 == tokenA || token1 == tokenA, "RequiemFormula: Invalid tokenA");
+        require(token0 == tokenA || token1 == tokenA, "REQF: A");
         tokenB = token0 == tokenA ? token1 : token0;
     }
 
-    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+    /**
+     * @notice Given some amount of an asset and pair reserves, returns an equivalent amount of required amount of the other asset for LP
+     * @param amountA token A amount
+     * @param reserveA reserve of token A
+     * @param reserveB reserve of token B
+     * @return amountB amount of token B required to consume all of amount A for LPs
+     */
     function quote(
         uint256 amountA,
         uint256 reserveA,
         uint256 reserveB
     ) external pure override returns (uint256 amountB) {
-        require(amountA > 0, "RequiemFormula: INSUFFICIENT_AMOUNT");
-        require(reserveA > 0 && reserveB > 0, "RequiemFormula: INSUFFICIENT_LIQUIDITY");
+        require(amountA > 0, "REQD: IA");
+        require(reserveA > 0 && reserveB > 0, "REQD: IL");
         amountB = (amountA * reserveB) / reserveA;
     }
 
+    /**
+     * @notice Calculates the fee to be sent to the protocol
+     * @param totalLiquidity total LP liquidity
+     * @param reserve0 reserve of token0
+     * @param reserve1 reserve of token1
+     * @param tokenWeight0 weight of token0
+     * @param tokenWeight1 weight of token1
+     * @param collectedFee0 fees collected of token0
+     * @param collectedFee1 fees collected of token1
+     * @return amount fee amount
+     */
     function mintLiquidityFee(
         uint256 totalLiquidity,
         uint256 reserve0,
         uint256 reserve1,
         uint32 tokenWeight0,
+        uint32 tokenWeight1,
         uint112 collectedFee0,
         uint112 collectedFee1
     ) external view override returns (uint256 amount) {
@@ -986,7 +977,7 @@ contract WeightedFormulaV2 is IWeightedFormulaV2 {
             amount = amount + ((totalLiquidity * r0) >> p0) - totalLiquidity;
         }
         if (collectedFee1 > 0) {
-            (uint256 r1, uint256 p1) = power(uint256(collectedFee1) + reserve1, reserve1, 100 - tokenWeight0, 100);
+            (uint256 r1, uint256 p1) = power(uint256(collectedFee1) + reserve1, reserve1, tokenWeight1, 100);
             amount = amount + ((totalLiquidity * r1) >> p1) - totalLiquidity;
         }
     }

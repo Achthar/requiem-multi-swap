@@ -21,13 +21,21 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface WeightedFormulaV2Interface extends ethers.utils.Interface {
   functions: {
     "ensureConstantValue(uint256,uint256,uint256,uint256,uint32)": FunctionFragment;
-    "getAmountIn(uint256,(uint256,uint256,uint256,uint256,uint32,uint32,uint32))": FunctionFragment;
-    "getAmountOut(uint256,(uint256,uint256,uint256,uint256,uint32,uint32,uint32))": FunctionFragment;
-    "getFactoryParameters(address,address)": FunctionFragment;
+    "getAmountIn(uint256,uint256,uint256,uint32,uint32,uint32)": FunctionFragment;
+    "getAmountOut(uint256,uint256,uint256,uint32,uint32,uint32)": FunctionFragment;
+    "getAmountsIn(address,address,uint256,address[])": FunctionFragment;
+    "getAmountsOut(address,address,uint256,address[])": FunctionFragment;
+    "getFactoryAmountsIn(address,address,address,uint256,address[])": FunctionFragment;
+    "getFactoryAmountsOut(address,address,address,uint256,address[])": FunctionFragment;
+    "getFactoryParameters(address,address,address)": FunctionFragment;
+    "getFactoryStaticData(address,address)": FunctionFragment;
     "getOtherToken(address,address)": FunctionFragment;
-    "getParameters(address)": FunctionFragment;
+    "getPairAmountIn(address,address,uint256)": FunctionFragment;
+    "getPairAmountOut(address,address,uint256)": FunctionFragment;
+    "getPairParameters(address,address)": FunctionFragment;
+    "getPairStaticData(address)": FunctionFragment;
     "getReserves(address,address,address)": FunctionFragment;
-    "mintLiquidityFee(uint256,uint256,uint256,uint32,uint112,uint112)": FunctionFragment;
+    "mintLiquidityFee(uint256,uint256,uint256,uint32,uint32,uint112,uint112)": FunctionFragment;
     "quote(uint256,uint256,uint256)": FunctionFragment;
     "sortTokens(address,address)": FunctionFragment;
   };
@@ -46,34 +54,46 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
     functionFragment: "getAmountIn",
     values: [
       BigNumberish,
-      {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      }
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "getAmountOut",
     values: [
       BigNumberish,
-      {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      }
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "getAmountsIn",
+    values: [string, string, BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAmountsOut",
+    values: [string, string, BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFactoryAmountsIn",
+    values: [string, string, string, BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFactoryAmountsOut",
+    values: [string, string, string, BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getFactoryParameters",
+    values: [string, string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFactoryStaticData",
     values: [string, string]
   ): string;
   encodeFunctionData(
@@ -81,7 +101,19 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "getParameters",
+    functionFragment: "getPairAmountIn",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPairAmountOut",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPairParameters",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPairStaticData",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -91,6 +123,7 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "mintLiquidityFee",
     values: [
+      BigNumberish,
       BigNumberish,
       BigNumberish,
       BigNumberish,
@@ -121,7 +154,27 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getAmountsIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAmountsOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFactoryAmountsIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFactoryAmountsOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getFactoryParameters",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFactoryStaticData",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -129,7 +182,19 @@ interface WeightedFormulaV2Interface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getParameters",
+    functionFragment: "getPairAmountIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPairAmountOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPairParameters",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPairStaticData",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -201,33 +266,75 @@ export class WeightedFormulaV2 extends BaseContract {
 
     getAmountIn(
       amountOut: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { amountIn: BigNumber }>;
 
     getAmountOut(
       amountIn: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { amountOut: BigNumber }>;
 
+    getAmountsIn(
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    getAmountsOut(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    getFactoryAmountsIn(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    getFactoryAmountsOut(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
     getFactoryParameters(
+      factory: string,
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, BigNumber, number, number, number] & {
+        tokenB: string;
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        tokenWeightA: number;
+        tokenWeightB: number;
+        swapFee: number;
+      }
+    >;
+
+    getFactoryStaticData(
       factory: string,
       pair: string,
       overrides?: CallOverrides
@@ -246,7 +353,36 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { tokenB: string }>;
 
-    getParameters(
+    getPairAmountIn(
+      pair: string,
+      tokenIn: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountIn: BigNumber }>;
+
+    getPairAmountOut(
+      pair: string,
+      tokenIn: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { amountOut: BigNumber }>;
+
+    getPairParameters(
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, BigNumber, number, number, number] & {
+        tokenB: string;
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        tokenWeightA: number;
+        tokenWeightB: number;
+        swapFee: number;
+      }
+    >;
+
+    getPairStaticData(
       pair: string,
       overrides?: CallOverrides
     ): Promise<
@@ -277,6 +413,7 @@ export class WeightedFormulaV2 extends BaseContract {
       reserve0: BigNumberish,
       reserve1: BigNumberish,
       tokenWeight0: BigNumberish,
+      tokenWeight1: BigNumberish,
       collectedFee0: BigNumberish,
       collectedFee1: BigNumberish,
       overrides?: CallOverrides
@@ -307,33 +444,75 @@ export class WeightedFormulaV2 extends BaseContract {
 
   getAmountIn(
     amountOut: BigNumberish,
-    pricingData: {
-      reserveIn: BigNumberish;
-      reserveOut: BigNumberish;
-      vReserveIn: BigNumberish;
-      vReserveOut: BigNumberish;
-      tokenWeightIn: BigNumberish;
-      tokenWeightOut: BigNumberish;
-      swapFee: BigNumberish;
-    },
+    reserveIn: BigNumberish,
+    reserveOut: BigNumberish,
+    tokenWeightIn: BigNumberish,
+    tokenWeightOut: BigNumberish,
+    swapFee: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getAmountOut(
     amountIn: BigNumberish,
-    pricingData: {
-      reserveIn: BigNumberish;
-      reserveOut: BigNumberish;
-      vReserveIn: BigNumberish;
-      vReserveOut: BigNumberish;
-      tokenWeightIn: BigNumberish;
-      tokenWeightOut: BigNumberish;
-      swapFee: BigNumberish;
-    },
+    reserveIn: BigNumberish,
+    reserveOut: BigNumberish,
+    tokenWeightIn: BigNumberish,
+    tokenWeightOut: BigNumberish,
+    swapFee: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getAmountsIn(
+    tokenIn: string,
+    tokenOut: string,
+    amountOut: BigNumberish,
+    path: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  getAmountsOut(
+    tokenIn: string,
+    tokenOut: string,
+    amountIn: BigNumberish,
+    path: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  getFactoryAmountsIn(
+    factory: string,
+    tokenIn: string,
+    tokenOut: string,
+    amountOut: BigNumberish,
+    path: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  getFactoryAmountsOut(
+    factory: string,
+    tokenIn: string,
+    tokenOut: string,
+    amountIn: BigNumberish,
+    path: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
   getFactoryParameters(
+    factory: string,
+    pair: string,
+    tokenA: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber, BigNumber, number, number, number] & {
+      tokenB: string;
+      reserveA: BigNumber;
+      reserveB: BigNumber;
+      tokenWeightA: number;
+      tokenWeightB: number;
+      swapFee: number;
+    }
+  >;
+
+  getFactoryStaticData(
     factory: string,
     pair: string,
     overrides?: CallOverrides
@@ -352,7 +531,36 @@ export class WeightedFormulaV2 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getParameters(
+  getPairAmountIn(
+    pair: string,
+    tokenIn: string,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getPairAmountOut(
+    pair: string,
+    tokenIn: string,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getPairParameters(
+    pair: string,
+    tokenA: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber, BigNumber, number, number, number] & {
+      tokenB: string;
+      reserveA: BigNumber;
+      reserveB: BigNumber;
+      tokenWeightA: number;
+      tokenWeightB: number;
+      swapFee: number;
+    }
+  >;
+
+  getPairStaticData(
     pair: string,
     overrides?: CallOverrides
   ): Promise<
@@ -383,6 +591,7 @@ export class WeightedFormulaV2 extends BaseContract {
     reserve0: BigNumberish,
     reserve1: BigNumberish,
     tokenWeight0: BigNumberish,
+    tokenWeight1: BigNumberish,
     collectedFee0: BigNumberish,
     collectedFee1: BigNumberish,
     overrides?: CallOverrides
@@ -413,33 +622,75 @@ export class WeightedFormulaV2 extends BaseContract {
 
     getAmountIn(
       amountOut: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getAmountOut(
       amountIn: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getAmountsIn(
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    getAmountsOut(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    getFactoryAmountsIn(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    getFactoryAmountsOut(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
     getFactoryParameters(
+      factory: string,
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, BigNumber, number, number, number] & {
+        tokenB: string;
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        tokenWeightA: number;
+        tokenWeightB: number;
+        swapFee: number;
+      }
+    >;
+
+    getFactoryStaticData(
       factory: string,
       pair: string,
       overrides?: CallOverrides
@@ -458,7 +709,36 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getParameters(
+    getPairAmountIn(
+      pair: string,
+      tokenIn: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPairAmountOut(
+      pair: string,
+      tokenIn: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPairParameters(
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, BigNumber, number, number, number] & {
+        tokenB: string;
+        reserveA: BigNumber;
+        reserveB: BigNumber;
+        tokenWeightA: number;
+        tokenWeightB: number;
+        swapFee: number;
+      }
+    >;
+
+    getPairStaticData(
       pair: string,
       overrides?: CallOverrides
     ): Promise<
@@ -489,6 +769,7 @@ export class WeightedFormulaV2 extends BaseContract {
       reserve0: BigNumberish,
       reserve1: BigNumberish,
       tokenWeight0: BigNumberish,
+      tokenWeight1: BigNumberish,
       collectedFee0: BigNumberish,
       collectedFee1: BigNumberish,
       overrides?: CallOverrides
@@ -522,33 +803,66 @@ export class WeightedFormulaV2 extends BaseContract {
 
     getAmountIn(
       amountOut: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getAmountOut(
       amountIn: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountsIn(
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAmountsOut(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFactoryAmountsIn(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFactoryAmountsOut(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getFactoryParameters(
+      factory: string,
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFactoryStaticData(
       factory: string,
       pair: string,
       overrides?: CallOverrides
@@ -560,7 +874,30 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getParameters(pair: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getPairAmountIn(
+      pair: string,
+      tokenIn: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPairAmountOut(
+      pair: string,
+      tokenIn: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPairParameters(
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPairStaticData(
+      pair: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getReserves(
       pair: string,
@@ -574,6 +911,7 @@ export class WeightedFormulaV2 extends BaseContract {
       reserve0: BigNumberish,
       reserve1: BigNumberish,
       tokenWeight0: BigNumberish,
+      tokenWeight1: BigNumberish,
       collectedFee0: BigNumberish,
       collectedFee1: BigNumberish,
       overrides?: CallOverrides
@@ -605,33 +943,66 @@ export class WeightedFormulaV2 extends BaseContract {
 
     getAmountIn(
       amountOut: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getAmountOut(
       amountIn: BigNumberish,
-      pricingData: {
-        reserveIn: BigNumberish;
-        reserveOut: BigNumberish;
-        vReserveIn: BigNumberish;
-        vReserveOut: BigNumberish;
-        tokenWeightIn: BigNumberish;
-        tokenWeightOut: BigNumberish;
-        swapFee: BigNumberish;
-      },
+      reserveIn: BigNumberish,
+      reserveOut: BigNumberish,
+      tokenWeightIn: BigNumberish,
+      tokenWeightOut: BigNumberish,
+      swapFee: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAmountsIn(
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAmountsOut(
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFactoryAmountsIn(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountOut: BigNumberish,
+      path: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFactoryAmountsOut(
+      factory: string,
+      tokenIn: string,
+      tokenOut: string,
+      amountIn: BigNumberish,
+      path: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getFactoryParameters(
+      factory: string,
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFactoryStaticData(
       factory: string,
       pair: string,
       overrides?: CallOverrides
@@ -643,7 +1014,27 @@ export class WeightedFormulaV2 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getParameters(
+    getPairAmountIn(
+      pair: string,
+      tokenIn: string,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPairAmountOut(
+      pair: string,
+      tokenIn: string,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPairParameters(
+      pair: string,
+      tokenA: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPairStaticData(
       pair: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -660,6 +1051,7 @@ export class WeightedFormulaV2 extends BaseContract {
       reserve0: BigNumberish,
       reserve1: BigNumberish,
       tokenWeight0: BigNumberish,
+      tokenWeight1: BigNumberish,
       collectedFee0: BigNumberish,
       collectedFee1: BigNumberish,
       overrides?: CallOverrides

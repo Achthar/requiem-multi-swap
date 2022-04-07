@@ -57,46 +57,29 @@ const _abi = [
         type: "uint256",
       },
       {
-        components: [
-          {
-            internalType: "uint256",
-            name: "reserveIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "reserveOut",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "vReserveIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "vReserveOut",
-            type: "uint256",
-          },
-          {
-            internalType: "uint32",
-            name: "tokenWeightIn",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "tokenWeightOut",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "swapFee",
-            type: "uint32",
-          },
-        ],
-        internalType: "struct IWeightedFormulaV2.PricingData",
-        name: "pricingData",
-        type: "tuple",
+        internalType: "uint256",
+        name: "reserveIn",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveOut",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightIn",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightOut",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "swapFee",
+        type: "uint32",
       },
     ],
     name: "getAmountIn",
@@ -118,46 +101,29 @@ const _abi = [
         type: "uint256",
       },
       {
-        components: [
-          {
-            internalType: "uint256",
-            name: "reserveIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "reserveOut",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "vReserveIn",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "vReserveOut",
-            type: "uint256",
-          },
-          {
-            internalType: "uint32",
-            name: "tokenWeightIn",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "tokenWeightOut",
-            type: "uint32",
-          },
-          {
-            internalType: "uint32",
-            name: "swapFee",
-            type: "uint32",
-          },
-        ],
-        internalType: "struct IWeightedFormulaV2.PricingData",
-        name: "pricingData",
-        type: "tuple",
+        internalType: "uint256",
+        name: "reserveIn",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveOut",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightIn",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightOut",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "swapFee",
+        type: "uint32",
       },
     ],
     name: "getAmountOut",
@@ -166,6 +132,206 @@ const _abi = [
         internalType: "uint256",
         name: "amountOut",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+      {
+        internalType: "address[]",
+        name: "path",
+        type: "address[]",
+      },
+    ],
+    name: "getAmountsIn",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+      {
+        internalType: "address[]",
+        name: "path",
+        type: "address[]",
+      },
+    ],
+    name: "getAmountsOut",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "factory",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+      {
+        internalType: "address[]",
+        name: "path",
+        type: "address[]",
+      },
+    ],
+    name: "getFactoryAmountsIn",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "factory",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+      {
+        internalType: "address[]",
+        name: "path",
+        type: "address[]",
+      },
+    ],
+    name: "getFactoryAmountsOut",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "factory",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "pair",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenA",
+        type: "address",
+      },
+    ],
+    name: "getFactoryParameters",
+    outputs: [
+      {
+        internalType: "address",
+        name: "tokenB",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveA",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveB",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightA",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightB",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "swapFee",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -190,6 +356,113 @@ const _abi = [
         internalType: "address",
         name: "tokenB",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "pair",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    name: "getPairAmountIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "pair",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    name: "getPairAmountOut",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "pair",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenA",
+        type: "address",
+      },
+    ],
+    name: "getPairParameters",
+    outputs: [
+      {
+        internalType: "address",
+        name: "tokenB",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveA",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "reserveB",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightA",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeightB",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "swapFee",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -259,6 +532,11 @@ const _abi = [
       {
         internalType: "uint32",
         name: "tokenWeight0",
+        type: "uint32",
+      },
+      {
+        internalType: "uint32",
+        name: "tokenWeight1",
         type: "uint32",
       },
       {

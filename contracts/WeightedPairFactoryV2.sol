@@ -84,8 +84,6 @@ contract RequiemWeightedPairFactoryV2 is IRequiemWeightedPairFactoryV2, Ownable 
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IRequiemWeightedPairV2(pair).initialize(token0, token1, tokenWeight0);
-
-        // swap fee from [0.01% - 20%]
         IRequiemWeightedPairV2(pair).setSwapParams(initialFee, initialAmp);
 
         tokenPairs[IERC20(token0)][IERC20(token1)].add(pair);

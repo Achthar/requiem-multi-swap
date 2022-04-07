@@ -7,7 +7,7 @@ import '@tenderly/hardhat-tenderly';
 import '@nomiclabs/hardhat-waffle';
 import 'hardhat-abi-exporter';
 import 'hardhat-deploy';
-import 'hardhat-deploy-ethers';
+import '@nomiclabs/hardhat-ethers';
 import 'hardhat-gas-reporter';
 import 'hardhat-spdx-license-identifier';
 import '@typechain/hardhat';

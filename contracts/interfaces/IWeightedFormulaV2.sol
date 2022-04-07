@@ -5,69 +5,93 @@ pragma solidity >=0.8.13;
     Bancor Formula interface
 */
 interface IWeightedFormulaV2 {
-    struct PricingData {
-        uint256 reserveIn;
-        uint256 reserveOut;
-        uint256 vReserveIn;
-        uint256 vReserveOut;
-        uint32 tokenWeightIn;
-        uint32 tokenWeightOut;
-        uint32 swapFee;
-    }
+    function getPairParameters(address pair, address tokenA)
+        external
+        view
+        returns (
+            address tokenB,
+            uint256 reserveA,
+            uint256 reserveB,
+            uint32 tokenWeightA,
+            uint32 tokenWeightB,
+            uint32 swapFee
+        );
 
-    // function getReserveAndWeights(address pair, address tokenA) external view returns (PricingData calldata);
+    function getFactoryParameters(
+        address factory,
+        address pair,
+        address tokenA
+    )
+        external
+        view
+        returns (
+            address tokenB,
+            uint256 reserveA,
+            uint256 reserveB,
+            uint32 tokenWeightA,
+            uint32 tokenWeightB,
+            uint32 swapFee
+        );
 
-    // function getFactoryReserveAndWeights(
-    //     address factory,
-    //     address pair,
-    //     address tokenA
-    // ) external view returns (PricingData calldata);
+    function getAmountIn(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint32 tokenWeightIn,
+        uint32 tokenWeightOut,
+        uint32 swapFee
+    ) external view returns (uint256 amountIn);
 
-    function getAmountIn(uint256 amountOut, PricingData calldata pricingData) external view returns (uint256 amountIn);
+    function getPairAmountIn(
+        address pair,
+        address tokenIn,
+        uint256 amountOut
+    ) external view returns (uint256 amountIn);
 
-    // function getPairAmountIn(
-    //     address pair,
-    //     address tokenIn,
-    //     uint256 amountOut
-    // ) external view returns (uint256 amountIn);
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut,
+        uint32 tokenWeightIn,
+        uint32 tokenWeightOut,
+        uint32 swapFee
+    ) external view returns (uint256 amountOut);
 
-    function getAmountOut(uint256 amountIn, PricingData calldata pricingData) external view returns (uint256 amountOut);
+    function getPairAmountOut(
+        address pair,
+        address tokenIn,
+        uint256 amountIn
+    ) external view returns (uint256 amountOut);
 
-    // function getPairAmountOut(
-    //     address pair,
-    //     address tokenIn,
-    //     uint256 amountIn
-    // ) external view returns (uint256 amountOut);
+    function getAmountsIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address[] calldata path
+    ) external view returns (uint256[] memory amounts);
 
-    // function getAmountsIn(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     address[] calldata path
-    // ) external view returns (uint256[] memory amounts);
+    function getFactoryAmountsIn(
+        address factory,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address[] calldata path
+    ) external view returns (uint256[] memory amounts);
 
-    // function getFactoryAmountsIn(
-    //     address factory,
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     address[] calldata path
-    // ) external view returns (uint256[] memory amounts);
+    function getAmountsOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address[] calldata path
+    ) external view returns (uint256[] memory amounts);
 
-    // function getAmountsOut(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     address[] calldata path
-    // ) external view returns (uint256[] memory amounts);
-
-    // function getFactoryAmountsOut(
-    //     address factory,
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     address[] calldata path
-    // ) external view returns (uint256[] memory amounts);
+    function getFactoryAmountsOut(
+        address factory,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address[] calldata path
+    ) external view returns (uint256[] memory amounts);
 
     function ensureConstantValue(
         uint256 reserve0,
@@ -106,6 +130,7 @@ interface IWeightedFormulaV2 {
         uint256 reserve0,
         uint256 reserve1,
         uint32 tokenWeight0,
+        uint32 tokenWeight1,
         uint112 collectedFee0,
         uint112 collectedFee1
     ) external view returns (uint256 amount);
