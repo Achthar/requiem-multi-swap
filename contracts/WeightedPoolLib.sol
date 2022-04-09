@@ -17,6 +17,8 @@ using SafeERC20 for IERC20 global;
  */
 library WeightedPoolLib {
 
+    event CollectProtocolFee(address token, uint256 amount);
+
     uint256 public constant FEE_DENOMINATOR = 1e10;
 
     struct WeightedSwapStorage {
@@ -227,7 +229,12 @@ library WeightedPoolLib {
         self.lastInvariant = _getInvariant(self);
     }
 
-    /**  @notice Flash Loan using the stable swap balances*/
+    /**  
+     * @notice Flash Loan using the pool balances
+     * it has to recalculate the invariant if called, otherwise manipulations are allowed
+     * as all balances are greater than zero, it always will satisfy the invariant condition
+     * such that it is greater than the previous one 
+    */
     function flashLoan(
         WeightedSwapStorage storage self,
         IFlashLoanRecipient recipient,
@@ -256,7 +263,8 @@ library WeightedPoolLib {
             // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
             uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post balances");
-
+            self.balances[i] = postLoanBalance;
+            self.collectedFees[i] +=  feeAmounts[i] * self.adminFee / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
@@ -450,6 +458,23 @@ library WeightedPoolLib {
         amountIn /= self.tokenMultipliers[inIndex];
     }
 
+    function sync(
+        WeightedSwapStorage storage self,
+        address receiver
+    ) external {
+        for (uint256 i = 0; i < self.pooledTokens.length; i++) {
+            IERC20 token = self.pooledTokens[i];
+            uint256 fee = self.collectedFees[i];
+            if (fee != 0) {
+                token.safeTransfer(receiver, fee);
+                self.collectedFees[i] = 0;
+                self.balances[i] = token.balanceOf(address(this));
+                emit CollectProtocolFee(address(token), fee);
+            }
+        }
+        self.lastInvariant = _getInvariant(self);
+    }
+
     /// INTERNAL FUNCTIONS
 
     /**
@@ -506,6 +531,13 @@ library WeightedPoolLib {
      */
     function _getInvariant(WeightedSwapStorage storage self) internal view returns (uint256) {
         return WeightedMath._calculateInvariant(self.normalizedWeights, _xp(self));
+    }
+
+    /**
+     * @dev recalcultes invariant.
+     */
+    function setInvariant(WeightedSwapStorage storage self) external {
+        self.lastInvariant = WeightedMath._calculateInvariant(self.normalizedWeights, _xp(self));
     }
 
     // function _joinExactTokensInForBPTOut(

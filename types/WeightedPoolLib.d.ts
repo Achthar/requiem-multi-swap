@@ -33,8 +33,16 @@ interface WeightedPoolLibInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "CollectProtocolFee(address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "CollectProtocolFee"): EventFragment;
 }
+
+export type CollectProtocolFeeEvent = TypedEvent<
+  [string, BigNumber] & { token: string; amount: BigNumber }
+>;
 
 export class WeightedPoolLib extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -89,7 +97,23 @@ export class WeightedPoolLib extends BaseContract {
     FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
-  filters: {};
+  filters: {
+    "CollectProtocolFee(address,uint256)"(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+
+    CollectProtocolFee(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+  };
 
   estimateGas: {
     FEE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;

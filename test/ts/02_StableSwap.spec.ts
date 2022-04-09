@@ -70,6 +70,9 @@ describe('StableSwap-Test', () => {
 	let pairDAI_B_Contract: Contract
 	let pairA_USDC_Contract2: Contract
 	let pairDAI_B_Contract2: Contract
+	let pairA_B_Contract: Contract
+	let pairA_B_Contract2: Contract
+
 	// specs for pair
 	let tokenWeightA = BigNumber.from(40)
 	let tokenWeightB = BigNumber.from(60)
@@ -163,6 +166,18 @@ describe('StableSwap-Test', () => {
 			wallet.address
 		)
 
+		await new router.createPair(
+			tokenA.address,
+			tokenB.address,
+			amountA,
+			amountB,
+			50,
+			swapFee,
+			amplification,
+			wallet.address
+		)
+
+
 		const pairA_USDC = await factory.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
 		pairA_USDC_Contract = await ethers.getContractAt('RequiemPair', pairA_USDC)
 
@@ -170,6 +185,8 @@ describe('StableSwap-Test', () => {
 		const pairDAI_B = await factory.getPair(tokenB.address, tokenDAI.address, tokenWeightB)
 		pairDAI_B_Contract = await ethers.getContractAt('RequiemPair', pairDAI_B)
 
+		const pairA_B = await factory.getPair(tokenA.address, tokenB.address, 50)
+		pairA_B_Contract = await ethers.getContractAt('RequiemPair', pairA_B)
 
 		await new router2.createPair(
 			tokenA.address,
@@ -193,13 +210,27 @@ describe('StableSwap-Test', () => {
 			wallet.address
 		)
 
-		const pairA_USDC2 = await factory.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
+		await new router2.createPair(
+			tokenA.address,
+			tokenB.address,
+			amountA,
+			amountB,
+			50,
+			swapFee,
+			amplification,
+			wallet.address
+		)
+
+		const pairA_USDC2 = await factory2.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
 		pairA_USDC_Contract2 = await ethers.getContractAt('RequiemPair', pairA_USDC2)
 
 
-		const pairDAI_B2 = await factory.getPair(tokenB.address, tokenDAI.address, tokenWeightB)
+		const pairDAI_B2 = await factory2.getPair(tokenB.address, tokenDAI.address, tokenWeightB)
 		pairDAI_B_Contract2 = await ethers.getContractAt('RequiemPair', pairDAI_B2)
 
+
+		const pairA_B2 = await factory2.getPair(tokenA.address, tokenB.address, 50)
+		pairA_B_Contract2 = await ethers.getContractAt('RequiemPair', pairA_B2)
 
 		// swap lib
 		swapLib = await new RequiemStableSwapLib__factory(wallet).deploy()
@@ -644,7 +675,46 @@ describe('StableSwap-Test', () => {
 								deadline
 							)).to.be.revertedWith("insufficient in")
 
+							describe('StableSwap-Calculation matches swap', () => {
+								it('calculation', async () => {
 
+									pools = [pairDAI_B_Contract.address, swapNew.address, pairA_USDC_Contract.address]
+									tokens = [tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address]
+									console.log("Pools", pools)
+									console.log("Tokens", tokens)
+									amountOut = parseUnits("1", 15)
+									const preBalA = await tokenA.balanceOf(wallet.address)
+									const preBalB = await tokenB.balanceOf(wallet.address)
+
+
+
+
+									const in02 = await pairA_USDC_Contract.calculateSwapGivenOut(tokenDAI.address, tokenA.address, amountOut)
+
+									const in01 = await swapNew.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, in02)
+
+
+									const inB = await pairDAI_B_Contract.calculateSwapGivenOut(tokenB.address, tokenDAI.address, in01)
+
+									await router2.onSwapTokensForExactTokens(
+										pools,
+										tokens,
+										amountOut,
+										amountInMax,
+										wallet.address,
+										deadline
+									)
+									const postBalA = await tokenA.balanceOf(wallet.address)
+									const postBalB = await tokenB.balanceOf(wallet.address)
+									console.log("VALIDITY")
+									console.log("deltaA", postBalA.sub(preBalA))
+									console.log("deltaB", preBalB.sub(postBalB))
+									console.log("expected delta B", inB)
+									expect(postBalA.sub(preBalA)).to.eq(amountOut)
+									expect(preBalB.sub(postBalB)).to.eq(inB)
+
+								})
+							})
 							describe('StableSwap-Post transactions', () => {
 								it('Fee withdrawl', async () => {
 

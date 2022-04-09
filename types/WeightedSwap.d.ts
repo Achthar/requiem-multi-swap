@@ -52,6 +52,7 @@ interface WeightedSwapInterface extends ethers.utils.Interface {
     "tokenIndexes(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "unpause()": FunctionFragment;
+    "withdrawAdminFee()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -175,6 +176,10 @@ interface WeightedSwapInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAdminFee",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "POOL_TOKEN_COMMON_DECIMALS",
@@ -276,10 +281,13 @@ interface WeightedSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAdminFee",
+    data: BytesLike
+  ): Result;
 
   events: {
     "AddLiquidity(address,uint256[],uint256,uint256)": EventFragment;
-    "CollectProtocolFee(address,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
     "FlashLoan(address,uint256[],uint256[])": EventFragment;
@@ -294,7 +302,6 @@ interface WeightedSwapInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CollectProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeControllerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeDistributorChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
@@ -315,10 +322,6 @@ export type AddLiquidityEvent = TypedEvent<
     invariant: BigNumber;
     tokenSupply: BigNumber;
   }
->;
-
-export type CollectProtocolFeeEvent = TypedEvent<
-  [string, BigNumber] & { token: string; amount: BigNumber }
 >;
 
 export type FeeControllerChangedEvent = TypedEvent<
@@ -606,6 +609,10 @@ export class WeightedSwap extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    withdrawAdminFee(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
@@ -779,6 +786,10 @@ export class WeightedSwap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  withdrawAdminFee(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -946,6 +957,8 @@ export class WeightedSwap extends BaseContract {
     ): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
+
+    withdrawAdminFee(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -977,22 +990,6 @@ export class WeightedSwap extends BaseContract {
         invariant: BigNumber;
         tokenSupply: BigNumber;
       }
-    >;
-
-    "CollectProtocolFee(address,uint256)"(
-      token?: null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { token: string; amount: BigNumber }
-    >;
-
-    CollectProtocolFee(
-      token?: null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { token: string; amount: BigNumber }
     >;
 
     "FeeControllerChanged(address)"(
@@ -1361,6 +1358,10 @@ export class WeightedSwap extends BaseContract {
     unpause(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    withdrawAdminFee(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1527,6 +1528,10 @@ export class WeightedSwap extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAdminFee(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

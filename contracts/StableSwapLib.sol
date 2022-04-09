@@ -63,7 +63,6 @@ library StableSwapLib {
         uint256 defaultWithdrawFee;
         mapping(address => uint256) depositTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
-
         uint256[] collectedFees;
         /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
     }
@@ -147,35 +146,29 @@ library StableSwapLib {
         SwapStorage storage self,
         uint256 i,
         uint256 j,
-        uint256 inAmount,
+        uint256,
         uint256 outAmount,
         address to
-    ) external returns (uint256) {
-        uint256[] memory normalizedBalances = _xp(self);
-        uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
-
-        uint256 dy = normalizedBalances[j] - y; // eliminate rouding errors
-        uint256 dy_fee = (dy * self.fee) /  FEE_DENOMINATOR;
-
-        dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
-
-        // the control outAmount has to be lower or equal than the "actual" one
-        require(outAmount <= dy, "dyError");
-
-        // correct balances
+    ) external {
         uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
-        require(self.balances[i] + inAmount <= balanceIn,  "insufficient in");
+        uint256 inAmount = balanceIn - self.balances[i];
+
+        uint256 amp = _getAPrecise(self);
+        uint256 preInvariant = _getD(_xp(self), amp);
 
         self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
 
-        // add fees
-        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+        uint256 postInvariant = _getD(_xp(self), amp);
+
+        // check the invariant
+        require(preInvariant <= postInvariant, "invariant");
+
+        self.collectedFees[i] += ((outAmount * self.fee) /  FEE_DENOMINATOR * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[i];
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
         emit TokenExchange(to, i, inAmount, j, outAmount);
-        return dy;
     }
 
     /**
@@ -244,25 +237,29 @@ library StableSwapLib {
         uint256[] memory normalizedBalances = _xp(self);
 
         // the fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
-        uint256 _amountOutInclFee = (outAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee);
+        // uint256 _amountOutInclFee = (outAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee);
 
         // calculate out balance
-        uint256 y = normalizedBalances[j] - (_amountOutInclFee * self.tokenMultipliers[j]);
+        uint256 y = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
 
         // calculate in balance
         uint256 x = _getY(self, j, i, y, normalizedBalances);
 
+        // calculate in-fee 
+        uint256 dx_fee = dx * self.fee / FEE_DENOMINATOR;
+
+
         // calculate normalized in balance
         dx = x - normalizedBalances[i]; // no rounding adjustment
 
-        dx = dx / self.tokenMultipliers[i]; // denormalize
+        dx = dx / self.tokenMultipliers[i] + dx * self.fee / FEE_DENOMINATOR; // denormalize and add fee
 
         require(dx <= maxInAmount, "slippage");
 
         // update balances
-        self.balances[i] -= dx;
-        self.balances[j] -= _amountOutInclFee;
-        self.collectedFees[j] += self.adminFee * _amountOutInclFee / FEE_DENOMINATOR;
+        self.balances[i] += dx;
+        self.balances[j] -= outAmount;
+        self.collectedFees[i] += self.adminFee * dx_fee / FEE_DENOMINATOR;
         // do the transfer after all calculations
         IERC20 inCoin = self.pooledTokens[i];
         dx = _doTransferIn(inCoin, dx); // transfer the calculated amount in
@@ -305,7 +302,8 @@ library StableSwapLib {
             // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
             uint256 postLoanBalance = token.balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post balances");
-
+            self.balances[i] = postLoanBalance;
+            self.collectedFees[i] +=  feeAmounts[i] * self.adminFee / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
@@ -516,13 +514,13 @@ library StableSwapLib {
     ) external view returns (uint256) {
         uint256[] memory normalizedBalances = _xp(self);
         // fee has to be deducted on the output
-        uint256 _amountOutInclFee = (outAmount *  FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee);
-        uint256 newOutBalance = normalizedBalances[outIndex] - (_amountOutInclFee * self.tokenMultipliers[outIndex]);
+        // uint256 _amountOutInclFee = (outAmount *  FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee);
+        uint256 newOutBalance = normalizedBalances[outIndex] - (outAmount * self.tokenMultipliers[outIndex]);
         // switch index on regulat _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
         uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
 
-        return inAmount;
+        return inAmount + inAmount * self.fee / FEE_DENOMINATOR;
     }
 
     function calculateRemoveLiquidity(
@@ -831,8 +829,6 @@ library StableSwapLib {
     }
 
     function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "calcError");
-
         if (a == 0) {
             return 0;
         } else {

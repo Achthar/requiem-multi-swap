@@ -44,25 +44,6 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "CollectProtocolFee",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
         name: "newController",
         type: "address",
       },

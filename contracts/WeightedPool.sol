@@ -68,13 +68,31 @@ contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
         swapStorage.tokenMultipliers = rates;
-        swapStorage.normalizedWeights = _normalizedWeights;
+        swapStorage.nTokens = numberOfCoins;
         swapStorage.pooledTokens = coins;
         swapStorage.fee = _fee;
         swapStorage.adminFee = _adminFee;
         feeDistributor = _feeDistributor;
         swapStorage.collectedFees = new uint256[](numberOfCoins);
 
+                // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
+        uint256 normalizedSum = 0;
+        uint256 maxWeightTokenIndex = 0;
+        uint256 maxNormalizedWeight = 0;
+        for (uint8 i = 0; i < numberOfCoins; i++) {
+            uint256 normalizedWeight = _normalizedWeights[i];
+            require(normalizedWeight >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
+
+            normalizedSum += normalizedWeight;
+            if (normalizedWeight > maxNormalizedWeight) {
+                maxWeightTokenIndex = i;
+                maxNormalizedWeight = normalizedWeight;
+            }
+        }
+        require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
+        swapStorage.normalizedWeights = _normalizedWeights;
+
+        // calculate the first invariant
         swapStorage.lastInvariant = swapStorage.getInvariant();
     }
 
@@ -138,6 +156,7 @@ contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         bytes memory userData
     ) external override nonReentrant whenNotPaused {
         uint256[] memory feeAmounts = swapStorage.flashLoan(recipient, amounts, userData);
+        swapStorage.setInvariant();
         emit FlashLoan(address(recipient), amounts, feeAmounts);
     }
 
@@ -242,9 +261,9 @@ contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         emit FeeDistributorChanged(_feeDistributor);
     }
 
-    // function withdrawAdminFee() external onlyFeeControllerOrOwner {
-    //     swapStorage.sync(feeDistributor);
-    // }
+    function withdrawAdminFee() external onlyFeeControllerOrOwner {
+        swapStorage.sync(feeDistributor);
+    }
 
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;

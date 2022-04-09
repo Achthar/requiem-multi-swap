@@ -105,7 +105,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
 
   events: {
     "AddLiquidity(address,uint256[],uint256,uint256)": EventFragment;
-    "CollectProtocolFee(address,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
     "FlashLoan(address,uint256[],uint256[])": EventFragment;
@@ -117,7 +116,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CollectProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeControllerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeDistributorChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
@@ -135,10 +133,6 @@ export type AddLiquidityEvent = TypedEvent<
     invariant: BigNumber;
     tokenSupply: BigNumber;
   }
->;
-
-export type CollectProtocolFeeEvent = TypedEvent<
-  [string, BigNumber] & { token: string; amount: BigNumber }
 >;
 
 export type FeeControllerChangedEvent = TypedEvent<
@@ -443,22 +437,6 @@ export class IWeightedSwap extends BaseContract {
         invariant: BigNumber;
         tokenSupply: BigNumber;
       }
-    >;
-
-    "CollectProtocolFee(address,uint256)"(
-      token?: null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { token: string; amount: BigNumber }
-    >;
-
-    CollectProtocolFee(
-      token?: null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { token: string; amount: BigNumber }
     >;
 
     "FeeControllerChanged(address)"(

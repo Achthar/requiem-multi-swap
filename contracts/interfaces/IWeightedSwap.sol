@@ -10,8 +10,6 @@ import "./IFlashLoanRecipient.sol";
 
 interface IWeightedSwap {
     /// EVENTS
-    event CollectProtocolFee(address token, uint256 amount);
-
     event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
 
     event TokenExchange(address indexed buyer, address soldId, uint256 tokensSold, address boughtId, uint256 tokensBought);
