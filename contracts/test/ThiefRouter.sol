@@ -51,7 +51,7 @@ contract ThiefRouter {
         uint256 deadline
     ) public virtual ensure(deadline) returns (uint256 amountLast) {
         amountLast = amountIn;
-        TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn - 1);
+        TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn - 10);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
             amountLast = IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountLast, 0, _to);

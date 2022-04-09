@@ -22,7 +22,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface MockFlashLoanRecipientInterface extends ethers.utils.Interface {
   functions: {
     "pool()": FunctionFragment;
-    "receiveFlashLoan(address[],uint256[],uint256[],bytes)": FunctionFragment;
+    "receiveFlashLoan(uint256[],uint256[],bytes)": FunctionFragment;
     "reenter()": FunctionFragment;
     "repayInExcess()": FunctionFragment;
     "repayLoan()": FunctionFragment;
@@ -34,7 +34,7 @@ interface MockFlashLoanRecipientInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "pool", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "receiveFlashLoan",
-    values: [string[], BigNumberish[], BigNumberish[], BytesLike]
+    values: [BigNumberish[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "reenter", values?: undefined): string;
   encodeFunctionData(
@@ -122,7 +122,14 @@ export class MockFlashLoanRecipient extends BaseContract {
   functions: {
     pool(overrides?: CallOverrides): Promise<[string]>;
 
-    receiveFlashLoan(
+    "receiveFlashLoan(uint256[],uint256[],bytes)"(
+      amounts: BigNumberish[],
+      feeAmounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "receiveFlashLoan(address[],uint256[],uint256[],bytes)"(
       tokens: string[],
       amounts: BigNumberish[],
       feeAmounts: BigNumberish[],
@@ -154,7 +161,14 @@ export class MockFlashLoanRecipient extends BaseContract {
 
   pool(overrides?: CallOverrides): Promise<string>;
 
-  receiveFlashLoan(
+  "receiveFlashLoan(uint256[],uint256[],bytes)"(
+    amounts: BigNumberish[],
+    feeAmounts: BigNumberish[],
+    userData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "receiveFlashLoan(address[],uint256[],uint256[],bytes)"(
     tokens: string[],
     amounts: BigNumberish[],
     feeAmounts: BigNumberish[],
@@ -186,7 +200,14 @@ export class MockFlashLoanRecipient extends BaseContract {
   callStatic: {
     pool(overrides?: CallOverrides): Promise<string>;
 
-    receiveFlashLoan(
+    "receiveFlashLoan(uint256[],uint256[],bytes)"(
+      amounts: BigNumberish[],
+      feeAmounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "receiveFlashLoan(address[],uint256[],uint256[],bytes)"(
       tokens: string[],
       amounts: BigNumberish[],
       feeAmounts: BigNumberish[],
@@ -215,7 +236,14 @@ export class MockFlashLoanRecipient extends BaseContract {
   estimateGas: {
     pool(overrides?: CallOverrides): Promise<BigNumber>;
 
-    receiveFlashLoan(
+    "receiveFlashLoan(uint256[],uint256[],bytes)"(
+      amounts: BigNumberish[],
+      feeAmounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "receiveFlashLoan(address[],uint256[],uint256[],bytes)"(
       tokens: string[],
       amounts: BigNumberish[],
       feeAmounts: BigNumberish[],
@@ -248,7 +276,14 @@ export class MockFlashLoanRecipient extends BaseContract {
   populateTransaction: {
     pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    receiveFlashLoan(
+    "receiveFlashLoan(uint256[],uint256[],bytes)"(
+      amounts: BigNumberish[],
+      feeAmounts: BigNumberish[],
+      userData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "receiveFlashLoan(address[],uint256[],uint256[],bytes)"(
       tokens: string[],
       amounts: BigNumberish[],
       feeAmounts: BigNumberish[],

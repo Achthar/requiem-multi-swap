@@ -4,7 +4,7 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { IStableSwap, IStableSwapInterface } from "../IStableSwap";
+import type { IWeightedSwap, IWeightedSwapInterface } from "../IWeightedSwap";
 
 const _abi = [
   {
@@ -24,12 +24,6 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "fees",
-        type: "uint256[]",
-      },
-      {
-        indexed: false,
         internalType: "uint256",
         name: "invariant",
         type: "uint256",
@@ -42,6 +36,25 @@ const _abi = [
       },
     ],
     name: "AddLiquidity",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "CollectProtocolFee",
     type: "event",
   },
   {
@@ -68,6 +81,31 @@ const _abi = [
       },
     ],
     name: "FeeDistributorChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "feeAmounts",
+        type: "uint256[]",
+      },
+    ],
+    name: "FlashLoan",
     type: "event",
   },
   {
@@ -105,37 +143,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "oldA",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "newA",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "initialTime",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "futureTime",
-        type: "uint256",
-      },
-    ],
-    name: "RampA",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
         name: "provider",
@@ -145,12 +152,6 @@ const _abi = [
         indexed: false,
         internalType: "uint256[]",
         name: "tokenAmounts",
-        type: "uint256[]",
-      },
-      {
-        indexed: false,
-        internalType: "uint256[]",
-        name: "fees",
         type: "uint256[]",
       },
       {
@@ -176,12 +177,6 @@ const _abi = [
         indexed: false,
         internalType: "uint256[]",
         name: "tokenAmounts",
-        type: "uint256[]",
-      },
-      {
-        indexed: false,
-        internalType: "uint256[]",
-        name: "fees",
         type: "uint256[]",
       },
       {
@@ -235,25 +230,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "A",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-    ],
-    name: "StopRampA",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
         name: "buyer",
@@ -261,9 +237,9 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint256",
+        internalType: "address",
         name: "soldId",
-        type: "uint256",
+        type: "address",
       },
       {
         indexed: false,
@@ -273,9 +249,9 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint256",
+        internalType: "address",
         name: "boughtId",
-        type: "uint256",
+        type: "address",
       },
       {
         indexed: false,
@@ -319,36 +295,12 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "calculateCurrentWithdrawFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
       },
     ],
-    name: "calculateRemoveLiquidity",
+    name: "calculateRemoveLiquidityExactIn",
     outputs: [
       {
         internalType: "uint256[]",
@@ -362,26 +314,26 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
         internalType: "uint256",
         name: "tokenAmount",
         type: "uint256",
       },
       {
-        internalType: "uint8",
+        internalType: "uint256",
         name: "tokenIndex",
-        type: "uint8",
+        type: "uint256",
       },
     ],
     name: "calculateRemoveLiquidityOneToken",
     outputs: [
       {
         internalType: "uint256",
-        name: "availableTokenAmount",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
         type: "uint256",
       },
     ],
@@ -449,23 +401,10 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getVirtualPrice",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",
-        name: "amount",
+        name: "lpAmount",
         type: "uint256",
       },
       {
@@ -479,7 +418,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "removeLiquidity",
+    name: "removeLiquidityExactIn",
     outputs: [
       {
         internalType: "uint256[]",
@@ -499,7 +438,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "maxBurnAmount",
+        name: "maxLpBurn",
         type: "uint256",
       },
       {
@@ -508,7 +447,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "removeLiquidityImbalance",
+    name: "removeLiquidityExactOut",
     outputs: [
       {
         internalType: "uint256",
@@ -553,35 +492,17 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "transferAmount",
-        type: "uint256",
-      },
-    ],
-    name: "updateUserWithdrawFee",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
 ];
 
-export class IStableSwap__factory {
+export class IWeightedSwap__factory {
   static readonly abi = _abi;
-  static createInterface(): IStableSwapInterface {
-    return new utils.Interface(_abi) as IStableSwapInterface;
+  static createInterface(): IWeightedSwapInterface {
+    return new utils.Interface(_abi) as IWeightedSwapInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IStableSwap {
-    return new Contract(address, _abi, signerOrProvider) as IStableSwap;
+  ): IWeightedSwap {
+    return new Contract(address, _abi, signerOrProvider) as IWeightedSwap;
   }
 }

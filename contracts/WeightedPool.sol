@@ -6,27 +6,25 @@ import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
-import "./StableSwapLib.sol";
-import "./interfaces/IStableSwap.sol";
+import "./WeightedPoolLib.sol";
+import "./interfaces/IWeightedSwap.sol";
 import "./interfaces/IRequiemSwap.sol";
 import "./interfaces/IFlashLoanRecipient.sol";
 
-using StableSwapLib for StableSwapLib.SwapStorage global;
+using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage global;
 using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
+contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
-    uint256 internal constant MIN_RAMP_TIME = 1 days;
-    uint256 internal constant MAX_A = 1e6;
-    uint256 internal constant MAX_A_CHANGE = 10;
     uint256 internal constant MAX_ADMIN_FEE = 1e10; // 100%
     uint256 internal constant MAX_TRANSACTION_FEE = 1e8; // 1%
+    uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
-    StableSwapLib.SwapStorage public swapStorage;
+    WeightedPoolLib.WeightedSwapStorage public swapStorage;
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
@@ -46,10 +44,9 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint8[] memory _decimals,
         string memory lpTokenName,
         string memory lpTokenSymbol,
-        uint256 _A,
+        uint256[] memory _normalizedWeights,
         uint256 _fee,
         uint256 _adminFee,
-        uint256 _withdrawFee,
         address _feeDistributor
     ) external onlyOwner initializer {
         require(_coins.length == _decimals.length, "arrayError");
@@ -59,28 +56,26 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         IERC20[] memory coins = new IERC20[](numberOfCoins);
         for (uint256 i = 0; i < numberOfCoins; i++) {
             require(_coins[i] != address(0), "addressError");
-            require(_decimals[i] <= StableSwapLib.POOL_TOKEN_COMMON_DECIMALS, "paramError");
-            rates[i] = 10**(StableSwapLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
+            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
+            rates[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             coins[i] = IERC20(_coins[i]);
             tokenIndexes[address(coins[i])] = uint8(i);
         }
 
-        require(_A < MAX_A, "paramError");
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
-        require(_withdrawFee <= MAX_TRANSACTION_FEE, "feeError");
 
         swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
         swapStorage.tokenMultipliers = rates;
+        swapStorage.normalizedWeights = _normalizedWeights;
         swapStorage.pooledTokens = coins;
-        swapStorage.initialA = _A * StableSwapLib.A_PRECISION;
-        swapStorage.futureA = _A * StableSwapLib.A_PRECISION;
         swapStorage.fee = _fee;
         swapStorage.adminFee = _adminFee;
-        swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
         swapStorage.collectedFees = new uint256[](numberOfCoins);
+
+        swapStorage.lastInvariant = swapStorage.getInvariant();
     }
 
     /// PUBLIC FUNCTIONS
@@ -88,8 +83,9 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint256[] memory amounts,
         uint256 minMintAmount,
         uint256 deadline
-    ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.addLiquidity(amounts, minMintAmount);
+    ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
+        mintAmount = swapStorage.addLiquidity(amounts, minMintAmount);
+        emit AddLiquidity(msg.sender, amounts, swapStorage.lastInvariant, mintAmount);
     }
 
     // function for the requiem swap interface
@@ -106,6 +102,7 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         address to
     ) external override whenNotPaused nonReentrant {
         swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
+        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
     // expects amount alrady to be sent to this address
@@ -116,8 +113,9 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint256 amountIn,
         uint256 amountOutMin,
         address to
-    ) external override whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOutMin, to);
+    ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
+        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOutMin, to);
+        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
     // calculates the input amount from a given output amount
@@ -128,8 +126,9 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint256 amountOut,
         uint256 amountInMax,
         address to
-    ) external override whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+    ) external override whenNotPaused nonReentrant returns (uint256 amountIn) {
+        amountIn = swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
      /**  @notice Flash loan using stable swap balances  */
@@ -138,15 +137,29 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint256[] memory amounts,
         bytes memory userData
     ) external override nonReentrant whenNotPaused {
-        swapStorage.flashLoan(recipient, amounts, userData);
+        uint256[] memory feeAmounts = swapStorage.flashLoan(recipient, amounts, userData);
+        emit FlashLoan(address(recipient), amounts, feeAmounts);
     }
 
-    function removeLiquidity(
+    function removeLiquidityExactIn(
         uint256 lpAmount,
         uint256[] memory minAmounts,
         uint256 deadline
-    ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory) {
-        return swapStorage.removeLiquidity(lpAmount, minAmounts);
+    ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory amounts) {
+        uint256 totalSupply;
+        (amounts, totalSupply) = swapStorage.removeLiquidityExactIn(lpAmount, minAmounts);
+        emit RemoveLiquidity(msg.sender, amounts, totalSupply - lpAmount);
+    }
+
+
+    function removeLiquidityExactOut(
+        uint256[] memory amounts,
+        uint256 maxLpBurn,
+        uint256 deadline
+    ) external override nonReentrant deadlineCheck(deadline) returns (uint256 burnAmount) {
+        uint256 totalSupply;
+        (burnAmount, totalSupply) = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn);
+        emit RemoveLiquidityImbalance(msg.sender, amounts, swapStorage.lastInvariant, totalSupply - burnAmount);
     }
 
     function removeLiquidityOneToken(
@@ -154,26 +167,15 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         uint8 index,
         uint256 minAmount,
         uint256 deadline
-    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount);
-    }
-
-    function removeLiquidityImbalance(
-        uint256[] memory amounts,
-        uint256 maxBurnAmount,
-        uint256 deadline
-    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.removeLiquidityImbalance(amounts, maxBurnAmount);
+    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amountReceived) {
+        amountReceived = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount);
+        emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountReceived);
     }
 
     /// VIEW FUNCTIONS
 
-    function getVirtualPrice() external view override returns (uint256) {
-        return swapStorage.getVirtualPrice();
-    }
-
-    function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view override returns (uint256) {
-        return swapStorage.calculateTokenAmount(amounts, deposit);
+    function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view override returns (uint256 burnAmount) {
+        burnAmount = swapStorage.calculateTokenAmount(amounts, deposit);
     }
 
     // calculates output amount for given input
@@ -182,7 +184,7 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         address tokenOut,
         uint256 amountIn
     ) external view returns (uint256) {
-        return swapStorage.calculateSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn);
+        return swapStorage.calculateSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn);
     }
 
     // calculates input amount for given output
@@ -194,36 +196,16 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
     }
 
-    function calculateRemoveLiquidity(address account, uint256 amount) external view override returns (uint256[] memory) {
-        return swapStorage.calculateRemoveLiquidity(account, amount);
+    function calculateRemoveLiquidityExactIn(uint256 amount) external view override returns (uint256[] memory) {
+        return swapStorage.calculateRemoveLiquidityExactIn(amount);
     }
 
     function calculateRemoveLiquidityOneToken(
-        address account,
         uint256 amount,
-        uint8 index
-    ) external view override returns (uint256) {
-        return swapStorage.calculateRemoveLiquidityOneToken(account, amount, index);
+        uint256 index
+    ) external view override returns (uint256 amountOut, uint256 fee) {
+        (amountOut, fee) =  swapStorage.calculateRemoveLiquidityExactIn( index, amount);
     }
-
-    function calculateCurrentWithdrawFee(address account) external view override returns (uint256) {
-        return swapStorage._calculateCurrentWithdrawFee(account);
-    }
-
-    /// RESTRICTED FUNCTION
-    /**
-     * @notice Updates the user withdraw fee. This function can only be called by
-     * the pool token. Should be used to update the withdraw fee on transfer of pool tokens.
-     * Transferring your pool token will reset the 4 weeks period. If the recipient is already
-     * holding some pool tokens, the withdraw fee will be discounted in respective amounts.
-     * @param recipient address of the recipient of pool token
-     * @param transferAmount amount of pool token to transfer
-     */
-    function updateUserWithdrawFee(address recipient, uint256 transferAmount) external override {
-        require(msg.sender == address(swapStorage.lpToken), "addressError");
-        swapStorage.updateUserWithdrawFee(recipient, transferAmount);
-    }
-
 
     /**
      * @notice Sets the admin fee
@@ -242,56 +224,13 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
-        require(newWithdrawFee <= MAX_TRANSACTION_FEE, "feeError");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
-        swapStorage.defaultWithdrawFee = newWithdrawFee;
 
         emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);
     }
 
-    /**
-     * @notice Start ramping up or down A parameter towards given futureA_ and futureTime_
-     * Checks if the change is too rapid, and commits the new A value only when it falls under
-     * the limit range.
-     * @param futureA the new A to ramp towards
-     * @param futureATime timestamp when the new A should be reached
-     */
-    function rampA(uint256 futureA, uint256 futureATime) external onlyOwner {
-        require(block.timestamp >= swapStorage.initialATime + (1 days), "paramError"); // please wait 1 days before start a new ramping
-        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "paramError");
-        require(0 < futureA && futureA < MAX_A, "arrayError");
-
-        uint256 initialAPrecise = swapStorage.getAPrecise();
-        uint256 futureAPrecise = futureA * StableSwapLib.A_PRECISION;
-
-        if (futureAPrecise < initialAPrecise) {
-            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "paramError");
-        } else {
-            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "paramError");
-        }
-
-        swapStorage.initialA = initialAPrecise;
-        swapStorage.futureA = futureAPrecise;
-        swapStorage.initialATime = block.timestamp;
-        swapStorage.futureATime = futureATime;
-
-        emit RampA(initialAPrecise, futureAPrecise, block.timestamp, futureATime);
-    }
-
-    function stopRampA() external onlyOwner {
-        require(swapStorage.futureATime > block.timestamp, "alreadyStopped");
-        uint256 currentA = swapStorage.getAPrecise();
-
-        swapStorage.initialA = currentA;
-        swapStorage.futureA = currentA;
-        swapStorage.initialATime = block.timestamp;
-        swapStorage.futureATime = block.timestamp;
-
-        emit StopRampA(currentA, block.timestamp);
-    }
-
-    function setFeeController(address _feeController) external onlyOwner {
+    function setFeeControllerAndDistributor(address _feeController) external onlyOwner {
         require(_feeController != address(0), "addressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
@@ -303,13 +242,18 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         emit FeeDistributorChanged(_feeDistributor);
     }
 
-    function withdrawAdminFee() external onlyFeeControllerOrOwner {
-        swapStorage.sync(feeDistributor);
-    }
+    // function withdrawAdminFee() external onlyFeeControllerOrOwner {
+    //     swapStorage.sync(feeDistributor);
+    // }
 
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;
     }
+
+    function getTokenWeights() external view returns (uint256[] memory) {
+        return swapStorage.normalizedWeights;
+    }
+
 
     function getCollectedFees() external view returns (uint256[] memory) {
         return swapStorage.collectedFees;

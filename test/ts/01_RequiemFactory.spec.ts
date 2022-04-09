@@ -69,7 +69,7 @@ describe('RequiemPair-Test', () => {
 		formula = await new WeightedFormula__factory(wallet).deploy()
 		factory = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
 		router = await new SwapRouter__factory(wallet).deploy(factory.address, weth.address)
-		
+
 		await tokenA.approve(router.address, ethers.constants.MaxUint256)
 		await tokenB.approve(router.address, ethers.constants.MaxUint256)
 
@@ -89,30 +89,6 @@ describe('RequiemPair-Test', () => {
 		const pair = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
 		pairContract = await ethers.getContractAt('RequiemPair', pair)
 
-
-		expect(await formula.getAmountOut(1000, 10023423400, 2313453450000, 98, 2, 0)).to.eq(11309403)
-		// expect(getAmountOut(1000, 10023423400, 2313453450000, 98, 2, 0)).to.eq(11309403);
-
-
-		expect(await formula.getAmountOut(100023423, 10023423400, 2313453450000, 98, 2, 0)).to.eq(891266825871)
-		// expect(getAmountOut(100023423, 10023423400, 2313453450000, 98, 2, 0)).to.eq(891266825871);
-
-		expect(await formula.getAmountOut(10023423400, 10023423400, 2313453450000, 98, 2, 0)).to.eq(2313453449999)
-		// expect(await getAmountOut(10023423400, 10023423400, 2313453450000, 98, 2, 0)).to.eq(2313453449999)
-		expect(await formula.getAmountOut(10023423400, 10023423400, 2313453450000, 2, 98, 0)).to.eq(32495410881)
-		// expect(await getAmountOut(10023423400, 10023423400, 2313453450000, 2, 98, 0)).to.eq(32495410881)
-
-
-		expect(await formula.getAmountOut(20023423400, 10023423400, 2313453450000, 2, 98, 0)).to.eq(51256025942)
-		// expect(await getAmountOut(20023423400, 10023423400, 2313453450000, 2, 98, 0)).to.eq(51256025942)
-
-
-
-		expect(await formula.getAmountOut("4232002342342343", "100234234002342342343", "300234232002342342343", 2, 98, 0)).to.eq("258692951827702")
-		// expect(await getAmountOut("4232002342342343", "100234234002342342343", "300234232002342342343", 2, 98, 0)).to.eq("258692951827702")
-
-		expect(await formula.getAmountOut("0", "100234234002342342343", "300234232002342342343", 2, 98, 0)).to.eq("0")
-
 		const name = await pairContract.name()
 		const symbol = await pairContract.symbol()
 		console.log("Name, Symbol", name, symbol)
@@ -121,6 +97,7 @@ describe('RequiemPair-Test', () => {
 		const price = await pairContract.calculateSwapGivenIn(tokenA.address, tokenB.address, amountIn)
 		console.log("Price", price)
 
+		const balBPre = await tokenB.balanceOf(wallet.address)
 		await router.onSwapExactTokensForTokens(
 			[pair],
 			[tokenA.address, tokenB.address],
@@ -129,12 +106,44 @@ describe('RequiemPair-Test', () => {
 			wallet.address,
 			deadline
 		)
+
+		const balBPost = await tokenB.balanceOf(wallet.address)
+
+		console.log("Change:", balBPost.sub(balBPre), price)
+
+		// traded thas to macht actul flows
+		expect(balBPost.sub(balBPre)).to.equal(price)
+
 		const reserves = await pairContract.getReserves()
 		console.log("Reserves:", reserves)
 
 
 		const params = await pairContract.getParameters()
 		console.log("Parameters:", params)
+
+
+		const amountOut = BigNumber.from(123321321);
+		const balAPre = await tokenA.balanceOf(wallet.address)
+
+		const priceIn = await pairContract.calculateSwapGivenOut(tokenA.address, tokenB.address, amountOut)
+		console.log("Price exact Out", priceIn)
+
+		await router.onSwapTokensForExactTokens(
+			[pair],
+			[tokenA.address, tokenB.address],
+			amountOut,
+			ethers.constants.MaxUint256,
+			wallet.address,
+			deadline
+		)
+
+		const balAPost = await tokenA.balanceOf(wallet.address)
+
+		console.log("Change Exact Out:", balAPre.sub(balAPost), priceIn)
+
+		// traded thas to macht actul flows
+		expect( balAPre.sub(balAPost)).to.equal(priceIn)
+
 
 		await factory.setSwapParams(pair, newSwapFee, newAmplification)
 

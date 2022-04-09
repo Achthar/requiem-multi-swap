@@ -53,6 +53,7 @@ interface StableSwapLibInterface extends ethers.utils.Interface {
 
   events: {
     "AddLiquidity(address,uint256[],uint256[],uint256,uint256)": EventFragment;
+    "CollectProtocolFee(address,uint256)": EventFragment;
     "FlashLoan(address,address,uint256,uint256)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256[],uint256)": EventFragment;
     "RemoveLiquidityImbalance(address,uint256[],uint256[],uint256,uint256)": EventFragment;
@@ -61,6 +62,7 @@ interface StableSwapLibInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollectProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidityImbalance"): EventFragment;
@@ -76,6 +78,10 @@ export type AddLiquidityEvent = TypedEvent<
     invariant: BigNumber;
     token_supply: BigNumber;
   }
+>;
+
+export type CollectProtocolFeeEvent = TypedEvent<
+  [string, BigNumber] & { token: string; amount: BigNumber }
 >;
 
 export type FlashLoanEvent = TypedEvent<
@@ -223,6 +229,22 @@ export class StableSwapLib extends BaseContract {
         invariant: BigNumber;
         token_supply: BigNumber;
       }
+    >;
+
+    "CollectProtocolFee(address,uint256)"(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+
+    CollectProtocolFee(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
     >;
 
     "FlashLoan(address,address,uint256,uint256)"(

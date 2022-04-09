@@ -177,6 +177,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWeightedPairManager__factory>;
     getContractFactory(
+      name: "IWeightedSwap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWeightedSwap__factory>;
+    getContractFactory(
       name: "IWETH",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWETH__factory>;
@@ -485,6 +489,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WeightedPairGovernance__factory>;
     getContractFactory(
+      name: "WeightedSwap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedSwap__factory>;
+    getContractFactory(
+      name: "WeightedPoolLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedPoolLib__factory>;
+    getContractFactory(
       name: "Zap",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Zap__factory>;
@@ -694,6 +706,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IWeightedPairManager>;
+    getContractAt(
+      name: "IWeightedSwap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWeightedSwap>;
     getContractAt(
       name: "IWETH",
       address: string,
@@ -1079,6 +1096,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.WeightedPairGovernance>;
+    getContractAt(
+      name: "WeightedSwap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedSwap>;
+    getContractAt(
+      name: "WeightedPoolLib",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedPoolLib>;
     getContractAt(
       name: "Zap",
       address: string,

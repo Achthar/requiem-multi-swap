@@ -19,20 +19,17 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IStableSwapInterface extends ethers.utils.Interface {
+interface IWeightedSwapInterface extends ethers.utils.Interface {
   functions: {
     "addLiquidity(uint256[],uint256,uint256)": FunctionFragment;
-    "calculateCurrentWithdrawFee(address)": FunctionFragment;
-    "calculateRemoveLiquidity(address,uint256)": FunctionFragment;
-    "calculateRemoveLiquidityOneToken(address,uint256,uint8)": FunctionFragment;
+    "calculateRemoveLiquidityExactIn(uint256)": FunctionFragment;
+    "calculateRemoveLiquidityOneToken(uint256,uint256)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
     "flashLoan(address,uint256[],bytes)": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
-    "getVirtualPrice()": FunctionFragment;
-    "removeLiquidity(uint256,uint256[],uint256)": FunctionFragment;
-    "removeLiquidityImbalance(uint256[],uint256,uint256)": FunctionFragment;
+    "removeLiquidityExactIn(uint256,uint256[],uint256)": FunctionFragment;
+    "removeLiquidityExactOut(uint256[],uint256,uint256)": FunctionFragment;
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
-    "updateUserWithdrawFee(address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -40,16 +37,12 @@ interface IStableSwapInterface extends ethers.utils.Interface {
     values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "calculateCurrentWithdrawFee",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "calculateRemoveLiquidity",
-    values: [string, BigNumberish]
+    functionFragment: "calculateRemoveLiquidityExactIn",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateRemoveLiquidityOneToken",
-    values: [string, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculateTokenAmount",
@@ -64,24 +57,16 @@ interface IStableSwapInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getVirtualPrice",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeLiquidity",
+    functionFragment: "removeLiquidityExactIn",
     values: [BigNumberish, BigNumberish[], BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "removeLiquidityImbalance",
+    functionFragment: "removeLiquidityExactOut",
     values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityOneToken",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateUserWithdrawFee",
-    values: [string, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -89,11 +74,7 @@ interface IStableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "calculateCurrentWithdrawFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "calculateRemoveLiquidity",
+    functionFragment: "calculateRemoveLiquidityExactIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -110,59 +91,54 @@ interface IStableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getVirtualPrice",
+    functionFragment: "removeLiquidityExactIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "removeLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityImbalance",
+    functionFragment: "removeLiquidityExactOut",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidityOneToken",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateUserWithdrawFee",
-    data: BytesLike
-  ): Result;
 
   events: {
-    "AddLiquidity(address,uint256[],uint256[],uint256,uint256)": EventFragment;
+    "AddLiquidity(address,uint256[],uint256,uint256)": EventFragment;
+    "CollectProtocolFee(address,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
+    "FlashLoan(address,uint256[],uint256[])": EventFragment;
     "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
-    "RampA(uint256,uint256,uint256,uint256)": EventFragment;
-    "RemoveLiquidity(address,uint256[],uint256[],uint256)": EventFragment;
-    "RemoveLiquidityImbalance(address,uint256[],uint256[],uint256,uint256)": EventFragment;
+    "RemoveLiquidity(address,uint256[],uint256)": EventFragment;
+    "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)": EventFragment;
     "RemoveLiquidityOne(address,uint256,uint256,uint256)": EventFragment;
-    "StopRampA(uint256,uint256)": EventFragment;
-    "TokenExchange(address,uint256,uint256,uint256,uint256)": EventFragment;
+    "TokenExchange(address,address,uint256,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollectProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeControllerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeDistributorChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewFee"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RampA"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidityImbalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidityOne"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "StopRampA"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokenExchange"): EventFragment;
 }
 
 export type AddLiquidityEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[], BigNumber, BigNumber] & {
+  [string, BigNumber[], BigNumber, BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    fees: BigNumber[];
     invariant: BigNumber;
     tokenSupply: BigNumber;
   }
+>;
+
+export type CollectProtocolFeeEvent = TypedEvent<
+  [string, BigNumber] & { token: string; amount: BigNumber }
 >;
 
 export type FeeControllerChangedEvent = TypedEvent<
@@ -171,6 +147,14 @@ export type FeeControllerChangedEvent = TypedEvent<
 
 export type FeeDistributorChangedEvent = TypedEvent<
   [string] & { newController: string }
+>;
+
+export type FlashLoanEvent = TypedEvent<
+  [string, BigNumber[], BigNumber[]] & {
+    recipient: string;
+    amounts: BigNumber[];
+    feeAmounts: BigNumber[];
+  }
 >;
 
 export type NewFeeEvent = TypedEvent<
@@ -182,29 +166,18 @@ export type NewFeeEvent = TypedEvent<
   }
 >;
 
-export type RampAEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber, BigNumber] & {
-    oldA: BigNumber;
-    newA: BigNumber;
-    initialTime: BigNumber;
-    futureTime: BigNumber;
-  }
->;
-
 export type RemoveLiquidityEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[], BigNumber] & {
+  [string, BigNumber[], BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    fees: BigNumber[];
     tokenSupply: BigNumber;
   }
 >;
 
 export type RemoveLiquidityImbalanceEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[], BigNumber, BigNumber] & {
+  [string, BigNumber[], BigNumber, BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    fees: BigNumber[];
     invariant: BigNumber;
     tokenSupply: BigNumber;
   }
@@ -219,21 +192,17 @@ export type RemoveLiquidityOneEvent = TypedEvent<
   }
 >;
 
-export type StopRampAEvent = TypedEvent<
-  [BigNumber, BigNumber] & { A: BigNumber; timestamp: BigNumber }
->;
-
 export type TokenExchangeEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+  [string, string, BigNumber, string, BigNumber] & {
     buyer: string;
-    soldId: BigNumber;
+    soldId: string;
     tokensSold: BigNumber;
-    boughtId: BigNumber;
+    boughtId: string;
     tokensBought: BigNumber;
   }
 >;
 
-export class IStableSwap extends BaseContract {
+export class IWeightedSwap extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -274,7 +243,7 @@ export class IStableSwap extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IStableSwapInterface;
+  interface: IWeightedSwapInterface;
 
   functions: {
     addLiquidity(
@@ -284,23 +253,16 @@ export class IStableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    calculateCurrentWithdrawFee(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    calculateRemoveLiquidity(
-      account: string,
+    calculateRemoveLiquidityExactIn(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
     calculateRemoveLiquidityOneToken(
-      account: string,
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber] & { availableTokenAmount: BigNumber }>;
+    ): Promise<[BigNumber, BigNumber]>;
 
     calculateTokenAmount(
       amounts: BigNumberish[],
@@ -317,18 +279,16 @@ export class IStableSwap extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
-    getVirtualPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    removeLiquidity(
-      amount: BigNumberish,
+    removeLiquidityExactIn(
+      lpAmount: BigNumberish,
       minAmounts: BigNumberish[],
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    removeLiquidityImbalance(
+    removeLiquidityExactOut(
       amounts: BigNumberish[],
-      maxBurnAmount: BigNumberish,
+      maxLpBurn: BigNumberish,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -340,12 +300,6 @@ export class IStableSwap extends BaseContract {
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    updateUserWithdrawFee(
-      recipient: string,
-      transferAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
 
   addLiquidity(
@@ -355,23 +309,16 @@ export class IStableSwap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  calculateCurrentWithdrawFee(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  calculateRemoveLiquidity(
-    account: string,
+  calculateRemoveLiquidityExactIn(
     amount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
   calculateRemoveLiquidityOneToken(
-    account: string,
     tokenAmount: BigNumberish,
     tokenIndex: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<[BigNumber, BigNumber]>;
 
   calculateTokenAmount(
     amounts: BigNumberish[],
@@ -388,18 +335,16 @@ export class IStableSwap extends BaseContract {
 
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
-  getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-  removeLiquidity(
-    amount: BigNumberish,
+  removeLiquidityExactIn(
+    lpAmount: BigNumberish,
     minAmounts: BigNumberish[],
     deadline: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  removeLiquidityImbalance(
+  removeLiquidityExactOut(
     amounts: BigNumberish[],
-    maxBurnAmount: BigNumberish,
+    maxLpBurn: BigNumberish,
     deadline: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -412,12 +357,6 @@ export class IStableSwap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  updateUserWithdrawFee(
-    recipient: string,
-    transferAmount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     addLiquidity(
       amounts: BigNumberish[],
@@ -426,23 +365,16 @@ export class IStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    calculateCurrentWithdrawFee(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calculateRemoveLiquidity(
-      account: string,
+    calculateRemoveLiquidityExactIn(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
     calculateRemoveLiquidityOneToken(
-      account: string,
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<[BigNumber, BigNumber]>;
 
     calculateTokenAmount(
       amounts: BigNumberish[],
@@ -459,18 +391,16 @@ export class IStableSwap extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
-    getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-    removeLiquidity(
-      amount: BigNumberish,
+    removeLiquidityExactIn(
+      lpAmount: BigNumberish,
       minAmounts: BigNumberish[],
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    removeLiquidityImbalance(
+    removeLiquidityExactOut(
       amounts: BigNumberish[],
-      maxBurnAmount: BigNumberish,
+      maxLpBurn: BigNumberish,
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -482,27 +412,19 @@ export class IStableSwap extends BaseContract {
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    updateUserWithdrawFee(
-      recipient: string,
-      transferAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {
-    "AddLiquidity(address,uint256[],uint256[],uint256,uint256)"(
+    "AddLiquidity(address,uint256[],uint256,uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      fees?: null,
       invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber, BigNumber],
+      [string, BigNumber[], BigNumber, BigNumber],
       {
         provider: string;
         tokenAmounts: BigNumber[];
-        fees: BigNumber[];
         invariant: BigNumber;
         tokenSupply: BigNumber;
       }
@@ -511,18 +433,32 @@ export class IStableSwap extends BaseContract {
     AddLiquidity(
       provider?: string | null,
       tokenAmounts?: null,
-      fees?: null,
       invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber, BigNumber],
+      [string, BigNumber[], BigNumber, BigNumber],
       {
         provider: string;
         tokenAmounts: BigNumber[];
-        fees: BigNumber[];
         invariant: BigNumber;
         tokenSupply: BigNumber;
       }
+    >;
+
+    "CollectProtocolFee(address,uint256)"(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+
+    CollectProtocolFee(
+      token?: null,
+      amount?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
     >;
 
     "FeeControllerChanged(address)"(
@@ -540,6 +476,24 @@ export class IStableSwap extends BaseContract {
     FeeDistributorChanged(
       newController?: null
     ): TypedEventFilter<[string], { newController: string }>;
+
+    "FlashLoan(address,uint256[],uint256[])"(
+      recipient?: null,
+      amounts?: null,
+      feeAmounts?: null
+    ): TypedEventFilter<
+      [string, BigNumber[], BigNumber[]],
+      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
+    >;
+
+    FlashLoan(
+      recipient?: null,
+      amounts?: null,
+      feeAmounts?: null
+    ): TypedEventFilter<
+      [string, BigNumber[], BigNumber[]],
+      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
+    >;
 
     "NewFee(uint256,uint256,uint256,uint256)"(
       fee?: null,
@@ -571,78 +525,34 @@ export class IStableSwap extends BaseContract {
       }
     >;
 
-    "RampA(uint256,uint256,uint256,uint256)"(
-      oldA?: null,
-      newA?: null,
-      initialTime?: null,
-      futureTime?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        oldA: BigNumber;
-        newA: BigNumber;
-        initialTime: BigNumber;
-        futureTime: BigNumber;
-      }
-    >;
-
-    RampA(
-      oldA?: null,
-      newA?: null,
-      initialTime?: null,
-      futureTime?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        oldA: BigNumber;
-        newA: BigNumber;
-        initialTime: BigNumber;
-        futureTime: BigNumber;
-      }
-    >;
-
-    "RemoveLiquidity(address,uint256[],uint256[],uint256)"(
+    "RemoveLiquidity(address,uint256[],uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      fees?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        fees: BigNumber[];
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     RemoveLiquidity(
       provider?: string | null,
       tokenAmounts?: null,
-      fees?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        fees: BigNumber[];
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
-    "RemoveLiquidityImbalance(address,uint256[],uint256[],uint256,uint256)"(
+    "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      fees?: null,
       invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber, BigNumber],
+      [string, BigNumber[], BigNumber, BigNumber],
       {
         provider: string;
         tokenAmounts: BigNumber[];
-        fees: BigNumber[];
         invariant: BigNumber;
         tokenSupply: BigNumber;
       }
@@ -651,15 +561,13 @@ export class IStableSwap extends BaseContract {
     RemoveLiquidityImbalance(
       provider?: string | null,
       tokenAmounts?: null,
-      fees?: null,
       invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber, BigNumber],
+      [string, BigNumber[], BigNumber, BigNumber],
       {
         provider: string;
         tokenAmounts: BigNumber[];
-        fees: BigNumber[];
         invariant: BigNumber;
         tokenSupply: BigNumber;
       }
@@ -695,35 +603,19 @@ export class IStableSwap extends BaseContract {
       }
     >;
 
-    "StopRampA(uint256,uint256)"(
-      A?: null,
-      timestamp?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { A: BigNumber; timestamp: BigNumber }
-    >;
-
-    StopRampA(
-      A?: null,
-      timestamp?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { A: BigNumber; timestamp: BigNumber }
-    >;
-
-    "TokenExchange(address,uint256,uint256,uint256,uint256)"(
+    "TokenExchange(address,address,uint256,address,uint256)"(
       buyer?: string | null,
       soldId?: null,
       tokensSold?: null,
       boughtId?: null,
       tokensBought?: null
     ): TypedEventFilter<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber],
+      [string, string, BigNumber, string, BigNumber],
       {
         buyer: string;
-        soldId: BigNumber;
+        soldId: string;
         tokensSold: BigNumber;
-        boughtId: BigNumber;
+        boughtId: string;
         tokensBought: BigNumber;
       }
     >;
@@ -735,12 +627,12 @@ export class IStableSwap extends BaseContract {
       boughtId?: null,
       tokensBought?: null
     ): TypedEventFilter<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber],
+      [string, string, BigNumber, string, BigNumber],
       {
         buyer: string;
-        soldId: BigNumber;
+        soldId: string;
         tokensSold: BigNumber;
-        boughtId: BigNumber;
+        boughtId: string;
         tokensBought: BigNumber;
       }
     >;
@@ -754,19 +646,12 @@ export class IStableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    calculateCurrentWithdrawFee(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    calculateRemoveLiquidity(
-      account: string,
+    calculateRemoveLiquidityExactIn(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     calculateRemoveLiquidityOneToken(
-      account: string,
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       overrides?: CallOverrides
@@ -787,18 +672,16 @@ export class IStableSwap extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
-
-    removeLiquidity(
-      amount: BigNumberish,
+    removeLiquidityExactIn(
+      lpAmount: BigNumberish,
       minAmounts: BigNumberish[],
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    removeLiquidityImbalance(
+    removeLiquidityExactOut(
       amounts: BigNumberish[],
-      maxBurnAmount: BigNumberish,
+      maxLpBurn: BigNumberish,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -808,12 +691,6 @@ export class IStableSwap extends BaseContract {
       tokenIndex: BigNumberish,
       minAmount: BigNumberish,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    updateUserWithdrawFee(
-      recipient: string,
-      transferAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -826,19 +703,12 @@ export class IStableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    calculateCurrentWithdrawFee(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    calculateRemoveLiquidity(
-      account: string,
+    calculateRemoveLiquidityExactIn(
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     calculateRemoveLiquidityOneToken(
-      account: string,
       tokenAmount: BigNumberish,
       tokenIndex: BigNumberish,
       overrides?: CallOverrides
@@ -859,18 +729,16 @@ export class IStableSwap extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getVirtualPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    removeLiquidity(
-      amount: BigNumberish,
+    removeLiquidityExactIn(
+      lpAmount: BigNumberish,
       minAmounts: BigNumberish[],
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    removeLiquidityImbalance(
+    removeLiquidityExactOut(
       amounts: BigNumberish[],
-      maxBurnAmount: BigNumberish,
+      maxLpBurn: BigNumberish,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -880,12 +748,6 @@ export class IStableSwap extends BaseContract {
       tokenIndex: BigNumberish,
       minAmount: BigNumberish,
       deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateUserWithdrawFee(
-      recipient: string,
-      transferAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

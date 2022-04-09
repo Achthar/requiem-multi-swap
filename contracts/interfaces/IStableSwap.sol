@@ -26,8 +26,6 @@ interface IStableSwap {
 
     event NewFee(uint256 fee, uint256 flashFee, uint256 adminFee, uint256 withdrawFee);
 
-    event CollectProtocolFee(address token, uint256 amount);
-
     event FeeControllerChanged(address newController);
 
     event FeeDistributorChanged(address newController);
@@ -49,7 +47,6 @@ interface IStableSwap {
 
     function flashLoan(
         IFlashLoanRecipient recipient,
-        IERC20[] memory tokens,
         uint256[] memory amounts,
         bytes memory userData
     ) external;

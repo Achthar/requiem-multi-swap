@@ -20,7 +20,7 @@ import "./MockERC20.sol";
 import "../interfaces/IStableSwap.sol";
 import "../interfaces/IFlashLoanRecipient.sol";
 
-contract MockFlashLoanRecipient is IFlashLoanRecipient {
+abstract contract MockFlashLoanRecipient is IFlashLoanRecipient {
     using SafeERC20 for IERC20;
 
     address public immutable pool;
@@ -49,33 +49,32 @@ contract MockFlashLoanRecipient is IFlashLoanRecipient {
 
     // Repays loan unless setRepayLoan was called with 'false'
     function receiveFlashLoan(
-        IERC20[] memory tokens,
         uint256[] memory amounts,
         uint256[] memory feeAmounts,
         bytes memory userData
-    ) external override {
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            IERC20 token = tokens[i];
-            uint256 amount = amounts[i];
-            uint256 feeAmount = feeAmounts[i];
+    ) external  {
+        // for (uint256 i = 0; i < tokens.length; ++i) {
+        //     IERC20 token = tokens[i];
+        //     uint256 amount = amounts[i];
+        //     uint256 feeAmount = feeAmounts[i];
 
-            require(token.balanceOf(address(this)) == amount, "INVALID_FLASHLOAN_BALANCE");
+        //     require(token.balanceOf(address(this)) == amount, "INVALID_FLASHLOAN_BALANCE");
 
-            if (reenter) {
-                IStableSwap(msg.sender).flashLoan(IFlashLoanRecipient(address(this)), tokens, amounts, userData);
-            }
+        //     if (reenter) {
+        //         IStableSwap(msg.sender).flashLoan(IFlashLoanRecipient(address(this)), tokens, amounts, userData);
+        //     }
 
-            MockERC20(address(token)).mint(address(this), repayInExcess ? feeAmount + 1 : feeAmount);
+        //     MockERC20(address(token)).mint(address(this), repayInExcess ? feeAmount + 1 : feeAmount);
 
-            uint256 totalDebt = amount + feeAmount;
+        //     uint256 totalDebt = amount + feeAmount;
 
-            if (!repayLoan) {
-                totalDebt = totalDebt - 1;
-            } else if (repayInExcess) {
-                totalDebt = totalDebt + 1;
-            }
+        //     if (!repayLoan) {
+        //         totalDebt = totalDebt - 1;
+        //     } else if (repayInExcess) {
+        //         totalDebt = totalDebt + 1;
+        //     }
 
-            token.safeTransfer(pool, totalDebt);
-        }
+        //     token.safeTransfer(pool, totalDebt);
+        // }
     }
 }

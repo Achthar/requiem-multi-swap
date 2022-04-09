@@ -31,6 +31,7 @@ import {
 	FeeDistributor__factory,
 	WETH9__factory
 } from "../../types";
+import { Console } from "console";
 
 
 const TOTAL_SUPPLY = toWei(10000)
@@ -301,23 +302,6 @@ describe('StableSwap-Test', () => {
 		gasCosts = { ...gasCosts, exactInNew: gasUsed }
 
 
-		let balances = await swapNew.getTokenBalances()
-		console.log("BALANCES before", balances)
-
-		pools = [swapNew.address]
-		tokens = [tokenUSDC.address, tokenDAI.address]
-		await router2.onSwapExactTokensForTokens(
-			pools,
-			tokens,
-			amountIn,
-			amountOutMin,
-			wallet.address,
-			deadline
-		)
-		balances = await swapNew.getTokenBalances()
-		console.log("BALANCES after", balances)
-
-
 		const usdcBal = await tokenUSDC.balanceOf(swapNew.address)
 		const usdtBal = await tokenUSDT.balanceOf(swapNew.address)
 		const daiBal = await tokenDAI.balanceOf(swapNew.address)
@@ -326,8 +310,8 @@ describe('StableSwap-Test', () => {
 		console.log("ACT:", usdcBal, usdtBal, daiBal, tusdBal)
 
 
-		const amountOut = BigNumber.from(10000000000)
-		const amountInMax = ethers.constants.MaxUint256
+		let amountOut = BigNumber.from(10000000000)
+		let amountInMax = ethers.constants.MaxUint256
 		pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
 		tokens = [tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
 		tx = await router.onSwapTokensForExactTokens(
@@ -385,6 +369,43 @@ describe('StableSwap-Test', () => {
 			deadline
 		)).to.be.revertedWith("b")
 
+
+		amountOut = BigNumber.from('10000000')
+		amountInMax = ethers.constants.MaxUint256
+		pools = [pairA_USDC_Contract.address, swapNew.address, pairDAI_B_Contract.address]
+		tokens = [tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
+		tx = await router.onSwapTokensForExactTokens(
+			pools,
+			tokens,
+			amountOut,
+			amountInMax,
+			wallet.address,
+			deadline
+		)
+		console.log("Single pool old")
+		pools = [swap.address]
+		tokens = [tokenDAI.address, tokenUSDC.address]
+		amountOut = BigNumber.from('100000')
+		await router2.onSwapTokensForExactTokens(
+			pools,
+			tokens,
+			amountOut,
+			amountInMax,
+			wallet.address,
+			deadline
+		)
+		console.log("Single pool new")
+		pools = [swapNew.address]
+		await router2.onSwapTokensForExactTokens(
+			pools,
+			tokens,
+			amountOut,
+			amountInMax,
+			wallet.address,
+			deadline
+		)
+
+		console.log("DONE")
 	})
 
 	// it('approve', async () => {

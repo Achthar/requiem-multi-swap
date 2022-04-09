@@ -25,6 +25,8 @@ library StableSwapLib {
     event RemoveLiquidityOne(address indexed provider, uint256 index, uint256 token_amount, uint256 coin_amount);
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
+
+    event CollectProtocolFee(address token, uint256 amount);
     /**
      * @dev Emitted for each individual flash loan performed by `flashLoan`.
      */
@@ -39,15 +41,6 @@ library StableSwapLib {
     /// @dev max iteration of converge calccuate
     uint256 internal constant MAX_ITERATION = 256;
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
-
-    // errors
-    string internal constant tokenError = "token(s)";
-    string internal constant dyError = "dy";
-    string internal constant arrayError = "array";
-    string internal constant supplyError = "ts";
-    string internal constant balanceError = "b";
-    string internal constant calcError = "calc";
-    string internal constant slippageError = "s";
 
 
     struct SwapStorage {
@@ -87,7 +80,7 @@ library StableSwapLib {
         uint256 minMintAmount
     ) external returns (uint256 mintAmount) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, arrayError);
+        require(amounts.length == nCoins, "arrayError");
         uint256[] memory fees = new uint256[](nCoins);
         uint256 _fee = _feePerToken(self);
 
@@ -103,7 +96,7 @@ library StableSwapLib {
 
         for (uint256 i = 0; i < nCoins; i++) {
             if (tokenSupply == 0) {
-                require(amounts[i] > 0, tokenError);
+                require(amounts[i] > 0, "tokenError");
             }
             // get real transfer in amount
             newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
@@ -128,7 +121,7 @@ library StableSwapLib {
             mintAmount = (tokenSupply * (D1 - D0)) / D0;
         }
 
-        require(mintAmount >= minMintAmount, slippageError);
+        require(mintAmount >= minMintAmount, "slippageError");
 
         self.lpToken.mint(msg.sender, mintAmount);
         emit AddLiquidity(msg.sender, amounts, fees, D1, mintAmount);
@@ -158,9 +151,7 @@ library StableSwapLib {
         uint256 outAmount,
         address to
     ) external returns (uint256) {
-        require(self.balances[i] + inAmount <= IERC20(self.pooledTokens[i]).balanceOf(address(this)) - self.collectedFees[i],  balanceError);
         uint256[] memory normalizedBalances = _xp(self);
-
         uint256 y = _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances);
 
         uint256 dy = normalizedBalances[j] - y; // eliminate rouding errors
@@ -169,11 +160,14 @@ library StableSwapLib {
         dy = divUp(dy - dy_fee, self.tokenMultipliers[j]); // denormalize and round up
 
         // the control outAmount has to be lower or equal than the "actual" one
-        require(outAmount <= dy, dyError);
+        require(outAmount <= dy, "dyError");
 
-        // corect balances
-        self.balances[i] += inAmount;
-        self.balances[j] -= dy;
+        // correct balances
+        uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
+        require(self.balances[i] + inAmount <= balanceIn,  "insufficient in");
+
+        self.balances[i] = balanceIn;
+        self.balances[j] -= outAmount;
 
         // add fees
         self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
@@ -201,8 +195,6 @@ library StableSwapLib {
         uint256 minOutAmount,
         address to
     ) external returns (uint256 dy) {
-        // we check whether the balance has increased by the suggested inAmount
-        require(self.balances[i] + inAmount <= IERC20(self.pooledTokens[i]).balanceOf(address(this)) -  self.collectedFees[i],  balanceError);
         uint256[] memory normalizedBalances = _xp(self);
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
@@ -212,13 +204,18 @@ library StableSwapLib {
 
         dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
 
-        require(dy >= minOutAmount, slippageError);
+        require(dy >= minOutAmount, "slippage");
+       
+        uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
 
-        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+        // we check whether the balance has increased by the suggested inAmount
+        require(self.balances[i] + inAmount <= balanceIn,  "insufficient in");
 
         // update balances
-        self.balances[i] += inAmount;
+        self.balances[i] = balanceIn;
         self.balances[j] -= dy ;
+        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+       
 
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
@@ -260,7 +257,7 @@ library StableSwapLib {
 
         dx = dx / self.tokenMultipliers[i]; // denormalize
 
-        require(dx <= maxInAmount, slippageError);
+        require(dx <= maxInAmount, "slippage");
 
         // update balances
         self.balances[i] -= dx;
@@ -281,35 +278,33 @@ library StableSwapLib {
     function flashLoan(
         SwapStorage storage self,
         IFlashLoanRecipient recipient,
-        IERC20[] memory tokens,
         uint256[] memory amounts,
         bytes memory userData
     ) external {
-        require(tokens.length == amounts.length, arrayError);
-        uint256[] memory feeAmounts = new uint256[](tokens.length);
-        uint256[] memory preLoanBalances = new uint256[](tokens.length);
+        uint256[] memory feeAmounts = new uint256[](amounts.length);
+        uint256[] memory preLoanBalances = new uint256[](amounts.length);
 
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            IERC20 token = tokens[i];
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            IERC20 token = self.pooledTokens[i];
             uint256 amount = amounts[i];
 
             preLoanBalances[i] = token.balanceOf(address(this));
             feeAmounts[i] = (amount * self.fee) / FEE_DENOMINATOR;
 
-            require(preLoanBalances[i] >= amount, balanceError);
+            require(preLoanBalances[i] >= amount, "pre balances");
             token.safeTransfer(address(recipient), amount);
         }
 
-        recipient.receiveFlashLoan(tokens, amounts, feeAmounts, userData);
+        recipient.receiveFlashLoan(self.pooledTokens, amounts, feeAmounts, userData);
 
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            IERC20 token = tokens[i];
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            IERC20 token = self.pooledTokens[i];
             uint256 preLoanBalance = preLoanBalances[i];
 
             // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
             // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
             uint256 postLoanBalance = token.balanceOf(address(this));
-            require(postLoanBalance >= preLoanBalance, balanceError);
+            require(postLoanBalance >= preLoanBalance, "post balances");
 
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
@@ -332,7 +327,7 @@ library StableSwapLib {
         amounts = _calculateRemoveLiquidity(self, msg.sender, lpAmount);
 
         for (uint256 i = 0; i < amounts.length; i++) {
-            require(amounts[i] >= minAmounts[i], slippageError);
+            require(amounts[i] >= minAmounts[i], "slippageError");
             self.balances[i] = self.balances[i] - amounts[i];
             self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
         }
@@ -348,18 +343,18 @@ library StableSwapLib {
         uint256 minAmount
     ) external returns (uint256) {
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(totalSupply > 0, supplyError);
+        require(totalSupply > 0, "supply=0");
         uint256 numTokens = self.pooledTokens.length;
-        require(lpAmount <= self.lpToken.balanceOf(msg.sender), balanceError);
-        require(lpAmount <= totalSupply, supplyError);
-        require(index < numTokens, tokenError);
+        require(lpAmount <= self.lpToken.balanceOf(msg.sender), "balanceError");
+        require(lpAmount <= totalSupply, "supplyError");
+        require(index < numTokens, "tokenError");
 
         uint256 dyFee;
         uint256 dy;
 
         (dy, dyFee) = _calculateRemoveLiquidityOneToken(self, msg.sender, lpAmount, index);
 
-        require(dy >= minAmount, slippageError);
+        require(dy >= minAmount, "slippageError");
 
         self.balances[index] -= (dy + (dyFee * self.adminFee) / FEE_DENOMINATOR);
         self.lpToken.burnFrom(msg.sender, lpAmount);
@@ -376,9 +371,9 @@ library StableSwapLib {
         uint256 maxBurnAmount
     ) external returns (uint256 burnAmount) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, arrayError);
+        require(amounts.length == nCoins, "arrayError");
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(totalSupply != 0, supplyError);
+        require(totalSupply != 0, "supplyError");
         uint256 _fee = _feePerToken(self);
         uint256 amp = _getAPrecise(self);
 
@@ -405,7 +400,7 @@ library StableSwapLib {
         burnAmount = ((D0 - D1) * totalSupply) / D0;
         assert(burnAmount > 0);
         burnAmount = (burnAmount + 1) * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender)); //In case of rounding errors - make it unfavorable for the "attacker"
-        require(burnAmount <= maxBurnAmount, slippageError);
+        require(burnAmount <= maxBurnAmount, "slippageError");
 
         self.lpToken.burnFrom(msg.sender, burnAmount);
 
@@ -416,6 +411,23 @@ library StableSwapLib {
         }
 
         emit RemoveLiquidityImbalance(msg.sender, amounts, fees, D1, totalSupply - burnAmount);
+    }
+
+
+    function sync(
+        SwapStorage storage self,
+        address receiver
+    ) external {
+        for (uint256 i = 0; i < self.pooledTokens.length; i++) {
+            IERC20 token = self.pooledTokens[i];
+            uint256 fee = self.collectedFees[i];
+            if (fee != 0) {
+                token.safeTransfer(receiver, fee);
+                self.collectedFees[i] = 0;
+                self.balances[i] = token.balanceOf(address(this));
+                emit CollectProtocolFee(address(token), fee);
+            }
+        }
     }
 
     /// VIEW FUNCTIONS
@@ -434,7 +446,7 @@ library StableSwapLib {
     }
 
     function getAdminBalance(SwapStorage storage self, uint256 index) external view returns (uint256) {
-        require(index < self.pooledTokens.length, arrayError);
+        require(index < self.pooledTokens.length, "arrayError");
         return self.pooledTokens[index].balanceOf(address(this)) - (self.balances[index]);
     }
 
@@ -448,7 +460,7 @@ library StableSwapLib {
         bool deposit
     ) external view returns (uint256) {
         uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, arrayError);
+        require(amounts.length == nCoins, "arrayError");
         uint256 amp = _getAPrecise(self);
         uint256 D0 = _getD(_xp(self), amp);
 
@@ -610,7 +622,7 @@ library StableSwapLib {
         // Convergence should occur in 4 loops or less. If this is reached, there may be something wrong
         // with the pool. If this were to occur repeatedly, LPs should withdraw via `removeLiquidity()`
         // function which does not rely on D.
-        revert(calcError);
+        revert("calcError");
     }
 
     /**
@@ -631,9 +643,9 @@ library StableSwapLib {
         uint256 inBalance,
         uint256[] memory normalizedBalances
     ) internal view returns (uint256) {
-        require(inIndex != outIndex, tokenError);
+        require(inIndex != outIndex, "tokenError");
         uint256 nCoins = self.pooledTokens.length;
-        require(inIndex < nCoins && outIndex < nCoins, arrayError);
+        require(inIndex < nCoins && outIndex < nCoins, "arrayError");
 
         uint256 amp = _getAPrecise(self);
         uint256 Ann = amp * nCoins;
@@ -665,7 +677,7 @@ library StableSwapLib {
             }
         }
 
-        revert(calcError);
+        revert("calcError");
     }
 
     function _calculateRemoveLiquidity(
@@ -674,7 +686,7 @@ library StableSwapLib {
         uint256 amount
     ) internal view returns (uint256[] memory) {
         uint256 totalSupply = self.lpToken.totalSupply();
-        require(amount <= totalSupply, supplyError);
+        require(amount <= totalSupply, "supplyError");
 
         uint256 feeAdjustedAmount = (amount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
 
@@ -692,7 +704,7 @@ library StableSwapLib {
         uint256 tokenAmount,
         uint256 index
     ) internal view returns (uint256 dy, uint256 fee) {
-        require(index < self.pooledTokens.length, arrayError);
+        require(index < self.pooledTokens.length, "arrayError");
         uint256 amp = _getAPrecise(self);
         uint256[] memory xp = _xp(self);
         uint256 D0 = _getD(xp, amp);
@@ -757,7 +769,7 @@ library StableSwapLib {
                 return y;
             }
         }
-        revert(calcError);
+        revert("calcError");
     }
 
     function _updateUserWithdrawFee(
@@ -819,7 +831,7 @@ library StableSwapLib {
     }
 
     function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, calcError);
+        require(b != 0, "calcError");
 
         if (a == 0) {
             return 0;
