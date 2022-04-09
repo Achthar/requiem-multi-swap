@@ -891,7 +891,7 @@ describe('StableSwap-Test', () => {
 									)
 									// stable at beginning
 									_tokens = [
-										tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address
+										tokenDAI.address, tokenUSDC.address, tokenA.address
 									]
 									poolsBase = [
 										pairDAI_B_Contract2, swap, pairA_USDC_Contract2
