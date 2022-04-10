@@ -15,7 +15,6 @@ import { getApprovalDigest, deployContractWithLibraries } from './shared/common'
 import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import SwapArtifact from "../../artifacts/contracts/RequiemStableSwap.sol/RequiemStableSwap.json";
 import NewSwapArtifact from "../../artifacts/contracts/WeightedPool.sol/WeightedPool.json";
 import {
 	RequiemPairFactory__factory,
@@ -76,6 +75,8 @@ describe('StableSwap-Test', () => {
 	let pairA_B_Contract2: Contract
 	let pairB_C_Contract: Contract
 	let pairB_C_Contract2: Contract
+	let pairC_WBTC_Contract2: Contract
+	let pairB_WETH_Contract2: Contract
 
 	// specs for pair
 	let tokenWeightA = BigNumber.from(40)
@@ -104,6 +105,10 @@ describe('StableSwap-Test', () => {
 	let receipt: any
 	let gasUsed: any
 	let tx: any;
+	let inPre: any;
+	let outPre: any;
+	let inPost: any
+	let outPost: any
 	let gasCosts = {}
 	let balancesVitual: any[]
 	let balancesPoolActual: any[]
@@ -198,6 +203,30 @@ describe('StableSwap-Test', () => {
 			wallet.address
 		)
 
+		await new router2.createPair(
+			tokenC.address,
+			tokenWBTC.address,
+			amountC,
+			parseUnits('10', 8),
+			52,
+			swapFee,
+			amplification,
+			wallet.address
+		)
+
+		await new router2.createPair(
+			tokenB.address,
+			tokenWETH.address,
+			amountB,
+			parseUnits('10', 18),
+			98,
+			swapFee,
+			amplification,
+			wallet.address
+		)
+
+
+
 		const pairA_USDC2 = await factory2.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
 		pairA_USDC_Contract2 = await ethers.getContractAt('RequiemPair', pairA_USDC2)
 
@@ -211,6 +240,13 @@ describe('StableSwap-Test', () => {
 
 		const pairB_C2 = await factory2.getPair(tokenC.address, tokenB.address, 22)
 		pairB_C_Contract2 = await ethers.getContractAt('RequiemPair', pairB_C2)
+
+
+		const pairC_WBTC = await factory2.getPair(tokenC.address, tokenWBTC.address, 52)
+		pairC_WBTC_Contract2 = await ethers.getContractAt('RequiemPair', pairC_WBTC)
+
+		const pairB_WETH = await factory2.getPair(tokenB.address, tokenWETH.address, 98)
+		pairB_WETH_Contract2 = await ethers.getContractAt('RequiemPair', pairB_WETH)
 
 		// swap libnew 
 		swapLibNew = await new WeightedPoolLib__factory(wallet).deploy()
@@ -375,8 +411,8 @@ describe('StableSwap-Test', () => {
 			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
-			1e6, //_fee = 0.01%
-			0, //_admin_fee, 50%,
+			0, //_fee = 0.01%
+			5e9, //_admin_fee, 50%,
 			feeDistributor.address
 		)
 
@@ -429,10 +465,10 @@ describe('StableSwap-Test', () => {
 							tokens = [tokenWETH.address, tokenUSDC.address]
 							amountOut = parseUnits('12', 6)
 
-							let inPre = await tokenWETH.balanceOf(wallet.address)
-							let outPre = await tokenUSDC.balanceOf(wallet.address)
+							inPre = await tokenWETH.balanceOf(wallet.address)
+							outPre = await tokenUSDC.balanceOf(wallet.address)
 
-							const expectedIn = await swapNew.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, amountOut)
+							const expectedIn = await swapNew.calculateSwapGivenOut(tokenWETH.address, tokenUSDC.address, amountOut)
 
 							balancesVitual = await swapNew.getTokenBalances()
 							balancesPoolActual = [
@@ -457,60 +493,97 @@ describe('StableSwap-Test', () => {
 							receipt = await tx.wait();
 							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
 							gasCosts = { ...gasCosts, exactOutSingleNew: gasUsed }
-							let inPost = await tokenWETH.balanceOf(wallet.address)
-							let outPost = await tokenUSDC.balanceOf(wallet.address)
+							inPost = await tokenWETH.balanceOf(wallet.address)
+							outPost = await tokenUSDC.balanceOf(wallet.address)
 
 
-							// expect(userBalsPost[0].sub(userBalsPre[0])).to.eq(amountOut)
 
-							console.log("exp IN", expectedIn, "calculated", inPre.sub(inPost))
+
+							console.log("1) exp IN", expectedIn, "calculated", inPre.sub(inPost))
 							expect(expectedIn).to.eq(inPre.sub(inPost))
 
-							console.log("exp OUT", amountOut, "calculated", outPost.sub(outPre))
+							console.log("1) exp OUT", amountOut, "calculated", outPost.sub(outPre))
 							expect(amountOut).to.eq(outPost.sub(outPre))
-
-
 							balancesVitual = await swapNew.getTokenBalances()
 							balancesPoolActual = [
-								await tokenUSDC.balanceOf(swapNew.address),
-								await tokenUSDT.balanceOf(swapNew.address),
-								await tokenDAI.balanceOf(swapNew.address),
-								await tokenTUSD.balanceOf(swapNew.address)
+								await tokenA.balanceOf(swapNew.address),
+								await tokenWBTC.balanceOf(swapNew.address),
+								await tokenWETH.balanceOf(swapNew.address),
+								await tokenUSDC.balanceOf(swapNew.address)
 							]
+
 							console.log("BALANCES VOMP sngle post")
 							console.log("ACT", balancesPoolActual)
 							console.log("VRT", balancesVitual)
-
+							balancesPoolActual.map((x, index) => expect(x).to.eq(balancesVitual[index]))
 							// console.log("ACT:", usdcBal, usdtBal, daiBal, tusdBal)
 
-							await validateSwapBals()
+							// await validateSwapBals()
 
-							// await tokenDAI.connect(other).approve(router2.address, ethers.constants.MaxUint256)
-							tx = await router2.onSwapTokensForExactTokens(
-								[swap.address],
+
+							pools = [swapNew.address]
+							tokens = [tokenWETH.address, tokenUSDC.address]
+							amountIn = BigNumber.from('123456789012376857845')
+							let expectedOut = await swapNew.calculateSwapGivenIn(tokenWETH.address, tokenUSDC.address, amountIn)
+							let checkBal = await tokenWETH.balanceOf(swapNew.address)
+							console.log("2) exp out", expectedOut, "bal pool", checkBal)
+
+							inPre = await tokenWETH.balanceOf(wallet.address)
+							outPre = await tokenUSDC.balanceOf(wallet.address)
+
+							balancesVitual = await swapNew.getTokenBalances()
+							let test = await tokenUSDC.balanceOf(swapNew.address)
+							let tes1 = await tokenWETH.balanceOf(swapNew.address)
+
+							console.log("=-----------VBAL USDC", balancesVitual[3], test)
+							console.log("=-----------VBAL USDC", balancesVitual[2], tes1)
+
+							tx = await router2.onSwapExactTokensForTokens(
+								pools,
 								tokens,
-								amountOut,
-								amountInMax,
-								other.address,
+								amountIn,
+								1,
+								wallet.address,
 								deadline
 							)
 							receipt = await tx.wait();
 							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
 							gasCosts = { ...gasCosts, exactOutSingleStandard: gasUsed }
 
+							inPost = await tokenWETH.balanceOf(wallet.address)
+							outPost = await tokenUSDC.balanceOf(wallet.address)
 
+
+							console.log("2) exp IN", amountIn, "calculated", inPre.sub(inPost))
+							expect(amountIn).to.eq(inPre.sub(inPost))
+
+							console.log("2) exp OUT", expectedOut, "calculated", outPost.sub(outPre))
+							expect(expectedOut).to.eq(outPost.sub(outPre))
+
+
+							balancesVitual = await swapNew.getTokenBalances()
+							balancesPoolActual = [
+								await tokenA.balanceOf(swapNew.address),
+								await tokenWBTC.balanceOf(swapNew.address),
+								await tokenWETH.balanceOf(swapNew.address),
+								await tokenUSDC.balanceOf(swapNew.address)
+							]
+
+							console.log("BALANCES VOMP sngle post")
+							console.log("ACT", balancesPoolActual)
+							console.log("VRT", balancesVitual)
 							await validateSwapBals()
 							console.log("REGSWAP ", gasCosts)
 						})
 					})
-					describe('StableSwap-Transactions Swaps multi', () => {
+					describe('Weighted Pool-Transactions Swaps multi', () => {
 						it('Swaps', async () => {
 
-							pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
+							// pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
 							tokens = [tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
 							console.log("Pools", pools)
 							console.log("Tokens", tokens)
-							amountIn = parseUnits("1", 15)
+							amountIn = parseUnits("1", 18)
 							const amountOutMin = ZERO
 
 							pools = [pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
@@ -518,16 +591,17 @@ describe('StableSwap-Test', () => {
 
 							const in1 = await pairA_USDC_Contract2.calculateSwapGivenIn(tokenA.address, tokenUSDC.address, amountIn)
 
-							const in2 = await swapNew.calculateSwapGivenIn(tokenUSDC.address, tokenDAI.address, in1)
+							const in2 = await swapNew.calculateSwapGivenIn(tokenUSDC.address, tokenWBTC.address, in1)
 
-							const in3 = await pairDAI_B_Contract2.calculateSwapGivenIn(tokenUSDC.address, tokenDAI.address, in2)
-							console.log("Amnts", in1, in2, in3)
+							let y = await tokenWBTC.balanceOf(wallet.address)
+							// const in3 = await pairDAI_B_Contract2.calculateSwapGivenIn(tokenUSDC.address, tokenDAI.address, in2)
+							console.log("Amnts", in1, in2)
 							let b = await tokenUSDC.balanceOf(swapNew.address)
 							console.log("B USDC 1", b)
 							console.log("1")
 							await router2.onSwapExactTokensForTokens(
-								[pairA_USDC_Contract2.address],
-								[tokenA.address, tokenUSDC.address],
+								[pairA_USDC_Contract2.address, swapNew.address],
+								[tokenA.address, tokenUSDC.address, tokenWBTC.address],
 								amountIn,
 								amountOutMin,
 								wallet.address,
@@ -536,6 +610,8 @@ describe('StableSwap-Test', () => {
 							b = await tokenUSDC.balanceOf(swapNew.address)
 							let c = await swapNew.getTokenBalances()
 							let f = await swapNew.getCollectedFees()
+							let z = await tokenWBTC.balanceOf(wallet.address)
+							console.log("VgL", in2, z.sub(y))
 							console.log("B USDC rp 2", b, c, f)
 							console.log("2")
 							await router2.onSwapExactTokensForTokens(
@@ -630,7 +706,7 @@ describe('StableSwap-Test', () => {
 
 
 
-							describe('StableSwap-Resists sent too little', () => {
+							describe('Weighted Pool-Resists sent too little', () => {
 								it('Throws errors', async () => {
 
 
@@ -1085,7 +1161,7 @@ describe('StableSwap-Test', () => {
 							})
 
 
-							describe('StableSwap-Calculation matches swap', () => {
+							describe('Weighted Pool-Calculation matches swap', () => {
 								it('calculation', async () => {
 
 									pools = [pairDAI_B_Contract.address, swapNew.address, pairA_USDC_Contract.address]
@@ -1125,7 +1201,7 @@ describe('StableSwap-Test', () => {
 
 								})
 							})
-							describe('StableSwap-Post transactions', () => {
+							describe('Weighted Pool-Post transactions', () => {
 								it('Fee withdrawl', async () => {
 
 									let balancesPre = [
