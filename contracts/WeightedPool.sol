@@ -43,6 +43,7 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         address[] memory _coins,
         uint8[] memory _decimals,
         uint256[] memory _normalizedWeights,
+        uint256[] memory _amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
@@ -65,7 +66,7 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
 
-        swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
+        swapStorage.lpToken = new WeightedLPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
         swapStorage.tokenMultipliers = rates;
         swapStorage.nTokens = numberOfCoins;
@@ -75,25 +76,19 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         feeDistributor = _feeDistributor;
         swapStorage.collectedFees = new uint256[](numberOfCoins);
 
-                // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
+        // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
         uint256 normalizedSum = 0;
-        uint256 maxWeightTokenIndex = 0;
-        uint256 maxNormalizedWeight = 0;
         for (uint8 i = 0; i < numberOfCoins; i++) {
             uint256 normalizedWeight = _normalizedWeights[i];
             require(normalizedWeight >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
-
             normalizedSum += normalizedWeight;
-            if (normalizedWeight > maxNormalizedWeight) {
-                maxWeightTokenIndex = i;
-                maxNormalizedWeight = normalizedWeight;
-            }
         }
         require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
+
         swapStorage.normalizedWeights = _normalizedWeights;
 
-        // calculate the first invariant
-        swapStorage.lastInvariant = swapStorage.getInvariant();
+        // add the first liquidity
+        swapStorage.initialize(_amounts);
     }
 
     /// PUBLIC FUNCTIONS

@@ -125,8 +125,9 @@ describe('StableSwap-Test', () => {
 		tokenB = await new MockERC20__factory(wallet).deploy("token B", "B", 18)
 		tokenWETH = await new MockERC20__factory(wallet).deploy("WETH", "WETH", 18)
 		tokenWBTC = await new MockERC20__factory(wallet).deploy("WBTC", "WBTC", 18)
-		tokenB = await new MockERC20__factory(wallet).deploy("token B", "B", 18)
 		tokenC = await new MockERC20__factory(wallet).deploy("token C", "C", 8)
+
+
 		tokenUSDC = await new MockERC20__factory(wallet).deploy("MockUSDC", "MUSDC", 6)
 		tokenUSDT = await new MockERC20__factory(wallet).deploy("MockUSDT", "MUSDT", 6)
 		tokenDAI = await new MockERC20__factory(wallet).deploy("MockDAI", "MDAI", 18)
@@ -213,8 +214,8 @@ describe('StableSwap-Test', () => {
 
 		// swap libnew 
 		swapLibNew = await new WeightedPoolLib__factory(wallet).deploy()
-		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { StableSwapLib: swapLibNew.address })
-
+		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { WeightedPoolLib: swapLibNew.address })
+		feeDistributor = await new FeeDistributor__factory(wallet).deploy()
 		console.log("REGLAR DONE 0")
 
 		console.log("Approve for swap")
@@ -222,6 +223,12 @@ describe('StableSwap-Test', () => {
 		await tokenUSDT.approve(swapNew.address, ethers.constants.MaxUint256)
 		await tokenDAI.approve(swapNew.address, ethers.constants.MaxUint256)
 		await tokenTUSD.approve(swapNew.address, ethers.constants.MaxUint256)
+		await tokenWBTC.approve(swapNew.address, ethers.constants.MaxUint256)
+		await tokenWETH.approve(swapNew.address, ethers.constants.MaxUint256)
+		await tokenA.approve(swapNew.address, ethers.constants.MaxUint256)
+		await tokenTUSD.approve(swapNew.address, ethers.constants.MaxUint256)
+		await tokenWBTC.approve(router2.address, ethers.constants.MaxUint256)
+		await tokenWETH.approve(router2.address, ethers.constants.MaxUint256)
 
 
 		validateBals = async (descr: string) => {
@@ -364,11 +371,12 @@ describe('StableSwap-Test', () => {
 		await swapNew.initialize(
 			[tokenA.address, tokenWBTC.address, tokenWETH.address, tokenUSDC.address],
 			[18, 8, 18, 6], //token decimals
-			[parseUnits('25', 18), parseUnits('25', 18), parseUnits('25', 18), parseUnits('25', 18)],  //weights
+			[parseUnits('25', 16), parseUnits('25', 16), parseUnits('25', 16), parseUnits('25', 16)],  //weights
+			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
 			1e6, //_fee = 0.01%
-			5e9, //_admin_fee, 50%,
+			0, //_admin_fee, 50%,
 			feeDistributor.address
 		)
 
@@ -377,60 +385,40 @@ describe('StableSwap-Test', () => {
 			it('add liquidity', async () => {
 
 				// console.log("SWAP OBJS", swap, swapNew)
-				const ss = await swap.swapStorage()
-				console.log("SS", ss)
-				await swap.addLiquidity(
-					[parseUnits('123401', 6), parseUnits('102342', 6), parseUnits('104233', 18), parseUnits('102334', 18)],
-					0,
-					deadline
-				)
+				const ss = await swapNew.swapStorage()
 
 
-				console.log("NEW INIT")
-
-
-				await swapNew.addLiquidity(
-					[parseUnits('123401', 6), parseUnits('102342', 6), parseUnits('104233', 18), parseUnits('102334', 18)],
-					0,
-					deadline
-				)
+				// await swapNew.addLiquidity(
+				// 	[parseUnits('2131', 18), parseUnits('1', 8), parseUnits('123', 18), parseUnits('102334', 6)],
+				// 	0,
+				// 	deadline
+				// )
 				console.log("ADDED LP")
 
 				describe('StableSwap-Transactions trade', () => {
 					it('Swaps caculation', async () => {
 
-						let tokenIn = tokenDAI.address
-						let tokenOut = tokenUSDC.address
-						amountIn = parseUnits('11', 18)
-						const outOld = await swap.calculateSwapGivenIn(
+						let tokenIn = tokenUSDC.address
+						let tokenOut = tokenWETH.address
+						amountIn = parseUnits('11', 6)
+
+						const outNew = await swapNew.calculateSwapGivenIn(
 							tokenIn,
 							tokenOut,
 							amountIn
 						)
 
-						const outNew = await swap.calculateSwapGivenIn(
+						console.log("IN", amountIn, "FOR", outNew)
+						// amountOut = parseUnits('11', 18)
+
+						const inNew = await swapNew.calculateSwapGivenOut(
 							tokenIn,
 							tokenOut,
-							amountIn
+							outNew
 						)
 
-						console.log("OUTS old", outOld, outNew)
-						expect(outNew).to.eq(outOld)
-						amountOut = parseUnits('13', 6)
-						const inOld = await swap.calculateSwapGivenOut(
-							tokenIn,
-							tokenOut,
-							amountOut
-						)
-
-						const inNew = await swap.calculateSwapGivenOut(
-							tokenIn,
-							tokenOut,
-							amountOut
-						)
-
-						console.log("IN old", inOld, inNew)
-						expect(inNew).to.eq(inOld)
+						console.log("IN", inNew, "for", outNew)
+						// expect(inNew).to.eq(inOld)
 
 						console.log("GAS single", gasCosts)
 					})
@@ -438,29 +426,13 @@ describe('StableSwap-Test', () => {
 					describe('StableSwap-Transaction single', () => {
 						it('Swaps single', async () => {
 							pools = [swapNew.address]
-							tokens = [tokenDAI.address, tokenUSDC.address]
+							tokens = [tokenWETH.address, tokenUSDC.address]
 							amountOut = parseUnits('12', 6)
 
-							let balancesPre = [
-								await tokenUSDC.balanceOf(swapNew.address),
-								await tokenUSDT.balanceOf(swapNew.address),
-								await tokenDAI.balanceOf(swapNew.address),
-								await tokenTUSD.balanceOf(swapNew.address)
-							]
+							let inPre = await tokenWETH.balanceOf(wallet.address)
+							let outPre = await tokenUSDC.balanceOf(wallet.address)
 
-							const userBalsPre = [
-
-								await tokenUSDC.balanceOf(wallet.address),
-								await tokenUSDT.balanceOf(wallet.address),
-								await tokenDAI.balanceOf(wallet.address),
-								await tokenTUSD.balanceOf(wallet.address)
-							]
-
-							console.log("bals pre pool", balancesPre)
-							console.log("bals pre user", userBalsPre)
 							const expectedIn = await swapNew.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, amountOut)
-							const expectedIn2 = await swap.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, amountOut)
-
 
 							balancesVitual = await swapNew.getTokenBalances()
 							balancesPoolActual = [
@@ -473,7 +445,7 @@ describe('StableSwap-Test', () => {
 							console.log("ACT", balancesPoolActual)
 							console.log("VRT", balancesVitual)
 
-							await validateSwapBals()
+							// await validateSwapBals()
 							tx = await router2.onSwapTokensForExactTokens(
 								pools,
 								tokens,
@@ -485,24 +457,17 @@ describe('StableSwap-Test', () => {
 							receipt = await tx.wait();
 							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
 							gasCosts = { ...gasCosts, exactOutSingleNew: gasUsed }
-							let postBalances = [
-								await tokenUSDC.balanceOf(swapNew.address),
-								await tokenUSDT.balanceOf(swapNew.address),
-								await tokenDAI.balanceOf(swapNew.address),
-								await tokenTUSD.balanceOf(swapNew.address)
-							]
-							const userBalsPost = [
-								await tokenUSDC.balanceOf(wallet.address),
-								await tokenUSDT.balanceOf(wallet.address),
-								await tokenDAI.balanceOf(wallet.address),
-								await tokenTUSD.balanceOf(wallet.address)
-							]
+							let inPost = await tokenWETH.balanceOf(wallet.address)
+							let outPost = await tokenUSDC.balanceOf(wallet.address)
 
 
-							expect(userBalsPost[0].sub(userBalsPre[0])).to.eq(amountOut)
+							// expect(userBalsPost[0].sub(userBalsPre[0])).to.eq(amountOut)
 
-							console.log("calculated", expectedIn, expectedIn2, "exp", userBalsPre[2].sub(userBalsPost[2]))
-							expect(userBalsPre[2].sub(userBalsPost[2])).to.eq(expectedIn)
+							console.log("exp IN", expectedIn, "calculated", inPre.sub(inPost))
+							expect(expectedIn).to.eq(inPre.sub(inPost))
+
+							console.log("exp OUT", amountOut, "calculated", outPost.sub(outPre))
+							expect(amountOut).to.eq(outPost.sub(outPre))
 
 
 							balancesVitual = await swapNew.getTokenBalances()
@@ -519,9 +484,6 @@ describe('StableSwap-Test', () => {
 							// console.log("ACT:", usdcBal, usdtBal, daiBal, tusdBal)
 
 							await validateSwapBals()
-							console.log("bals post pool", postBalances)
-
-							console.log("bals post user", userBalsPost)
 
 							// await tokenDAI.connect(other).approve(router2.address, ethers.constants.MaxUint256)
 							tx = await router2.onSwapTokensForExactTokens(

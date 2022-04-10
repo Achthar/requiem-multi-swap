@@ -34,7 +34,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "getCollectedFees()": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
-    "initialize(address[],uint8[],uint256[],string,string,uint256,uint256,address)": FunctionFragment;
+    "initialize(address[],uint8[],uint256[],uint256[],string,string,uint256,uint256,address)": FunctionFragment;
     "onSwap(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
@@ -111,6 +111,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     functionFragment: "initialize",
     values: [
       string[],
+      BigNumberish[],
       BigNumberish[],
       BigNumberish[],
       string,
@@ -500,6 +501,7 @@ export class WeightedPool extends BaseContract {
       _coins: string[],
       _decimals: BigNumberish[],
       _normalizedWeights: BigNumberish[],
+      _amounts: BigNumberish[],
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
@@ -676,6 +678,7 @@ export class WeightedPool extends BaseContract {
     _coins: string[],
     _decimals: BigNumberish[],
     _normalizedWeights: BigNumberish[],
+    _amounts: BigNumberish[],
     lpTokenName: string,
     lpTokenSymbol: string,
     _fee: BigNumberish,
@@ -854,6 +857,7 @@ export class WeightedPool extends BaseContract {
       _coins: string[],
       _decimals: BigNumberish[],
       _normalizedWeights: BigNumberish[],
+      _amounts: BigNumberish[],
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
@@ -1259,6 +1263,7 @@ export class WeightedPool extends BaseContract {
       _coins: string[],
       _decimals: BigNumberish[],
       _normalizedWeights: BigNumberish[],
+      _amounts: BigNumberish[],
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
@@ -1428,6 +1433,7 @@ export class WeightedPool extends BaseContract {
       _coins: string[],
       _decimals: BigNumberish[],
       _normalizedWeights: BigNumberish[],
+      _amounts: BigNumberish[],
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,

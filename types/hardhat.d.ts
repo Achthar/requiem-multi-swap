@@ -457,6 +457,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.LPToken__factory>;
     getContractFactory(
+      name: "WeightedLPToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedLPToken__factory>;
+    getContractFactory(
       name: "WeightedFormula",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WeightedFormula__factory>;
@@ -1044,6 +1048,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.LPToken>;
+    getContractAt(
+      name: "WeightedLPToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedLPToken>;
     getContractAt(
       name: "WeightedFormula",
       address: string,
