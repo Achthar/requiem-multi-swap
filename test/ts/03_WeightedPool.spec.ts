@@ -16,7 +16,7 @@ import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 import SwapArtifact from "../../artifacts/contracts/RequiemStableSwap.sol/RequiemStableSwap.json";
-import NewSwapArtifact from "../../artifacts/contracts/StableSwap.sol/StableSwap.json";
+import NewSwapArtifact from "../../artifacts/contracts/WeightedPool.sol/WeightedPool.json";
 import {
 	RequiemPairFactory__factory,
 	WeightedFormula__factory,
@@ -24,9 +24,8 @@ import {
 	SwapRouter__factory,
 	ThiefRouter__factory,
 	RequiemPair,
-	RequiemStableSwapLib__factory,
-	RequiemStableSwap__factory,
-	StableSwapLib__factory,
+	WeightedPoolLib__factory,
+	WeightedPool__factory,
 	StableSwap__factory,
 	FeeDistributor__factory,
 	WETH9__factory
@@ -51,6 +50,8 @@ describe('StableSwap-Test', () => {
 	let tokenUSDT: Contract
 	let tokenDAI: Contract
 	let tokenTUSD: Contract
+	let tokenWETH: Contract
+	let tokenWBTC: Contract
 
 	let swapLib: Contract
 	let swap: Contract
@@ -86,12 +87,12 @@ describe('StableSwap-Test', () => {
 	let newSwapFee = BigNumber.from(20)
 	let newAmplification = BigNumber.from(20000)
 
-	let amountA = parseUnits('500', 18)
-	let amountB = parseUnits('500', 18)
-	let amountC = parseUnits('321', 8)
+	let amountA = parseUnits('5010', 18)
+	let amountB = parseUnits('5020', 18)
+	let amountC = parseUnits('3231', 8)
 	const amountInMax = ethers.constants.MaxUint256
-	let amountUSDC = parseUnits('1000', 6)
-	let amountDAI = parseUnits('1000', 18)
+	let amountUSDC = parseUnits('10010', 6)
+	let amountDAI = parseUnits('10000', 18)
 	let pools: string[]
 	let tokens: string[]
 	let ZERO = BigNumber.from(0)
@@ -110,6 +111,7 @@ describe('StableSwap-Test', () => {
 	let testSwapExactOut: any
 	let testSwapExactIn: any
 	let printBals: any
+	let validateSwapBals: any
 
 	let counter = 0
 	beforeEach(async () => {
@@ -120,6 +122,9 @@ describe('StableSwap-Test', () => {
 
 		// tokens
 		tokenA = await new MockERC20__factory(wallet).deploy("token A", "A", 18)
+		tokenB = await new MockERC20__factory(wallet).deploy("token B", "B", 18)
+		tokenWETH = await new MockERC20__factory(wallet).deploy("WETH", "WETH", 18)
+		tokenWBTC = await new MockERC20__factory(wallet).deploy("WBTC", "WBTC", 18)
 		tokenB = await new MockERC20__factory(wallet).deploy("token B", "B", 18)
 		tokenC = await new MockERC20__factory(wallet).deploy("token C", "C", 8)
 		tokenUSDC = await new MockERC20__factory(wallet).deploy("MockUSDC", "MUSDC", 6)
@@ -137,14 +142,6 @@ describe('StableSwap-Test', () => {
 
 		thiefRouter = await new ThiefRouter__factory(wallet).deploy(factory2.address, weth.address)
 
-		await tokenA.approve(router.address, ethers.constants.MaxUint256)
-		await tokenB.approve(router.address, ethers.constants.MaxUint256)
-		await tokenC.approve(router.address, ethers.constants.MaxUint256)
-		await tokenUSDC.approve(router.address, ethers.constants.MaxUint256)
-		await tokenUSDT.approve(router.address, ethers.constants.MaxUint256)
-		await tokenDAI.approve(router.address, ethers.constants.MaxUint256)
-		await tokenTUSD.approve(router.address, ethers.constants.MaxUint256)
-
 		await tokenA.approve(router2.address, ethers.constants.MaxUint256)
 		await tokenB.approve(router2.address, ethers.constants.MaxUint256)
 		await tokenC.approve(router2.address, ethers.constants.MaxUint256)
@@ -154,66 +151,6 @@ describe('StableSwap-Test', () => {
 		await tokenTUSD.approve(router2.address, ethers.constants.MaxUint256)
 
 		await tokenUSDC.approve(thiefRouter.address, ethers.constants.MaxUint256)
-
-		await new router.createPair(
-			tokenA.address,
-			tokenUSDC.address,
-			amountA,
-			amountUSDC,
-			tokenWeightA,
-			swapFee,
-			amplification,
-			wallet.address
-		)
-
-		await new router.createPair(
-			tokenB.address,
-			tokenDAI.address,
-			amountB,
-			amountDAI,
-			tokenWeightB,
-			swapFee,
-			amplification,
-			wallet.address
-		)
-
-		await new router.createPair(
-			tokenA.address,
-			tokenB.address,
-			amountA,
-			amountB,
-			50,
-			swapFee,
-			amplification,
-			wallet.address
-		)
-
-
-		await new router.createPair(
-			tokenC.address,
-			tokenB.address,
-			amountC,
-			amountB,
-			22,
-			swapFee,
-			amplification,
-			wallet.address
-		)
-
-
-		const pairA_USDC = await factory.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
-		pairA_USDC_Contract = await ethers.getContractAt('RequiemPair', pairA_USDC)
-
-
-		const pairDAI_B = await factory.getPair(tokenB.address, tokenDAI.address, tokenWeightB)
-		pairDAI_B_Contract = await ethers.getContractAt('RequiemPair', pairDAI_B)
-
-		const pairA_B = await factory.getPair(tokenA.address, tokenB.address, 50)
-		pairA_B_Contract = await ethers.getContractAt('RequiemPair', pairA_B)
-
-		const pairB_C = await factory2.getPair(tokenC.address, tokenB.address, 22)
-		pairB_C_Contract = await ethers.getContractAt('RequiemPair', pairB_C)
-
 
 
 		await new router2.createPair(
@@ -274,24 +211,11 @@ describe('StableSwap-Test', () => {
 		const pairB_C2 = await factory2.getPair(tokenC.address, tokenB.address, 22)
 		pairB_C_Contract2 = await ethers.getContractAt('RequiemPair', pairB_C2)
 
-		// swap lib
-		swapLib = await new RequiemStableSwapLib__factory(wallet).deploy()
-		swap = await deployContractWithLibraries(wallet, SwapArtifact, { RequiemStableSwapLib: swapLib.address })
-		feeDistributor = await new FeeDistributor__factory(wallet).deploy()
-
 		// swap libnew 
-		swapLibNew = await new StableSwapLib__factory(wallet).deploy()
+		swapLibNew = await new WeightedPoolLib__factory(wallet).deploy()
 		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { StableSwapLib: swapLibNew.address })
 
 		console.log("REGLAR DONE 0")
-
-		console.log("Approve for old swap")
-
-		await tokenUSDC.approve(swap.address, ethers.constants.MaxUint256)
-		await tokenUSDT.approve(swap.address, ethers.constants.MaxUint256)
-		await tokenDAI.approve(swap.address, ethers.constants.MaxUint256)
-		await tokenTUSD.approve(swap.address, ethers.constants.MaxUint256)
-
 
 		console.log("Approve for swap")
 		await tokenUSDC.approve(swapNew.address, ethers.constants.MaxUint256)
@@ -334,24 +258,30 @@ describe('StableSwap-Test', () => {
 		}
 
 
-		testSwapExactOut = async (_tokens: string[], poolsBase: Contract[], poolsNew: Contract[], _amountOut: BigNumber) => {
+		validateSwapBals = async () => {
+
+			balancesVitual = await swapNew.getTokenBalances()
+			const fees = await swapNew.getCollectedFees()
+			balancesPoolActual = [
+				await tokenUSDC.balanceOf(swapNew.address),
+				await tokenUSDT.balanceOf(swapNew.address),
+				await tokenDAI.balanceOf(swapNew.address),
+				await tokenTUSD.balanceOf(swapNew.address)
+			]
+			console.log("----------- BALANCE DIFF--------------------------")
+			console.log("Diff", balancesPoolActual.map((x, index) => x.sub(balancesVitual[index])))
+			console.log("-----------------------------------------------")
+
+			balancesPoolActual.map((b, index) => expect(b).to.equal(balancesVitual[index]))
+		}
+
+
+		testSwapExactOut = async (_tokens: string[], poolsNew: Contract[], _amountOut: BigNumber, comment: string) => {
 
 			counter += 1
 			const inContract = await ethers.getContractAt('MockERC20', _tokens[0])
+			await inContract.approve(router2.address, maxUint256)
 			const outContract = await ethers.getContractAt('MockERC20', _tokens[_tokens.length - 1])
-			console.log("---------------------------- TEST ORIG")
-			tx = await router2.onSwapTokensForExactTokens(
-				poolsBase.map(x => x.address),
-				_tokens,
-				_amountOut,
-				amountInMax,
-				other.address,
-				deadline
-			)
-			// record gas
-			receipt = await tx.wait();
-			gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-			gasCosts = { ...gasCosts, ['exactOutOld-' + String(poolsNew.length) + '-' + String(counter)]: gasUsed }
 
 			const _userBalanceBeforeIn = await inContract.balanceOf(wallet.address)
 			const _userBalanceBeforeOut = await outContract.balanceOf(wallet.address)
@@ -376,7 +306,7 @@ describe('StableSwap-Test', () => {
 			// record gas
 			receipt = await tx.wait();
 			gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-			gasCosts = { ...gasCosts, ['exactOutNew-' + String(poolsNew.length) + '-' + String(counter)]: gasUsed }
+			gasCosts = { ...gasCosts, ['exactOutNew-' + String(poolsNew.length) + '-' + String(counter) + '-' + comment]: gasUsed }
 
 			console.log("--------GC" + String(counter), gasCosts)
 			const _userBalanceAfterIn = await inContract.balanceOf(wallet.address)
@@ -387,24 +317,11 @@ describe('StableSwap-Test', () => {
 			console.log("---------------------------- TEST DONE")
 		}
 
-		testSwapExactIn = async (_tokens: string[], poolsBase: Contract[], poolsNew: Contract[], _amountIn: BigNumber) => {
+		testSwapExactIn = async (_tokens: string[], poolsNew: Contract[], _amountIn: BigNumber, comment: string) => {
 
 			counter += 1
 			const inContract = await ethers.getContractAt('MockERC20', _tokens[0])
 			const outContract = await ethers.getContractAt('MockERC20', _tokens[_tokens.length - 1])
-			console.log("---------------------------- TEST ORIG")
-			tx = await router2.onSwapExactTokensForTokens(
-				poolsBase.map(x => x.address),
-				_tokens,
-				_amountIn,
-				1,
-				wallet.address,
-				deadline
-			)
-			// record gas
-			receipt = await tx.wait();
-			gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-			gasCosts = { ...gasCosts, ['exactInOld-' + String(poolsNew.length) + '-' + String(counter)]: gasUsed }
 
 			const _userBalanceBeforeIn = await inContract.balanceOf(wallet.address)
 			const _userBalanceBeforeOut = await outContract.balanceOf(wallet.address)
@@ -417,7 +334,7 @@ describe('StableSwap-Test', () => {
 				outAm = _out
 				amns.push(outAm)
 			}
-			console.log("---------------------------- TEST NEW", amns)
+			console.log("---------------------------- TEST NEW", amns, comment)
 			tx = await router2.onSwapExactTokensForTokens(
 				poolsNew.map(x => x.address),
 				_tokens,
@@ -429,7 +346,7 @@ describe('StableSwap-Test', () => {
 			// record gas
 			receipt = await tx.wait();
 			gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-			gasCosts = { ...gasCosts, ['exactInNew-' + String(poolsNew.length) + '-' + String(counter)]: gasUsed }
+			gasCosts = { ...gasCosts, ['exactInNew-' + String(poolsNew.length) + '-' + String(counter) + '-' + comment]: gasUsed }
 
 			console.log("--------GC" + String(counter), gasCosts)
 			const _userBalanceAfterIn = await inContract.balanceOf(wallet.address)
@@ -444,32 +361,16 @@ describe('StableSwap-Test', () => {
 
 	it('initialize', async () => {
 
-		await swap.initialize(
-			[tokenUSDC.address, tokenUSDT.address, tokenDAI.address, tokenTUSD.address],
-			[6, 6, 18, 18], //token decimals
-			'Requiem Stableswap LP', // pool token name
-			'zDollar', //_pool_token
-			600, // _A
-			1e6, //_fee = 0.01%
-			1e6, // flash Fee
-			5e9, //_admin_fee, 50%,
-			5e7, //withdraw fee = 0.5%
-			feeDistributor.address
-		)
-
-
 		await swapNew.initialize(
-			[tokenUSDC.address, tokenUSDT.address, tokenDAI.address, tokenTUSD.address],
-			[6, 6, 18, 18], //token decimals
-			'Requiem Stableswap LP', // pool token name
-			'zDollar', //_pool_token
-			600, // _A
+			[tokenA.address, tokenWBTC.address, tokenWETH.address, tokenUSDC.address],
+			[18, 8, 18, 6], //token decimals
+			[parseUnits('25', 18), parseUnits('25', 18), parseUnits('25', 18), parseUnits('25', 18)],  //weights
+			'Requiem WeightedPool LP', // pool token name
+			'REQ 4-LP', //_pool_token
 			1e6, //_fee = 0.01%
 			5e9, //_admin_fee, 50%,
-			5e7, //withdraw fee = 0.5%
 			feeDistributor.address
 		)
-
 
 
 		describe('StableSwap-Transactions add', () => {
@@ -572,7 +473,7 @@ describe('StableSwap-Test', () => {
 							console.log("ACT", balancesPoolActual)
 							console.log("VRT", balancesVitual)
 
-
+							await validateSwapBals()
 							tx = await router2.onSwapTokensForExactTokens(
 								pools,
 								tokens,
@@ -617,7 +518,7 @@ describe('StableSwap-Test', () => {
 
 							// console.log("ACT:", usdcBal, usdtBal, daiBal, tusdBal)
 
-
+							await validateSwapBals()
 							console.log("bals post pool", postBalances)
 
 							console.log("bals post user", userBalsPost)
@@ -636,7 +537,7 @@ describe('StableSwap-Test', () => {
 							gasCosts = { ...gasCosts, exactOutSingleStandard: gasUsed }
 
 
-
+							await validateSwapBals()
 							console.log("REGSWAP ", gasCosts)
 						})
 					})
@@ -649,20 +550,6 @@ describe('StableSwap-Test', () => {
 							console.log("Tokens", tokens)
 							amountIn = parseUnits("1", 15)
 							const amountOutMin = ZERO
-
-
-							tx = await router.onSwapExactTokensForTokens(
-								pools,
-								tokens,
-								amountIn,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)
-							// record gas
-							receipt = await tx.wait();
-							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-							gasCosts = { ...gasCosts, exactInStandard: gasUsed }
 
 							pools = [pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
 							console.log("Exact in multi")
@@ -780,21 +667,63 @@ describe('StableSwap-Test', () => {
 							console.log("GASOVERVIEW", gasCosts)
 
 
-							tokens = [tokenUSDC.address, tokenDAI.address]
 
-							pools = [swapNew.address]
+							describe('StableSwap-Resists sent too little', () => {
+								it('Throws errors', async () => {
 
 
+									tokens = [tokenUSDC.address, tokenDAI.address]
 
-							amountIn = parseUnits("1", 6)
-							await expect(thiefRouter.onSwapExactTokensForTokens(
-								pools,
-								tokens,
-								amountIn,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)).to.be.revertedWith("insufficient in")
+									pools = [swapNew.address]
+
+
+									amountIn = parseUnits("1", 6)
+									await expect(thiefRouter.onSwapExactTokensForTokens(
+										pools,
+										tokens,
+										amountIn,
+										amountOutMin,
+										wallet.address,
+										deadline
+									)).to.be.revertedWith("insufficient in")
+
+
+									let __amountOut = parseUnits("13214", 14)
+									await expect(thiefRouter.onSwapTokensForExactTokens(
+										pools,
+										tokens,
+										__amountOut,
+										maxUint256,
+										wallet.address,
+										deadline
+									)).to.be.revertedWith("insufficient in")
+
+									// switch - low decimals first
+
+									tokens = [tokenDAI.address, tokenUSDC.address]
+									pools = [swapNew.address]
+									amountIn = BigNumber.from('1234567890123456789')
+									await expect(thiefRouter.onSwapExactTokensForTokens(
+										pools,
+										tokens,
+										amountIn,
+										amountOutMin,
+										wallet.address,
+										deadline
+									)).to.be.revertedWith("insufficient in")
+
+									__amountOut = BigNumber.from(123456789)
+									await expect(thiefRouter.onSwapTokensForExactTokens(
+										pools,
+										tokens,
+										__amountOut,
+										maxUint256,
+										wallet.address,
+										deadline
+									)).to.be.revertedWith("insufficient in")
+
+								})
+							})
 
 
 
@@ -823,6 +752,7 @@ describe('StableSwap-Test', () => {
 								deadline
 							)).to.be.revertedWith("insufficient in")
 
+							await validateSwapBals()
 
 							describe('Multi-Swap 4 Pool', () => {
 								it('2S1 struct', async () => {
@@ -909,7 +839,7 @@ describe('StableSwap-Test', () => {
 										tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address, tokenC.address
 									]
 									let poolsBase = [
-										pairA_B_Contract, pairA_USDC_Contract, swap, pairDAI_B_Contract, pairB_C_Contract2
+										pairA_B_Contract2, pairA_USDC_Contract2, swap, pairDAI_B_Contract2, pairB_C_Contract2
 									]
 									let poolsNew = [
 										pairA_B_Contract2, pairA_USDC_Contract2, swapNew, pairDAI_B_Contract2, pairB_C_Contract2
@@ -921,7 +851,28 @@ describe('StableSwap-Test', () => {
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountOut //   _amountOut: BigNumber
+										_amountOut, //   _amountOut: BigNumber
+										'USDC-DAI-6T-mid'
+									)
+
+									// 6 Swap
+									_tokens = [
+										tokenC.address, tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address, tokenB.address
+									]
+									poolsBase = [
+										pairB_C_Contract2, pairDAI_B_Contract2, swap, pairA_USDC_Contract2, pairA_B_Contract2
+									]
+									poolsNew = [
+										pairB_C_Contract2, pairDAI_B_Contract2, swapNew, pairA_USDC_Contract2, pairA_B_Contract2
+									]
+
+									_amountOut = BigNumber.from('1234567890123456789')
+									await testSwapExactOut(
+										_tokens, // _tokens: string[],
+										poolsBase, //  poolsBase: Contract[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountOut, //   _amountOut: BigNumber
+										'DAI-USDC-6T-mid'
 									)
 
 									// stable at end
@@ -929,7 +880,7 @@ describe('StableSwap-Test', () => {
 										tokenB.address, tokenDAI.address, tokenUSDC.address
 									]
 									poolsBase = [
-										pairDAI_B_Contract2, swapNew
+										pairDAI_B_Contract2, swap
 									]
 									poolsNew = [
 										pairDAI_B_Contract2, swapNew
@@ -941,7 +892,8 @@ describe('StableSwap-Test', () => {
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountOut //   _amountOut: BigNumber
+										_amountOut, //   _amountOut: BigNumber
+										'DAI-USDT-3T-end'
 									)
 									// stable at beginning
 									_tokens = [
@@ -960,7 +912,8 @@ describe('StableSwap-Test', () => {
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountOut //   _amountOut: BigNumber
+										_amountOut, //   _amountOut: BigNumber
+										'DAI-USDC-3T-mid'
 									)
 
 									// beginning low decimal
@@ -980,19 +933,43 @@ describe('StableSwap-Test', () => {
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountOut //   _amountOut: BigNumber
+										_amountOut, //   _amountOut: BigNumber
+										'USDC-DAI-3T-start'
 									)
 
-								/// ============ amount in exact
 
-								// 6 Swap
-									 _tokens = [
+									// beginning high decimal
+									_tokens = [
+										tokenDAI.address, tokenUSDC.address, tokenA.address, tokenB.address, tokenC.address
+									]
+									poolsBase = [
+										swap, pairA_USDC_Contract2, pairA_B_Contract2, pairB_C_Contract2
+									]
+									poolsNew = [
+										swapNew, pairA_USDC_Contract2, pairA_B_Contract2, pairB_C_Contract2
+									]
+
+									_amountOut = parseUnits("1", 8)
+
+									await testSwapExactOut(
+										_tokens, // _tokens: string[],
+										poolsBase, //  poolsBase: Contract[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountOut, //   _amountOut: BigNumber
+										'DAI-USDC-5T-start'
+									)
+
+
+									/// ============ amount in exact
+
+									// 6 Swap
+									_tokens = [
 										tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address, tokenC.address
 									]
-									 poolsBase = [
-										pairA_B_Contract, pairA_USDC_Contract, swap, pairDAI_B_Contract, pairB_C_Contract2
+									poolsBase = [
+										pairA_B_Contract2, pairA_USDC_Contract2, swap, pairDAI_B_Contract2, pairB_C_Contract2
 									]
-									 poolsNew = [
+									poolsNew = [
 										pairA_B_Contract2, pairA_USDC_Contract2, swapNew, pairDAI_B_Contract2, pairB_C_Contract2
 									]
 
@@ -1002,7 +979,8 @@ describe('StableSwap-Test', () => {
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountIn //   _amountIn: BigNumber
+										_amountIn, //   _amountIn: BigNumber
+										'USDC-DAI-6T-mid'
 									)
 
 									// stable at end
@@ -1010,20 +988,65 @@ describe('StableSwap-Test', () => {
 										tokenB.address, tokenDAI.address, tokenUSDC.address
 									]
 									poolsBase = [
-										pairDAI_B_Contract2, swapNew
+										pairDAI_B_Contract2, swap
 									]
 									poolsNew = [
 										pairDAI_B_Contract2, swapNew
 									]
 
-									_amountIn = parseUnits("1", 8)
+									_amountIn = parseUnits("122", 16)
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountIn //   _amountIn: BigNumber
+										_amountIn, //   _amountIn: BigNumber
+										'DAI-USDC-3T-end'
 									)
+
+
+									// beginning low decimal single
+									_tokens = [
+										tokenUSDC.address, tokenDAI.address,
+									]
+									poolsBase = [
+										swap
+									]
+									poolsNew = [
+										swapNew
+									]
+
+									_amountIn = parseUnits("1", 6)
+
+									await testSwapExactIn(
+										_tokens, // _tokens: string[],
+										poolsBase, //  poolsBase: Contract[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountIn, //   _amountIn: BigNumber
+										'USDC-DAI-single'
+									)
+
+									// stable high dec at beginning
+									_tokens = [
+										tokenDAI.address, tokenUSDC.address
+									]
+									poolsBase = [
+										swap
+									]
+									poolsNew = [
+										swapNew
+									]
+
+									_amountIn = parseUnits("1", 18)
+
+									await testSwapExactIn(
+										_tokens, // _tokens: string[],
+										poolsBase, //  poolsBase: Contract[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountIn, //   _amountIn: BigNumber
+										'DAI-USDC-single'
+									)
+
 									// stable at beginning
 									_tokens = [
 										tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address
@@ -1036,13 +1059,39 @@ describe('StableSwap-Test', () => {
 									]
 
 									_amountIn = parseUnits("1", 18)
+									// console.log("================ WEIGHTED TEST0")
+									await testSwapExactIn(
+										_tokens, // _tokens: string[],
+										poolsBase, //  poolsBase: Contract[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountIn, //   _amountIn: BigNumber
+										'DAI-USDC-4T-mid'
+									)
+
+
+
+
+									// beginning low decimal
+									_tokens = [
+										tokenUSDC.address, tokenDAI.address
+									]
+									poolsBase = [
+										swap
+									]
+									poolsNew = [
+										swapNew
+									]
+
+									_amountIn = parseUnits("1", 6)
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountIn //   _amountIn: BigNumber
+										_amountIn, //   _amountIn: BigNumber
+										'USDC-DAI-2T-start'
 									)
+
 
 									// beginning low decimal
 									_tokens = [
@@ -1061,11 +1110,15 @@ describe('StableSwap-Test', () => {
 										_tokens, // _tokens: string[],
 										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
-										_amountIn //   _amountIn: BigNumber
+										_amountIn, //   _amountIn: BigNumber
+										'USDC-DAI-3T-start'
 									)
+									const fees = await swapNew.getCollectedFees()
+									console.log("FEES COLLECTED", fees)
 
 									console.log("GASOVERVIEW", gasCosts)
-					
+
+									await validateSwapBals()
 								})
 							})
 

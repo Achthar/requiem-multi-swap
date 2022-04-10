@@ -477,9 +477,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WeightedPairGovernance__factory>;
     getContractFactory(
-      name: "WeightedSwap",
+      name: "WeightedPool",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedSwap__factory>;
+    ): Promise<Contracts.WeightedPool__factory>;
     getContractFactory(
       name: "WeightedPoolLib",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -1070,10 +1070,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.WeightedPairGovernance>;
     getContractAt(
-      name: "WeightedSwap",
+      name: "WeightedPool",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.WeightedSwap>;
+    ): Promise<Contracts.WeightedPool>;
     getContractAt(
       name: "WeightedPoolLib",
       address: string,

@@ -16,7 +16,7 @@ using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
+contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
     uint256 internal constant MAX_ADMIN_FEE = 1e10; // 100%
@@ -42,9 +42,9 @@ contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
     function initialize(
         address[] memory _coins,
         uint8[] memory _decimals,
+        uint256[] memory _normalizedWeights,
         string memory lpTokenName,
         string memory lpTokenSymbol,
-        uint256[] memory _normalizedWeights,
         uint256 _fee,
         uint256 _adminFee,
         address _feeDistributor

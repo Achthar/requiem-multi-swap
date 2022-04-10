@@ -12,7 +12,6 @@ import {
   BaseContract,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -25,11 +24,7 @@ interface ThiefRouterInterface extends ethers.utils.Interface {
     "WETH()": FunctionFragment;
     "factory()": FunctionFragment;
     "formula()": FunctionFragment;
-    "onSwapETHForExactTokens(address[],address[],uint256,address,uint256)": FunctionFragment;
-    "onSwapExactETHForTokens(address[],address[],uint256,address,uint256)": FunctionFragment;
-    "onSwapExactTokensForETH(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
     "onSwapExactTokensForTokens(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
-    "onSwapTokensForExactETH(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
     "onSwapTokensForExactTokens(address[],address[],uint256,uint256,address,uint256)": FunctionFragment;
   };
 
@@ -37,37 +32,7 @@ interface ThiefRouterInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(functionFragment: "formula", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "onSwapETHForExactTokens",
-    values: [string[], string[], BigNumberish, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapExactETHForTokens",
-    values: [string[], string[], BigNumberish, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapExactTokensForETH",
-    values: [
-      string[],
-      string[],
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
     functionFragment: "onSwapExactTokensForTokens",
-    values: [
-      string[],
-      string[],
-      BigNumberish,
-      BigNumberish,
-      string,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onSwapTokensForExactETH",
     values: [
       string[],
       string[],
@@ -93,23 +58,7 @@ interface ThiefRouterInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "formula", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "onSwapETHForExactTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapExactETHForTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapExactTokensForETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "onSwapExactTokensForTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onSwapTokensForExactETH",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -170,49 +119,11 @@ export class ThiefRouter extends BaseContract {
 
     formula(overrides?: CallOverrides): Promise<[string]>;
 
-    onSwapETHForExactTokens(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    onSwapExactETHForTokens(
-      pools: string[],
-      tokens: string[],
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    onSwapExactTokensForETH(
-      pools: string[],
-      tokens: string[],
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     onSwapExactTokensForTokens(
       pools: string[],
       tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    onSwapTokensForExactETH(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -235,49 +146,11 @@ export class ThiefRouter extends BaseContract {
 
   formula(overrides?: CallOverrides): Promise<string>;
 
-  onSwapETHForExactTokens(
-    pools: string[],
-    tokens: string[],
-    amountOut: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  onSwapExactETHForTokens(
-    pools: string[],
-    tokens: string[],
-    amountOutMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  onSwapExactTokensForETH(
-    pools: string[],
-    tokens: string[],
-    amountIn: BigNumberish,
-    amountOutMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   onSwapExactTokensForTokens(
     pools: string[],
     tokens: string[],
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
-    to: string,
-    deadline: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  onSwapTokensForExactETH(
-    pools: string[],
-    tokens: string[],
-    amountOut: BigNumberish,
-    amountInMax: BigNumberish,
     to: string,
     deadline: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -300,34 +173,6 @@ export class ThiefRouter extends BaseContract {
 
     formula(overrides?: CallOverrides): Promise<string>;
 
-    onSwapETHForExactTokens(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    onSwapExactETHForTokens(
-      pools: string[],
-      tokens: string[],
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    onSwapExactTokensForETH(
-      pools: string[],
-      tokens: string[],
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     onSwapExactTokensForTokens(
       pools: string[],
       tokens: string[],
@@ -337,16 +182,6 @@ export class ThiefRouter extends BaseContract {
       deadline: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    onSwapTokensForExactETH(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
 
     onSwapTokensForExactTokens(
       pools: string[],
@@ -368,49 +203,11 @@ export class ThiefRouter extends BaseContract {
 
     formula(overrides?: CallOverrides): Promise<BigNumber>;
 
-    onSwapETHForExactTokens(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    onSwapExactETHForTokens(
-      pools: string[],
-      tokens: string[],
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    onSwapExactTokensForETH(
-      pools: string[],
-      tokens: string[],
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     onSwapExactTokensForTokens(
       pools: string[],
       tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    onSwapTokensForExactETH(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -434,49 +231,11 @@ export class ThiefRouter extends BaseContract {
 
     formula(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    onSwapETHForExactTokens(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onSwapExactETHForTokens(
-      pools: string[],
-      tokens: string[],
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onSwapExactTokensForETH(
-      pools: string[],
-      tokens: string[],
-      amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     onSwapExactTokensForTokens(
       pools: string[],
       tokens: string[],
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
-      to: string,
-      deadline: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    onSwapTokensForExactETH(
-      pools: string[],
-      tokens: string[],
-      amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       deadline: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

@@ -114,7 +114,7 @@ export type { RequiemPair } from "./RequiemPair";
 export type { WeightedPairERC20 } from "./WeightedPairERC20";
 export type { RequiemPairFactory } from "./RequiemPairFactory";
 export type { WeightedPairGovernance } from "./WeightedPairGovernance";
-export type { WeightedSwap } from "./WeightedSwap";
+export type { WeightedPool } from "./WeightedPool";
 export type { WeightedPoolLib } from "./WeightedPoolLib";
 export type { Zap } from "./Zap";
 
@@ -231,6 +231,6 @@ export { RequiemPair__factory } from "./factories/RequiemPair__factory";
 export { WeightedPairERC20__factory } from "./factories/WeightedPairERC20__factory";
 export { RequiemPairFactory__factory } from "./factories/RequiemPairFactory__factory";
 export { WeightedPairGovernance__factory } from "./factories/WeightedPairGovernance__factory";
-export { WeightedSwap__factory } from "./factories/WeightedSwap__factory";
+export { WeightedPool__factory } from "./factories/WeightedPool__factory";
 export { WeightedPoolLib__factory } from "./factories/WeightedPoolLib__factory";
 export { Zap__factory } from "./factories/Zap__factory";
