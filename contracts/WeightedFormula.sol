@@ -694,7 +694,6 @@ contract WeightedFormula is IWeightedFormula {
         uint32 tokenWeightOut,
         uint32 swapFee
     ) public view override returns (uint256 amountOut) {
-        // validate input
         uint256 amountInWithFee = amountIn * (10000 - swapFee);
         // special case for equal weights
         if (tokenWeightIn == tokenWeightOut) {

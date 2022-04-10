@@ -1,5 +1,5 @@
 Arguments: 
-  /home/achthar/.nvm/versions/node/v16.10.0/bin/node /usr/share/yarn/bin/yarn.js add @nomiclabs/hardhat-ethers
+  /home/achthar/.nvm/versions/node/v16.10.0/bin/node /usr/share/yarn/bin/yarn.js
 
 PATH: 
   /home/achthar/anaconda3/bin:/home/achthar/anaconda3/condabin:/home/achthar/.nvm/versions/node/v16.10.0/bin:/home/achthar/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/lib/jvm/java-11-openjdk-amd64
@@ -89,7 +89,7 @@ npm manifest:
       "format:fix": "prettier --write \"**/*.{ts,js,sol}\"",
       "compile": "hardhat compile",
       "void:deploy": "hardhat deploy",
-      "test": "cross-env HARDHAT_DEPLOY_FIXTURE=true HARDHAT_COMPILE=true mocha --bail --recursive test",
+      "test": "cross-env HARDHAT_DEPLOY_FIXTURE=true HARDHAT_COMPILE=true mocha --bail --timeout 100000 --recursive test",
       "gas": "cross-env REPORT_GAS=true hardhat test",
       "coverage": "cross-env HARDHAT_DEPLOY_FIXTURE=true hardhat coverage",
       "dev": "hardhat node --watch --export contractsInfo.json",

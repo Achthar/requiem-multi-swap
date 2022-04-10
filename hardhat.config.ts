@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
     excludeContracts: ['contracts/mocks/', 'contracts/libraries/'],
   },
   mocha: {
-    timeout: 20000,
+    timeout: 2000000,
   },
   namedAccounts: {
     deployer: {

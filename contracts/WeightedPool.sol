@@ -149,7 +149,7 @@ contract WeightedSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
-     /**  @notice Flash loan using stable swap balances  */
+     /**  @notice Flash loan using weighted pool balances  */
     function flashLoan(
         IFlashLoanRecipient recipient,
         uint256[] memory amounts,

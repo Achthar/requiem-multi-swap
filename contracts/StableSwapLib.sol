@@ -127,15 +127,10 @@ library StableSwapLib {
     }
 
     /**
-     * @notice the same function as swap, but it expects that amounts already have been
-     *  sent to the contract
+     * @notice Expects that amounts already have been sent to the contract
      *   - designed to be used in the Requiem Swap framework
-     *   - deducts the fee from the output and caps it at outAmount to
-     *   - this is to avoid issues with the rounding when using the calculateSwapGivenOut function to determine the input
-     *          -> that is because e.g. a 6 digit input can never exactly hit a 18 digit output, so the input is selected slightly higher
-     *              such that the output also is essentially rounded up at the sixth digit
-     *          -> the outAmount can only be lower than the actual calculated dy
-     *   - viable function for batch swapping
+     *   - deducts the fee from the output
+     *   - viable function for batch swapping as it expects that the amountIn has been sent befor the call
      * @param i token index in
      * @param j token index out
      * @param outAmount the target out amount - only a cap at the decimalplaces of the lower one, the rest is taken as fee
@@ -150,25 +145,30 @@ library StableSwapLib {
         uint256 outAmount,
         address to
     ) external {
+
+        uint256[] memory normalizedBalances = _xp(self);
+
+        uint256 newOutBalance = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
+        uint256 inAmountVirtual = divUp(_getY(self, j, i, newOutBalance, normalizedBalances) - normalizedBalances[i], self.tokenMultipliers[i]);
+        // add fee to in Amounts
+        inAmountVirtual += inAmountVirtual * self.fee / FEE_DENOMINATOR;
+
         uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
-        uint256 inAmount = balanceIn - self.balances[i];
+        uint256 inAmountActual = balanceIn - self.balances[i];
 
-        uint256 amp = _getAPrecise(self);
-        uint256 preInvariant = _getD(_xp(self), amp);
+        // check the whether sufficient amounts have been sent in
+        require(inAmountVirtual <= inAmountActual, "insufficient in");
 
+        // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
 
-        uint256 postInvariant = _getD(_xp(self), amp);
-
-        // check the invariant
-        require(preInvariant <= postInvariant, "invariant");
-
-        self.collectedFees[i] += ((outAmount * self.fee) /  FEE_DENOMINATOR * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[i];
+        // collect admin fee
+        self.collectedFees[i] += (inAmountActual * self.fee  * self.adminFee) /  FEE_DENOMINATOR / FEE_DENOMINATOR;
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
-        emit TokenExchange(to, i, inAmount, j, outAmount);
+        emit TokenExchange(to, i, inAmountActual, j, outAmount);
     }
 
     /**
@@ -192,10 +192,10 @@ library StableSwapLib {
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
 
-        dy = normalizedBalances[j] - y - 1; // eliminate rouding errors
-        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR;
+        dy = (normalizedBalances[j] - y) / self.tokenMultipliers[j]; // denormalize
+        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR; // charge fee on actual out amount
 
-        dy = (dy - dy_fee) / self.tokenMultipliers[j]; // denormalize
+        dy -=  dy_fee;
 
         require(dy >= minOutAmount, "slippage");
        
@@ -207,7 +207,7 @@ library StableSwapLib {
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= dy ;
-        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[j];
+        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR;
        
 
         self.pooledTokens[j].safeTransfer(to, dy);
@@ -218,11 +218,9 @@ library StableSwapLib {
     }
 
     /**
-     * the same function as swap, but it espects that amounts already have been
-     * sent to the contract and it requires the output to be provided
+     * Full swap given out - executes both - trade in and trade out
      *  - designed to be used in the requirem swap framework
-     *  - deducts the fees from the output, that means that the
-     *    output has to be increased by the fee to then create a highe input
+     *  - deducts the fees from the input
      * @param i token index in
      * @param j token index out
      */
@@ -236,9 +234,6 @@ library StableSwapLib {
     ) external returns (uint256 dx) {
         uint256[] memory normalizedBalances = _xp(self);
 
-        // the fee is a percentage from the "actual" amountOut, we have to use the quotient because of that
-        // uint256 _amountOutInclFee = (outAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee);
-
         // calculate out balance
         uint256 y = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
 
@@ -250,9 +245,9 @@ library StableSwapLib {
 
 
         // calculate normalized in balance
-        dx = x - normalizedBalances[i]; // no rounding adjustment
+        dx = (x - normalizedBalances[i]) / self.tokenMultipliers[i] ; // no rounding adjustment
 
-        dx = dx / self.tokenMultipliers[i] + dx * self.fee / FEE_DENOMINATOR; // denormalize and add fee
+        dx += dx * self.fee / FEE_DENOMINATOR; // denormalize and add fee
 
         require(dx <= maxInAmount, "slippage");
 

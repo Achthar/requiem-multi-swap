@@ -45,10 +45,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IIsPair__factory>;
     getContractFactory(
-      name: "IMinimalSwapInfo",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IMinimalSwapInfo__factory>;
-    getContractFactory(
       name: "IOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOracle__factory>;
@@ -144,10 +140,6 @@ declare module "hardhat/types/runtime" {
       name: "ISwapRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISwapRouter__factory>;
-    getContractFactory(
-      name: "ITemporarilyPausable",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ITemporarilyPausable__factory>;
     getContractFactory(
       name: "IUniswapV2Callee",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -264,10 +256,6 @@ declare module "hardhat/types/runtime" {
       name: "SignaturesValidator",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SignaturesValidator__factory>;
-    getContractFactory(
-      name: "TemporarilyPausable",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.TemporarilyPausable__factory>;
     getContractFactory(
       name: "PoolPriceOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -542,11 +530,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IIsPair>;
     getContractAt(
-      name: "IMinimalSwapInfo",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IMinimalSwapInfo>;
-    getContractAt(
       name: "IOracle",
       address: string,
       signer?: ethers.Signer
@@ -666,11 +649,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ISwapRouter>;
-    getContractAt(
-      name: "ITemporarilyPausable",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ITemporarilyPausable>;
     getContractAt(
       name: "IUniswapV2Callee",
       address: string,
@@ -816,11 +794,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SignaturesValidator>;
-    getContractAt(
-      name: "TemporarilyPausable",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.TemporarilyPausable>;
     getContractAt(
       name: "PoolPriceOracle",
       address: string,
