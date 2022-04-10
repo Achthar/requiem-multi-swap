@@ -151,7 +151,14 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         bytes memory userData
     ) external override nonReentrant whenNotPaused {
         uint256[] memory feeAmounts = swapStorage.flashLoan(recipient, amounts, userData);
+        // fetch invariant before loan
+        uint256 preInvariant = swapStorage.lastInvariant;
+
+        // calculate new one with new balances
         swapStorage.setInvariant();
+
+        // revert if the invariant change is too large
+        require( swapStorage.lastInvariant* FixedPoint.ONE / preInvariant > WeightedMath._MAX_INVARIANT_RATIO );
         emit FlashLoan(address(recipient), amounts, feeAmounts);
     }
 

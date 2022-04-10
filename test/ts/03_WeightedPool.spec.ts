@@ -157,7 +157,11 @@ describe('StableSwap-Test', () => {
 		await tokenTUSD.approve(router2.address, ethers.constants.MaxUint256)
 
 		await tokenUSDC.approve(thiefRouter.address, ethers.constants.MaxUint256)
-
+		await tokenWETH.approve(thiefRouter.address, ethers.constants.MaxUint256)
+		await tokenWBTC.approve(thiefRouter.address, ethers.constants.MaxUint256)
+		await tokenUSDC.approve(router2.address, ethers.constants.MaxUint256)
+		await tokenWETH.approve(router2.address, ethers.constants.MaxUint256)
+		await tokenWBTC.approve(router2.address, ethers.constants.MaxUint256)
 
 		await new router2.createPair(
 			tokenA.address,
@@ -207,7 +211,7 @@ describe('StableSwap-Test', () => {
 			tokenC.address,
 			tokenWBTC.address,
 			amountC,
-			parseUnits('10', 8),
+			parseUnits('1000', 8),
 			52,
 			swapFee,
 			amplification,
@@ -218,7 +222,7 @@ describe('StableSwap-Test', () => {
 			tokenB.address,
 			tokenWETH.address,
 			amountB,
-			parseUnits('10', 18),
+			parseUnits('1000', 18),
 			98,
 			swapFee,
 			amplification,
@@ -268,14 +272,14 @@ describe('StableSwap-Test', () => {
 
 
 		validateBals = async (descr: string) => {
-
+			// [tokenA.address, tokenWBTC.address, tokenWETH.address, tokenUSDC.address],
 			balancesVitual = await swapNew.getTokenBalances()
 			const fees = await swapNew.getCollectedFees()
 			balancesPoolActual = [
-				await tokenUSDC.balanceOf(swapNew.address),
-				await tokenUSDT.balanceOf(swapNew.address),
-				await tokenDAI.balanceOf(swapNew.address),
-				await tokenTUSD.balanceOf(swapNew.address)
+				await tokenA.balanceOf(swapNew.address),
+				await tokenWBTC.balanceOf(swapNew.address),
+				await tokenWETH.balanceOf(swapNew.address),
+				await tokenUSDC.balanceOf(swapNew.address)
 			]
 			console.log("-----------------------------------------------")
 			console.log(descr)
@@ -288,10 +292,10 @@ describe('StableSwap-Test', () => {
 
 			balancesVitual = await swapNew.getTokenBalances()
 			balancesPoolActual = [
-				await tokenUSDC.balanceOf(swapNew.address),
-				await tokenUSDT.balanceOf(swapNew.address),
-				await tokenDAI.balanceOf(swapNew.address),
-				await tokenTUSD.balanceOf(swapNew.address)
+				await tokenA.balanceOf(swapNew.address),
+				await tokenWBTC.balanceOf(swapNew.address),
+				await tokenWETH.balanceOf(swapNew.address),
+				await tokenUSDC.balanceOf(swapNew.address)
 			]
 			console.log("-----------------------------------------------")
 			console.log(descr)
@@ -306,10 +310,10 @@ describe('StableSwap-Test', () => {
 			balancesVitual = await swapNew.getTokenBalances()
 			const fees = await swapNew.getCollectedFees()
 			balancesPoolActual = [
-				await tokenUSDC.balanceOf(swapNew.address),
-				await tokenUSDT.balanceOf(swapNew.address),
-				await tokenDAI.balanceOf(swapNew.address),
-				await tokenTUSD.balanceOf(swapNew.address)
+				await tokenA.balanceOf(swapNew.address),
+				await tokenWBTC.balanceOf(swapNew.address),
+				await tokenWETH.balanceOf(swapNew.address),
+				await tokenUSDC.balanceOf(swapNew.address)
 			]
 			console.log("----------- BALANCE DIFF--------------------------")
 			console.log("Diff", balancesPoolActual.map((x, index) => x.sub(balancesVitual[index])))
@@ -337,7 +341,7 @@ describe('StableSwap-Test', () => {
 				inAm = _inAm
 				amns.push(inAm)
 			}
-			console.log("---------------------------- TEST NEW")
+			console.log("---------------------------- TEST NEW EO")
 			tx = await router2.onSwapTokensForExactTokens(
 				poolsNew.map(x => x.address),
 				_tokens,
@@ -354,10 +358,14 @@ describe('StableSwap-Test', () => {
 			console.log("--------GC" + String(counter), gasCosts)
 			const _userBalanceAfterIn = await inContract.balanceOf(wallet.address)
 			const _userBalanceAfterOut = await outContract.balanceOf(wallet.address)
-			console.log("--------GC bals", _userBalanceAfterOut, _userBalanceBeforeOut, amns)
+			console.log("--------GC bals EO", _userBalanceAfterOut, _userBalanceBeforeOut, amns)
+
+			console.log("expect(", _userBalanceAfterOut.sub(_userBalanceBeforeOut), ").to.eq(", _amountOut)
+			console.log("expect(", _userBalanceBeforeIn.sub(_userBalanceAfterIn), ").to.eq(", inAm)
+
 			expect(_userBalanceAfterOut.sub(_userBalanceBeforeOut)).to.eq(_amountOut)
 			expect(_userBalanceBeforeIn.sub(_userBalanceAfterIn)).to.eq(inAm)
-			console.log("---------------------------- TEST DONE")
+			console.log("---------------------------- TEST DONE EO")
 		}
 
 		testSwapExactIn = async (_tokens: string[], poolsNew: Contract[], _amountIn: BigNumber, comment: string) => {
@@ -377,7 +385,7 @@ describe('StableSwap-Test', () => {
 				outAm = _out
 				amns.push(outAm)
 			}
-			console.log("---------------------------- TEST NEW", amns, comment)
+			console.log("---------------------------- TEST NEW EI", amns, comment)
 			tx = await router2.onSwapExactTokensForTokens(
 				poolsNew.map(x => x.address),
 				_tokens,
@@ -394,10 +402,10 @@ describe('StableSwap-Test', () => {
 			console.log("--------GC" + String(counter), gasCosts)
 			const _userBalanceAfterIn = await inContract.balanceOf(wallet.address)
 			const _userBalanceAfterOut = await outContract.balanceOf(wallet.address)
-			console.log("--------GC bals", _userBalanceAfterOut, _userBalanceBeforeOut, amns)
+			console.log("--------GC bals EI", _userBalanceAfterOut, _userBalanceBeforeOut, amns)
 			expect(_userBalanceAfterOut.sub(_userBalanceBeforeOut)).to.eq(outAm)
 			expect(_userBalanceBeforeIn.sub(_userBalanceAfterIn)).to.eq(_amountIn)
-			console.log("---------------------------- TEST DONE")
+			console.log("---------------------------- TEST DONE EI")
 		}
 
 	})
@@ -411,7 +419,7 @@ describe('StableSwap-Test', () => {
 			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
-			0, //_fee = 0.01%
+			1e6, //_fee = 0.01%
 			5e9, //_admin_fee, 50%,
 			feeDistributor.address
 		)
@@ -579,130 +587,184 @@ describe('StableSwap-Test', () => {
 					describe('Weighted Pool-Transactions Swaps multi', () => {
 						it('Swaps', async () => {
 
+							let amountOutMin = 0
 							// pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
-							tokens = [tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
-							console.log("Pools", pools)
-							console.log("Tokens", tokens)
-							amountIn = parseUnits("1", 18)
-							const amountOutMin = ZERO
-
-							pools = [pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
-							console.log("Exact in multi")
-
-							const in1 = await pairA_USDC_Contract2.calculateSwapGivenIn(tokenA.address, tokenUSDC.address, amountIn)
-
-							const in2 = await swapNew.calculateSwapGivenIn(tokenUSDC.address, tokenWBTC.address, in1)
-
-							let y = await tokenWBTC.balanceOf(wallet.address)
-							// const in3 = await pairDAI_B_Contract2.calculateSwapGivenIn(tokenUSDC.address, tokenDAI.address, in2)
-							console.log("Amnts", in1, in2)
-							let b = await tokenUSDC.balanceOf(swapNew.address)
-							console.log("B USDC 1", b)
-							console.log("1")
-							await router2.onSwapExactTokensForTokens(
-								[pairA_USDC_Contract2.address, swapNew.address],
-								[tokenA.address, tokenUSDC.address, tokenWBTC.address],
-								amountIn,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)
-							b = await tokenUSDC.balanceOf(swapNew.address)
-							let c = await swapNew.getTokenBalances()
-							let f = await swapNew.getCollectedFees()
-							let z = await tokenWBTC.balanceOf(wallet.address)
-							console.log("VgL", in2, z.sub(y))
-							console.log("B USDC rp 2", b, c, f)
-							console.log("2")
-							await router2.onSwapExactTokensForTokens(
-								[swapNew.address],
-								[tokenUSDC.address, tokenDAI.address],
-								in1,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)
-							b = await tokenUSDC.balanceOf(swapNew.address)
-							c = await swapNew.getTokenBalances()
-							console.log("B USDC rp 3", b, c)
-							console.log("3")
-							await validateBals("before SS")
-							await router2.onSwapExactTokensForTokens(
-								[pairDAI_B_Contract2.address],
-								[tokenDAI.address, tokenB.address],
-								in2,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)
-							await validateBals("after SS")
-							console.log("d0ne")
-							tx = await router2.onSwapExactTokensForTokens(
-								pools,
-								tokens,
-								amountIn,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)
-							// record gas
-							receipt = await tx.wait();
-							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-							gasCosts = { ...gasCosts, exactInNew: gasUsed }
-
-							let amountOut = BigNumber.from('1000')
-
-							pools = [pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
-
-
-
-							console.log("Exact in multi 1")
-							await validateBals("Exact in multi 1 before")
-							tx = await router2.onSwapTokensForExactTokens(
-								pools,
-								tokens,
-								amountOut,
-								amountInMax,
-								wallet.address,
-								deadline
-							)
-
-							await validateBals("Exact in multi 1 after")
-							// record gas
-							receipt = await tx.wait();
-							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-							gasCosts = { ...gasCosts, exactOutNew: gasUsed }
-							console.log("EXACT OUT STANDARD DONE")
-							userBalanceBefore = await tokenB.balanceOf(wallet.address)
-
-							balancesVitual = await swapNew.getTokenBalances()
-							balancesPoolActual = [
-								await tokenUSDC.balanceOf(swapNew.address),
-								await tokenUSDT.balanceOf(swapNew.address),
-								await tokenDAI.balanceOf(swapNew.address),
-								await tokenTUSD.balanceOf(swapNew.address)
+							// 6 Swap
+							let _tokens = [
+								tokenA.address, tokenB.address, tokenWETH.address, tokenWBTC.address, tokenC.address, tokenB.address
 							]
-							console.log("BALANCES VOMP 1")
-							console.log("ACT", balancesPoolActual)
-							console.log("VRT", balancesVitual)
+							let poolsNew = [
+								pairA_B_Contract2, pairB_WETH_Contract2, swapNew, pairC_WBTC_Contract2, pairB_C_Contract2
+							]
 
-							pools = [pairA_USDC_Contract2.address, swap.address, pairDAI_B_Contract2.address]
-							tx = await router2.onSwapTokensForExactTokens(
-								pools,
-								tokens,
-								amountOut,
-								amountInMax,
-								wallet.address,
-								deadline
+							let _amountOut = parseUnits("1", 10)
+
+							await testSwapExactOut(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountOut, //   _amountOut: BigNumber
+								'WETH-WBTC-6T-mid'
 							)
-							// record gas
-							receipt = await tx.wait();
-							gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-							gasCosts = { ...gasCosts, exactOutStandard: gasUsed }
-							userBalanceAfter = await tokenB.balanceOf(wallet.address)
 
-							expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(amountOut)
-							console.log("GASOVERVIEW", gasCosts)
+
+							amountOutMin = 0
+							// pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
+							// 6 Swap
+							_tokens = _tokens.reverse()
+							poolsNew = poolsNew.reverse()
+
+							_amountOut = parseUnits("1", 10)
+
+							await testSwapExactOut(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountOut, //   _amountOut: BigNumber
+								'WBTC-WETH-6T-mid'
+							)
+
+
+							amountOutMin = 0
+							// pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
+							// 6 Swap
+							_tokens = [
+								tokenB.address, tokenWETH.address, tokenWBTC.address, tokenC.address
+							]
+							poolsNew = [
+								pairB_WETH_Contract2, swapNew, pairC_WBTC_Contract2
+							]
+
+							_amountOut = parseUnits("1", 10)
+
+							await testSwapExactOut(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountOut, //   _amountOut: BigNumber
+								'WETH-WBTC-4T-mid'
+							)
+
+
+							// amountOutMin = 0
+							// // pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
+							// // 6 Swap
+							// _tokens = [
+							// 	tokenA.address, tokenUSDC.address, tokenWBTC.address, tokenC.address
+							// ]
+							// poolsNew = [
+							// 	pairA_USDC_Contract2, swapNew, pairC_WBTC_Contract2
+							// ]
+
+							// _amountOut = parseUnits("1", 16)
+
+							// await testSwapExactOut(
+							// 	_tokens, // _tokens: string[],
+							// 	poolsNew, //   poolsNew: Contract[], 
+							// 	_amountOut, //   _amountOut: BigNumber
+							// 	'USDC-WBTC-5T-mid'
+							// )
+
+
+
+							amountOutMin = 0
+							_tokens = [
+								tokenWETH.address, tokenWBTC.address, tokenC.address, tokenB.address
+							]
+							poolsNew = [
+								swapNew, pairC_WBTC_Contract2, pairB_C_Contract2
+							]
+
+
+
+							_amountOut = parseUnits("1", 10)
+
+							await testSwapExactOut(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountOut, //   _amountOut: BigNumber
+								'WETH-WBTC-4T-start'
+							)
+
+							amountOutMin = 0
+							_tokens = _tokens.reverse()
+							poolsNew = poolsNew.reverse()
+
+
+
+							_amountOut = parseUnits("1", 18)
+
+							await testSwapExactOut(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountOut, //   _amountOut: BigNumber
+								'WBTC-WETH-4T-end'
+							)
+
+							_tokens = [
+								tokenUSDC.address, tokenWBTC.address
+							]
+							poolsNew = [
+								swapNew
+							]
+
+							let _amountIn = BigNumber.from('16212273')
+
+							await testSwapExactIn(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountIn, //   _amountIn: BigNumber
+								'USDC-WBTC-2T-single'
+							)
+
+							// pool at end
+							_tokens = [
+								tokenA.address, tokenUSDC.address, tokenWBTC.address
+							]
+							poolsNew = [
+								pairA_USDC_Contract2, swapNew
+							]
+
+							_amountIn = parseUnits("122", 17)
+
+							await testSwapExactIn(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountIn, //   _amountIn: BigNumber
+								'USDC-WBTC-3T-end'
+							)
+
+							// pool at beginning
+							_tokens = [
+								tokenWETH.address, tokenWBTC.address, tokenC.address
+							]
+							poolsNew = [
+								swapNew, pairC_WBTC_Contract2
+							]
+
+							_amountIn = parseUnits("12", 18)
+
+							await testSwapExactIn(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountIn, //   _amountIn: BigNumber
+								'WETH-WBTC-3T-start'
+							)
+
+							// pools = [pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
+							// 6 Swap
+							_tokens = [
+								tokenA.address, tokenB.address, tokenWETH.address, tokenWBTC.address, tokenC.address, tokenB.address
+							]
+							poolsNew = [
+								pairA_B_Contract2, pairB_WETH_Contract2, swapNew, pairC_WBTC_Contract2, pairB_C_Contract2
+							]
+
+							amountIn = parseUnits("122", 16)
+
+							await testSwapExactIn(
+								_tokens, // _tokens: string[],
+								poolsNew, //   poolsNew: Contract[], 
+								_amountIn, //   _amountOut: BigNumber
+								'WETH-WBTC-6T-mid'
+							)
 
 
 
@@ -710,7 +772,7 @@ describe('StableSwap-Test', () => {
 								it('Throws errors', async () => {
 
 
-									tokens = [tokenUSDC.address, tokenDAI.address]
+									tokens = [tokenUSDC.address, tokenWBTC.address]
 
 									pools = [swapNew.address]
 
@@ -726,7 +788,7 @@ describe('StableSwap-Test', () => {
 									)).to.be.revertedWith("insufficient in")
 
 
-									let __amountOut = parseUnits("13214", 14)
+									let __amountOut = parseUnits("13214", 6)
 									await expect(thiefRouter.onSwapTokensForExactTokens(
 										pools,
 										tokens,
@@ -734,13 +796,13 @@ describe('StableSwap-Test', () => {
 										maxUint256,
 										wallet.address,
 										deadline
-									)).to.be.revertedWith("insufficient in")
+									)).to.be.revertedWith("invariant")
 
 									// switch - low decimals first
 
-									tokens = [tokenDAI.address, tokenUSDC.address]
+									tokens = [tokenWBTC.address, tokenUSDC.address]
 									pools = [swapNew.address]
-									amountIn = BigNumber.from('1234567890123456789')
+									amountIn = BigNumber.from('12345678901')
 									await expect(thiefRouter.onSwapExactTokensForTokens(
 										pools,
 										tokens,
@@ -758,7 +820,7 @@ describe('StableSwap-Test', () => {
 										maxUint256,
 										wallet.address,
 										deadline
-									)).to.be.revertedWith("insufficient in")
+									)).to.be.revertedWith("invariant")
 
 								})
 							})

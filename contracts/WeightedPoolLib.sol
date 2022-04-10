@@ -449,7 +449,7 @@ library WeightedPoolLib {
 
     function calculateSwapGivenIn(WeightedSwapStorage storage self, uint256 inIndex, uint256 outIndex, uint256 amountIn) external view returns(uint256 amountOut) {
         // use in amount with fee alredy deducted
-        uint256 amountInWithFee = (amountIn * ( FEE_DENOMINATOR - self.fee));
+        uint256 amountInWithFee = (amountIn * self.tokenMultipliers[inIndex] * (FEE_DENOMINATOR - self.fee));
         // calculate out amount
         amountOut = WeightedMath._calcOutGivenIn(
             self.balances[inIndex]  * self.tokenMultipliers[inIndex] * FEE_DENOMINATOR,
