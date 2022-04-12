@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 
 import "./interfaces/IWeightedPair.sol";
 import "./interfaces/IWeightedPairERC20.sol";
-import "./interfaces/IRequiemSwap.sol";
+import "./interfaces/ISwap.sol";
 import "./interfaces/IWeightedFormula.sol";
 import "./interfaces/IWeightedPairFactory.sol";
 import "./WeightedPairERC20.sol";
@@ -17,7 +17,7 @@ import "./interfaces/IRequiemCallee.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls, max-states-count
 
-contract RequiemPair is IRequiemSwap, IWeightedPair, WeightedPairERC20 {
+contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
     using UQ112x112 for uint224;
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
@@ -340,7 +340,6 @@ contract RequiemPair is IRequiemSwap, IWeightedPair, WeightedPairERC20 {
         address tokenIn,
         address,
         uint256 amountIn,
-        uint256,
         address to
     ) external override lock returns (uint256) {
         bool inToken0 = tokenIn == token0;
@@ -360,35 +359,10 @@ contract RequiemPair is IRequiemSwap, IWeightedPair, WeightedPairERC20 {
      * @param tokenIn input token
      * @param amountOut output amount
      * @param to reveiver address
-     * @return input amount
      */
     function onSwapGivenOut(
         address tokenIn,
         address,
-        uint256 amountOut,
-        uint256,
-        address to
-    ) external override lock returns (uint256) {
-        bool inToken0 = tokenIn == token0;
-        (uint256 vReserveIn, uint256 vReserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
-            ? (vReserve0, vReserve1, tokenWeight0, tokenWeight1)
-            : (vReserve1, vReserve0, tokenWeight1, tokenWeight0);
-
-        uint256 amountIn = IWeightedFormula(formula).getAmountIn(amountOut, vReserveIn, vReserveOut, tokenWeightIn, tokenWeightOut, swapFee);
-        (uint256 amount0Out, uint256 amount1Out) = inToken0 ? (uint256(0), amountIn) : (amountIn, uint256(0));
-        return _swap(amount0Out, amount1Out, to, new bytes(0));
-    }
-
-    /**
-     * @notice Wraps the swap funtion for the Requiem interface which pre-selects the respective token amount
-     * @param tokenIn input token
-     * @param amountOut output amount
-     * @param to reveiver address
-     */
-    function onSwap(
-        address tokenIn,
-        address,
-        uint256,
         uint256 amountOut,
         address to
     ) external override lock {

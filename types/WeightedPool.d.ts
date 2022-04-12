@@ -35,9 +35,8 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "getTokenBalances()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
     "initialize(address[],uint8[],uint256[],uint256[],string,string,uint256,uint256,address)": FunctionFragment;
-    "onSwap(address,address,uint256,uint256,address)": FunctionFragment;
-    "onSwapGivenIn(address,address,uint256,uint256,address)": FunctionFragment;
-    "onSwapGivenOut(address,address,uint256,uint256,address)": FunctionFragment;
+    "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
+    "onSwapGivenOut(address,address,uint256,address)": FunctionFragment;
     "owner()": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
@@ -122,16 +121,12 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "onSwap",
-    values: [string, string, BigNumberish, BigNumberish, string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "onSwapGivenIn",
-    values: [string, string, BigNumberish, BigNumberish, string]
+    values: [string, string, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "onSwapGivenOut",
-    values: [string, string, BigNumberish, BigNumberish, string]
+    values: [string, string, BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
@@ -232,7 +227,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "onSwap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "onSwapGivenIn",
     data: BytesLike
@@ -510,20 +504,10 @@ export class WeightedPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    onSwap(
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -532,7 +516,6 @@ export class WeightedPool extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -687,20 +670,10 @@ export class WeightedPool extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  onSwap(
-    tokenIn: string,
-    tokenOut: string,
-    amountIn: BigNumberish,
-    amountOut: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   onSwapGivenIn(
     tokenIn: string,
     tokenOut: string,
     amountIn: BigNumberish,
-    amountOutMin: BigNumberish,
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -709,7 +682,6 @@ export class WeightedPool extends BaseContract {
     tokenIn: string,
     tokenOut: string,
     amountOut: BigNumberish,
-    amountInMax: BigNumberish,
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -866,20 +838,10 @@ export class WeightedPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    onSwap(
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
       to: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -888,10 +850,9 @@ export class WeightedPool extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -1272,20 +1233,10 @@ export class WeightedPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    onSwap(
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1294,7 +1245,6 @@ export class WeightedPool extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1442,20 +1392,10 @@ export class WeightedPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    onSwap(
-      tokenIn: string,
-      tokenOut: string,
-      amountIn: BigNumberish,
-      amountOut: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     onSwapGivenIn(
       tokenIn: string,
       tokenOut: string,
       amountIn: BigNumberish,
-      amountOutMin: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1464,7 +1404,6 @@ export class WeightedPool extends BaseContract {
       tokenIn: string,
       tokenOut: string,
       amountOut: BigNumberish,
-      amountInMax: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

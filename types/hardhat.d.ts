@@ -445,6 +445,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemPairERC20Wrapper__factory>;
     getContractFactory(
+      name: "WeightedMathTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedMathTest__factory>;
+    getContractFactory(
       name: "WETH9",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WETH9__factory>;
@@ -1033,6 +1037,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.RequiemPairERC20Wrapper>;
+    getContractAt(
+      name: "WeightedMathTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedMathTest>;
     getContractAt(
       name: "WETH9",
       address: string,

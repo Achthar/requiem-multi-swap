@@ -8,7 +8,7 @@ import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
 import "./StableSwapLib.sol";
 import "./interfaces/IStableSwap.sol";
-import "./interfaces/IRequiemSwap.sol";
+import "./interfaces/ISwap.sol";
 import "./interfaces/IFlashLoanRecipient.sol";
 
 using StableSwapLib for StableSwapLib.SwapStorage global;
@@ -16,7 +16,7 @@ using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
+contract StableSwap is ISwap, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;
@@ -92,32 +92,15 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         return swapStorage.addLiquidity(amounts, minMintAmount);
     }
 
-    // function for the requiem swap interface
-    // recalculates the output amount from the input
-    // has no check for slippage, that should be wrapped arount that funtion if used
-    // calculation-wise not really less efficient than just validating input amounts
-    // since the invariant would have to be calculated twice
-    // expects amounts to be sent to the contract alreaddy
-    function onSwap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        address to
-    ) external override whenNotPaused nonReentrant {
-        swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
-    }
-
     // expects amount alrady to be sent to this address
     // calculates the output amount and sends it after deducting the fee
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        uint256 amountOutMin,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOutMin, to);
+        return swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
     }
 
     // calculates the input amount from a given output amount
@@ -126,10 +109,9 @@ contract StableSwap is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializab
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
-        uint256 amountInMax,
         address to
-    ) external override whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+    ) external override whenNotPaused nonReentrant {
+        return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
      /**  @notice Flash loan using stable swap balances  */

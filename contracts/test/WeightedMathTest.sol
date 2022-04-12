@@ -14,14 +14,14 @@
 
 pragma solidity ^0.8.13;
 
-import "./FixedPoint.sol";
-import "./Math.sol";
+import "./../libraries/math/FixedPoint.sol";
+import "./../libraries/math//Math.sol";
 
 // These functions start with an underscore, as if they were part of a contract and not a library. At some point this
 // should be fixed.
 // solhint-disable private-vars-leading-underscore
 
-library WeightedMath {
+contract WeightedMathTest {
     using FixedPoint for uint256;
     // A minimum normalized weight imposes a maximum weight ratio. We need this due to limitations in the
     // implementation of the power function, as these ratios are often exponents.
@@ -42,6 +42,8 @@ library WeightedMath {
     // Invariant shrink limit: non-proportional exits cannot cause the invariant to decrease by less than this ratio.
     uint256 internal constant _MIN_INVARIANT_RATIO = 0.7e18;
 
+    constructor() {}
+
     // About swap fees on joins and exits:
     // Any join or exit that is not perfectly balanced (e.g. all single token joins or exits) is mathematically
     // equivalent to a perfectly balanced join or  exit followed by a series of swaps. Since these swaps would charge
@@ -52,7 +54,7 @@ library WeightedMath {
     // Invariant is used to collect protocol swap fees by comparing its value between two times.
     // So we can round always to the same direction. It is also used to initiate the BPT amount
     // and, because there is a minimum BPT, we round down the invariant.
-    function _calculateInvariant(uint256[] memory normalizedWeights, uint256[] memory balances) internal pure returns (uint256 invariant) {
+    function _calculateInvariant(uint256[] memory normalizedWeights, uint256[] memory balances) public pure returns (uint256 invariant) {
         /**********************************************************************************************
         // invariant               _____                                                             //
         // wi = weight index i      | |      wi                                                      //
@@ -67,11 +69,6 @@ library WeightedMath {
 
         require(invariant > 0, "ZERO_INVARIANT");
     }
-
-    function _calculateInvariantMultiplier(uint256 normalizedWeight, uint256 balanceToken) internal pure returns (uint256 invMultiplier) {
-        invMultiplier = balanceToken.powDown(normalizedWeight);
-    }
-    
 
     // Computes how many tokens can be taken out of a pool if `amountIn` are sent, given the
     // current balances and weights.

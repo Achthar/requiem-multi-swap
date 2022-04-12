@@ -1,91 +1,44 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.6.12;
-
-import "./ERC20/IERC20.sol";
+pragma solidity ^0.8.13;
 
 interface ISwap {
-    // pool data view functions
-    function getA() external view returns (uint256);
+    /**
+    * @notice Calculates the swap value internally and sends the amount to the to address 
+    * - Returns the calculated output amount.
+    * - Can be done without readjusting the invariant as the internally called pricing should ensure validity
+     */
+    function onSwapGivenIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address to
+    ) external returns (uint256);
 
-    function getToken(uint8 index) external view returns (IERC20);
+    /**
+    * @notice Calculates the input amount internally and sends that amount from the caller to the pool and the amountOut to the to address
+    * - Returns the calculated input amount.
+    * - Can be done without readjusting the invariant as the internally called pricing should ensure validity
+     */
+    function onSwapGivenOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address to
+    ) external;
 
-    function getTokenIndex(address tokenAddress) external view returns (uint8);
+    // calculator functions that should be used in sync with the swap functions above, i.e. most
+    // importantly for the exact out swap above
 
-    function getTokenBalance(uint8 index) external view returns (uint256);
-
-    function getTokenLength() external view returns (uint);
-
-    function getVirtualPrice() external view returns (uint256);
-
-    function swapStorage() external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, address);
-
-    // min return calculation functions
-    function calculateSwap(
-        uint8 tokenIndexFrom,
-        uint8 tokenIndexTo,
-        uint256 dx
+    function calculateSwapGivenIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn
     ) external view returns (uint256);
 
-    function calculateRemoveLiquidity(uint256 amount)
-    external
-    view
-    returns (uint256[] memory);
-
-    function calculateRemoveLiquidityOneToken(
-        uint256 tokenAmount,
-        uint8 tokenIndex
-    ) external view returns (uint256 availableTokenAmount);
-
-    // state modifying functions
-    function swap(
-        uint8 tokenIndexFrom,
-        uint8 tokenIndexTo,
-        uint256 dx,
-        uint256 minDy,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function addLiquidity(
-        uint256[] calldata amounts,
-        uint256 minToMint,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function removeLiquidity(
-        uint256 amount,
-        uint256[] calldata minAmounts,
-        uint256 deadline
-    ) external returns (uint256[] memory);
-
-    function removeLiquidityOneToken(
-        uint256 tokenAmount,
-        uint8 tokenIndex,
-        uint256 minAmount,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function removeLiquidityImbalance(
-        uint256[] calldata amounts,
-        uint256 maxBurnAmount,
-        uint256 deadline
-    ) external returns (uint256);
-
-    // withdraw fee update function
-    function updateUserWithdrawFee(address recipient, uint256 transferAmount)
-    external;
-
-    function calculateRemoveLiquidity(address account, uint256 amount) external view returns (uint256[] memory);
-
-    function calculateTokenAmount(
-        address account,
-        uint256[] calldata amounts,
-        bool deposit
+    function calculateSwapGivenOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut
     ) external view returns (uint256);
-
-    function calculateRemoveLiquidityOneToken(
-        address account,
-        uint256 tokenAmount,
-        uint8 tokenIndex
-    ) external view returns (uint256 availableTokenAmount);
 }

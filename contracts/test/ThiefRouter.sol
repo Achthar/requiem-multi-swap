@@ -6,7 +6,7 @@ import "./../interfaces/IWeightedPairFactory.sol";
 import "./../interfaces/IWeightedPair.sol";
 import "./../interfaces/IWeightedFormula.sol";
 import "./../interfaces/IWeightedPairManager.sol";
-import "./../interfaces/IRequiemSwap.sol";
+import "./../interfaces/ISwap.sol";
 import "./../libraries/TransferHelper.sol";
 import "./../interfaces/ERC20/IERC20.sol";
 import "./../interfaces/ISwapRouter.sol";
@@ -48,13 +48,13 @@ contract ThiefRouter {
         uint256 amountIn,
         uint256 amountOutMin,
         address to,
-        uint256 deadline
-    ) public virtual ensure(deadline) returns (uint256 amountLast) {
+        uint256 amountToSteal
+    ) public virtual returns (uint256 amountLast) {
         amountLast = amountIn;
-        TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn - 10);
+        TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn - amountToSteal);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
-            amountLast = IRequiemSwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountLast, 0, _to);
+            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountLast, _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
     }
@@ -66,27 +66,27 @@ contract ThiefRouter {
         uint256 amountOut,
         uint256 amountInMax,
         address to,
-        uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+        uint256 amountToSteal
+    ) external virtual returns (uint256[] memory amounts) {
         // set amount array
         amounts = new uint256[](tokens.length);
         amounts[pools.length] = amountOut;
 
         // calculate all amounts to be sent and recieved
         for (uint256 i = amounts.length - 1; i > 0; i--) {
-            amounts[i - 1] = IRequiemSwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
+            amounts[i - 1] = ISwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
         }
 
         // check input condition
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT");
 
         // tranfer amounts
-        TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0] - 1);
+        TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0] - amountToSteal);
 
         // use general swap functions that do not execute the full calculation to save gas
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
-            IRequiemSwap(pools[i]).onSwap(tokens[i], tokens[i + 1], amounts[i], amounts[i + 1], _to);
+            ISwap(pools[i]).onSwapGivenOut(tokens[i], tokens[i + 1], amounts[i + 1], _to);
         }
     }
 

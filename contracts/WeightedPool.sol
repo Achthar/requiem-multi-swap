@@ -8,7 +8,7 @@ import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
 import "./WeightedPoolLib.sol";
 import "./interfaces/IWeightedSwap.sol";
-import "./interfaces/IRequiemSwap.sol";
+import "./interfaces/ISwap.sol";
 import "./interfaces/IFlashLoanRecipient.sol";
 
 using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage global;
@@ -16,7 +16,7 @@ using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
+contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
     uint256 internal constant MAX_ADMIN_FEE = 1e10; // 100%
@@ -68,6 +68,7 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
 
         swapStorage.lpToken = new WeightedLPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
+        swapStorage.invariantMultipliers = new uint256[](numberOfCoins);
         swapStorage.tokenMultipliers = rates;
         swapStorage.nTokens = numberOfCoins;
         swapStorage.pooledTokens = coins;
@@ -101,33 +102,15 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         emit AddLiquidity(msg.sender, amounts, swapStorage.lastInvariant, mintAmount);
     }
 
-    // function for the requiem swap interface
-    // recalculates the output amount from the input
-    // has no check for slippage, that should be wrapped arount that funtion if used
-    // calculation-wise not really less efficient than just validating input amounts
-    // since the invariant would have to be calculated twice
-    // expects amounts to be sent to the contract alreaddy
-    function onSwap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        uint256 amountOut,
-        address to
-    ) external override whenNotPaused nonReentrant {
-        swapStorage.onSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOut, to);
-        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
-    }
-
     // expects amount alrady to be sent to this address
     // calculates the output amount and sends it after deducting the fee
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        uint256 amountOutMin,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
-        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, amountOutMin, to);
+        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
         emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
@@ -137,10 +120,9 @@ contract WeightedPool is IRequiemSwap, OwnerPausable, ReentrancyGuard, Initializ
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
-        uint256 amountInMax,
         address to
-    ) external override whenNotPaused nonReentrant returns (uint256 amountIn) {
-        amountIn = swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, amountInMax, to);
+    ) external override whenNotPaused nonReentrant {
+        uint256 amountIn = swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
         emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 

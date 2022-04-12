@@ -185,7 +185,6 @@ library StableSwapLib {
         uint256 i,
         uint256 j,
         uint256 inAmount,
-        uint256 minOutAmount,
         address to
     ) external returns (uint256 dy) {
         uint256[] memory normalizedBalances = _xp(self);
@@ -196,8 +195,6 @@ library StableSwapLib {
         uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR; // charge fee on actual out amount
 
         dy -=  dy_fee;
-
-        require(dy >= minOutAmount, "slippage");
        
         uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
 
@@ -209,7 +206,6 @@ library StableSwapLib {
         self.balances[j] -= dy ;
         self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR;
        
-
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
 
@@ -229,41 +225,31 @@ library StableSwapLib {
         uint256 i,
         uint256 j,
         uint256 outAmount,
-        uint256 maxInAmount,
         address to
-    ) external returns (uint256 dx) {
+    ) external {
         uint256[] memory normalizedBalances = _xp(self);
 
-        // calculate out balance
-        uint256 y = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
+        uint256 newOutBalance = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
+        uint256 inAmountVirtual = divUp(_getY(self, j, i, newOutBalance, normalizedBalances) - normalizedBalances[i], self.tokenMultipliers[i]);
+        // add fee to in Amounts
+        inAmountVirtual += inAmountVirtual * self.fee / FEE_DENOMINATOR;
 
-        // calculate in balance
-        uint256 x = _getY(self, j, i, y, normalizedBalances);
+        uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
+        uint256 inAmountActual = balanceIn - self.balances[i];
 
-        // calculate in-fee 
-        uint256 dx_fee = dx * self.fee / FEE_DENOMINATOR;
-
-
-        // calculate normalized in balance
-        dx = (x - normalizedBalances[i]) / self.tokenMultipliers[i] ; // no rounding adjustment
-
-        dx += dx * self.fee / FEE_DENOMINATOR; // denormalize and add fee
-
-        require(dx <= maxInAmount, "slippage");
+        // check the whether sufficient amounts have been sent in
+        require(inAmountVirtual <= inAmountActual, "insufficient in");
 
         // update balances
-        self.balances[i] += dx;
+        self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
-        self.collectedFees[i] += self.adminFee * dx_fee / FEE_DENOMINATOR;
-        // do the transfer after all calculations
-        IERC20 inCoin = self.pooledTokens[i];
-        dx = _doTransferIn(inCoin, dx); // transfer the calculated amount in
 
-        self.pooledTokens[j].safeTransfer(to, outAmount); // transfer the desired amount out
-        emit TokenExchange(to, i, dx, j, outAmount);
+        // collect admin fee
+        self.collectedFees[i] += (inAmountActual * self.fee  * self.adminFee) /  FEE_DENOMINATOR / FEE_DENOMINATOR;
 
-        // returns final input amount
-        return dx;
+        // finally transfer the tokens
+        self.pooledTokens[j].safeTransfer(to, outAmount);
+        emit TokenExchange(to, i, inAmountActual, j, outAmount);
     }
 
     /**  @notice Flash Loan using the stable swap balances*/

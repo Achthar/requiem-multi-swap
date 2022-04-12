@@ -125,7 +125,7 @@ export class ThiefRouter extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -135,7 +135,7 @@ export class ThiefRouter extends BaseContract {
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -152,7 +152,7 @@ export class ThiefRouter extends BaseContract {
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     to: string,
-    deadline: BigNumberish,
+    amountToSteal: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -162,7 +162,7 @@ export class ThiefRouter extends BaseContract {
     amountOut: BigNumberish,
     amountInMax: BigNumberish,
     to: string,
-    deadline: BigNumberish,
+    amountToSteal: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -179,7 +179,7 @@ export class ThiefRouter extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -189,7 +189,7 @@ export class ThiefRouter extends BaseContract {
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
   };
@@ -209,7 +209,7 @@ export class ThiefRouter extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -219,7 +219,7 @@ export class ThiefRouter extends BaseContract {
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -237,7 +237,7 @@ export class ThiefRouter extends BaseContract {
       amountIn: BigNumberish,
       amountOutMin: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -247,7 +247,7 @@ export class ThiefRouter extends BaseContract {
       amountOut: BigNumberish,
       amountInMax: BigNumberish,
       to: string,
-      deadline: BigNumberish,
+      amountToSteal: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
