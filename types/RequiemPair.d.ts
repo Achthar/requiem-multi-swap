@@ -448,7 +448,7 @@ export class RequiemPair extends BaseContract {
     onSwapGivenIn(
       tokenIn: string,
       arg1: string,
-      amountIn: BigNumberish,
+      arg2: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -612,7 +612,7 @@ export class RequiemPair extends BaseContract {
   onSwapGivenIn(
     tokenIn: string,
     arg1: string,
-    amountIn: BigNumberish,
+    arg2: BigNumberish,
     to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -775,7 +775,7 @@ export class RequiemPair extends BaseContract {
     onSwapGivenIn(
       tokenIn: string,
       arg1: string,
-      amountIn: BigNumberish,
+      arg2: BigNumberish,
       to: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1070,7 +1070,7 @@ export class RequiemPair extends BaseContract {
     onSwapGivenIn(
       tokenIn: string,
       arg1: string,
-      amountIn: BigNumberish,
+      arg2: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1216,7 +1216,7 @@ export class RequiemPair extends BaseContract {
     onSwapGivenIn(
       tokenIn: string,
       arg1: string,
-      amountIn: BigNumberish,
+      arg2: BigNumberish,
       to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

@@ -91,17 +91,13 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
     }
 
     /** @notice Name of pair */
-    function name() public view override returns (string memory) {
-        IERC20Metadata _token0 = IERC20Metadata(address(token0));
-        IERC20Metadata _token1 = IERC20Metadata(address(token1));
-        return string(abi.encodePacked("REQUIEM LP ", _token0.symbol(), "-", _token1.symbol()));
+    function name() public pure override returns (string memory) {
+        return "Requiem wPair LP";
     }
 
     /** @notice Symbol of pair */
-    function symbol() public view override returns (string memory) {
-        IERC20Metadata _token0 = IERC20Metadata(address(token0));
-        IERC20Metadata _token1 = IERC20Metadata(address(token1));
-        return string(abi.encodePacked("REQ-LP ", _token0.symbol(), "-", _token1.symbol()));
+    function symbol() public pure override returns (string memory) {
+        return "RLWP";
     }
 
     /**
@@ -328,28 +324,88 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
     }
 
     /**
-     * @notice calculates output amount for given input and executes the respective trade
-     * viable for use in multi swaps as it returns the output value
-     * requires the amount in to be sent to this address beforehand
+     * @notice calculates output amount for given input and executes the respective trade.
+     * No check of invariant required as the output amount equation used is equivalent to the invariant condition.
+     * The inAmount is directly determined by the new balance of tokenIn - hence the parameter is not needed.
      * @param tokenIn input token
-     * @param amountIn input amount
      * @param to reveiver address
-     * @return output amount
+     * @return amountOut amount
      */
     function onSwapGivenIn(
         address tokenIn,
         address,
-        uint256 amountIn,
+        uint256,
         address to
-    ) external override lock returns (uint256) {
-        bool inToken0 = tokenIn == token0;
-        (uint256 vReserveIn, uint256 vReserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut) = tokenIn == token0
-            ? (vReserve0, vReserve1, tokenWeight0, tokenWeight1)
-            : (vReserve1, vReserve0, tokenWeight1, tokenWeight0);
+    ) external override lock returns (uint256 amountOut) {
+        bool token0In = tokenIn == token0;
 
-        uint256 amountOut = IWeightedFormula(formula).getAmountOut(amountIn, vReserveIn, vReserveOut, tokenWeightIn, tokenWeightOut, swapFee);
-        (uint256 amount0Out, uint256 amount1Out) = inToken0 ? (uint256(0), amountOut) : (amountOut, uint256(0));
-        return _swap(amount0Out, amount1Out, to, new bytes(0));
+        // required check for token validity
+        require(token0In || tokenIn == token1, "token");
+
+        // fetch uint256 reserves
+        ReserveData memory reserveData = getReserves();
+
+        //initialized data for new reserves
+        ReserveData memory newReserveData;
+
+        // fetch the actual in balance of the input token
+        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
+        
+        if (token0In) {
+            // fetch "real" inAmount
+            uint256 amountIn = balanceIn - reserveData.reserve0;
+            // calculate output amount
+            amountOut = IWeightedFormula(formula).getAmountOut(
+                amountIn, 
+                reserveData.vReserve0, 
+                reserveData.vReserve1, 
+                tokenWeight0, 
+                tokenWeight1, 
+                swapFee);
+
+            // handle fee
+            uint256 amount0InFee = amountIn * swapFee;
+            collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
+
+            // transfer token amount
+            _safeTransfer(token1, to, amountOut);
+            emit Swap(msg.sender, amountIn, 0, 0, amountOut, to);
+            // update reserves
+            newReserveData.reserve0 = balanceIn;
+            newReserveData.reserve1 = IERC20(token1).balanceOf(address(this));
+
+        } else {
+            // get real inAmount
+            uint256 amountIn = balanceIn - reserveData.reserve1;
+            // calculate amount out
+            amountOut = IWeightedFormula(formula).getAmountOut(
+                amountIn, 
+                reserveData.vReserve1, 
+                reserveData.vReserve0, 
+                tokenWeight1, 
+                tokenWeight0, 
+                swapFee);
+
+            // handle fee
+            uint256 amount1InFee = amountIn * swapFee;
+            collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
+            newReserveData.reserve1 = balanceIn;
+
+            // transfer token amount
+            _safeTransfer(token0, to, amountOut);
+
+            // update reserves
+            newReserveData.reserve1 = balanceIn;
+            newReserveData.reserve0 = IERC20(token0).balanceOf(address(this));
+            emit Swap(msg.sender, 0, amountIn, amountOut, 0, to);
+
+        }
+        
+        // update virtual reserves
+        newReserveData.vReserve0 = reserveData.vReserve0 + newReserveData.reserve0 - reserveData.reserve0;
+        newReserveData.vReserve1 = reserveData.vReserve1 + newReserveData.reserve1 - reserveData.reserve1;
+        _update(newReserveData);
+        
     }
 
     /**

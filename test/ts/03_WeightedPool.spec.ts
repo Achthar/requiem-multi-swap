@@ -504,8 +504,8 @@ describe('WeightedPool-Test', () => {
 			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
-			1e6, //_fee = 0.01%
-			5e9, //_admin_fee, 50%,
+			1e4, //_fee = 0.123111%
+			5e6, //_admin_fee, 50%,
 			feeDistributor.address
 		)
 
@@ -859,35 +859,35 @@ describe('WeightedPool-Test', () => {
 									console.log("Validate bals first")
 									await validateSwapBals()
 
-
+									let __amountOut: BigNumber
 									tokens = [tokenWETH.address, tokenA.address]
 
 									pools = [swapNew.address]
 
 									console.log("THIEF1")
-									amountIn = parseUnits("1", 6)
-									await expect(thiefRouter.onSwapExactTokensForTokens(
-										pools,
-										tokens,
-										amountIn,
-										amountOutMin,
-										wallet.address,
-										1
-									)).to.be.revertedWith("insufficient in")
+									// amountIn = parseUnits("1", 6)
+									// await expect(thiefRouter.onSwapExactTokensForTokens(
+									// 	pools,
+									// 	tokens,
+									// 	amountIn,
+									// 	amountOutMin,
+									// 	wallet.address,
+									// 	1
+									// )).to.be.revertedWith("insufficient in")
 
-									let __amountOut = parseUnits("1", 18)
+									__amountOut = parseUnits("1", 18)
 
-									await expect(thiefRouter.onSwapTokensForExactTokens(
-										pools,
-										tokens,
-										__amountOut,
-										maxUint256,
-										wallet.address,
-										1
-									)).to.be.revertedWith("invariant")
+									// await expect(thiefRouter.onSwapTokensForExactTokens(
+									// 	pools,
+									// 	tokens,
+									// 	__amountOut,
+									// 	maxUint256,
+									// 	wallet.address,
+									// 	100
+									// )).to.be.revertedWith("invariant")
 
 
-									 __amountOut = parseUnits("1", 6)
+									__amountOut = parseUnits("1", 6)
 
 									await swapManual(1, 3, __amountOut)
 
@@ -899,23 +899,23 @@ describe('WeightedPool-Test', () => {
 										__amountOut,
 										maxUint256,
 										wallet.address,
-										100
+										1
 									)).to.be.revertedWith("invariant")
 
 									// switch - low decimals first
-									console.log("THIEF3")
+									// console.log("THIEF3")
 
-									tokens = [tokenWETH.address, tokenA.address]
-									// pools = [swapNew.address]
-									amountIn = BigNumber.from('12345678901')
-									await expect(thiefRouter.onSwapExactTokensForTokens(
-										pools,
-										tokens,
-										amountIn,
-										amountOutMin,
-										wallet.address,
-										1
-									)).to.be.revertedWith("insufficient in")
+									// tokens = [tokenWETH.address, tokenA.address]
+									// // pools = [swapNew.address]
+									// amountIn = BigNumber.from('12345678901')
+									// await expect(thiefRouter.onSwapExactTokensForTokens(
+									// 	pools,
+									// 	tokens,
+									// 	amountIn,
+									// 	amountOutMin,
+									// 	wallet.address,
+									// 	1
+									// )).to.be.revertedWith("insufficient in")
 
 									tokens = [tokenWBTC.address, tokenUSDC.address]
 									console.log("THIEF4")
@@ -926,10 +926,35 @@ describe('WeightedPool-Test', () => {
 										__amountOut,
 										maxUint256,
 										wallet.address,
-										201
+										1
 									)).to.be.revertedWith("invariant")
+									tokens = [tokenUSDC.address, tokenA.address]
+									__amountOut = BigNumber.from('1234567893211123132')
+									await expect(thiefRouter.onSwapTokensForExactTokens(
+										pools,
+										tokens,
+										__amountOut,
+										maxUint256,
+										wallet.address,
+										1
+									)).to.be.revertedWith("invariant")
+									console.log("THIEF POOL DONE")
+
+
+									tokens = [tokenUSDC.address, tokenA.address]
+									console.log("THIEFPAIR")
+									__amountOut = BigNumber.from('1234567893211123132')
+									await expect(thiefRouter.onSwapTokensForExactTokens(
+										[pairA_USDC_Contract2.address],
+										tokens,
+										__amountOut,
+										maxUint256,
+										wallet.address,
+										1
+									)).to.be.revertedWith("REQLP: K")
 									console.log("THIEF DONE")
 								})
+								// })
 							})
 
 
@@ -954,7 +979,7 @@ describe('WeightedPool-Test', () => {
 								pools,
 								tokens,
 								amountIn,
-								amountOutMin,
+								0,
 								wallet.address,
 								deadline
 							)).to.be.revertedWith("insufficient in")
