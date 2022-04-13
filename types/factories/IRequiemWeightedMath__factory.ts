@@ -120,94 +120,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256[]",
-        name: "balances",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "normalizedWeights",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "amountsOut",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256",
-        name: "bptTotalSupply",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "swapFeePercentage",
-        type: "uint256",
-      },
-    ],
-    name: "_calcBptInGivenExactTokensOut",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
-    ],
-    stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[]",
-        name: "balances",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "normalizedWeights",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "amountsIn",
-        type: "uint256[]",
-      },
-      {
-        internalType: "uint256",
-        name: "bptTotalSupply",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "swapFeePercentage",
-        type: "uint256",
-      },
-    ],
-    name: "_calcBptOutGivenExactTokensIn",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
-    ],
-    stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "balance",
         type: "uint256",
@@ -278,6 +190,94 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256[]",
+        name: "balances",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "normalizedWeights",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "amountsOut",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256",
+        name: "bptTotalSupply",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "swapFeePercentage",
+        type: "uint256",
+      },
+    ],
+    name: "_calcLpInGivenExactTokensOut",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256[]",
+        name: "balances",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "normalizedWeights",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "amountsIn",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256",
+        name: "bptTotalSupply",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "swapFeePercentage",
+        type: "uint256",
+      },
+    ],
+    name: "_calcLpOutGivenExactTokensIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
       },
     ],
     stateMutability: "pure",

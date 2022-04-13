@@ -62,7 +62,7 @@ library WeightedPoolLib {
         uint256[] memory swapFees;
         uint256[] memory normalizedNewAmounts = new uint256[](count);
 
-        (mintAmount, swapFees) = WeightedMath._calcBptOutGivenExactTokensIn(
+        (mintAmount, swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(
             _xp(self.balances, self.tokenMultipliers),
             self.normalizedWeights,
             _xp( amounts, self.tokenMultipliers),
@@ -317,7 +317,7 @@ library WeightedPoolLib {
         totalSupply = self.lpToken.totalSupply();
         require(totalSupply != 0, "supply");
         uint256[] memory swapFees;
-        ( burnAmount, swapFees) = WeightedMath._calcBptInGivenExactTokensOut(
+        ( burnAmount, swapFees) = WeightedMath._calcLpInGivenExactTokensOut(
             self.balances,
             self.normalizedWeights,
             _xp(amounts, self.tokenMultipliers),
@@ -383,7 +383,7 @@ library WeightedPoolLib {
         bool deposit
     ) external view returns (uint256 lpTokenAmount) {
             if (deposit) {
-                ( lpTokenAmount,) = WeightedMath._calcBptOutGivenExactTokensIn(
+                ( lpTokenAmount,) = WeightedMath._calcLpOutGivenExactTokensIn(
                     self.balances,
                     self.normalizedWeights,
                     _xp(amounts, self.tokenMultipliers),
@@ -391,7 +391,7 @@ library WeightedPoolLib {
                     self.fee
                     );
             } else {
-                (lpTokenAmount,) = WeightedMath._calcBptInGivenExactTokensOut(
+                (lpTokenAmount,) = WeightedMath._calcLpInGivenExactTokensOut(
                     self.balances,
                     self.normalizedWeights,
                     _xp(amounts, self.tokenMultipliers),
@@ -518,7 +518,7 @@ library WeightedPoolLib {
     //     WeightedSwapStorage storage self,
     //     uint256[] memory amountsIn
     // ) private returns (uint256) {
-    //     (uint256 bptAmountOut, uint256[] memory swapFees) = WeightedMath._calcBptOutGivenExactTokensIn(
+    //     (uint256 bptAmountOut, uint256[] memory swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(
     //         self.balances,
     //         self.normalizedWeights,
     //         _xp( amountsIn, self.tokenMultipliers),

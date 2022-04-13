@@ -64,7 +64,7 @@ interface IRequiemWeightedMath {
         uint256 amountOut
     ) external pure returns (uint256);
 
-    function _calcBptOutGivenExactTokensIn(
+    function _calcLpOutGivenExactTokensIn(
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         uint256[] memory amountsIn,
@@ -98,7 +98,7 @@ interface IRequiemWeightedMath {
         uint256 totalBPT
     ) external pure returns (uint256[] memory);
 
-    function _calcBptInGivenExactTokensOut(
+    function _calcLpInGivenExactTokensOut(
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         uint256[] memory amountsOut,

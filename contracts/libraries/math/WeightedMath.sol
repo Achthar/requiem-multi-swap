@@ -146,7 +146,7 @@ library WeightedMath {
         return balanceIn.mulUp(ratio);
     }
 
-    function _calcBptOutGivenExactTokensIn(
+    function _calcLpOutGivenExactTokensIn(
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         uint256[] memory amountsIn,
@@ -276,7 +276,7 @@ library WeightedMath {
         return amountsIn;
     }
 
-    function _calcBptInGivenExactTokensOut(
+    function _calcLpInGivenExactTokensOut(
         uint256[] memory balances,
         uint256[] memory normalizedWeights,
         uint256[] memory amountsOut,

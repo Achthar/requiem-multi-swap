@@ -27,8 +27,8 @@ interface RequiemWeightedMathInterface extends ethers.utils.Interface {
     "_MIN_INVARIANT_RATIO()": FunctionFragment;
     "_MIN_WEIGHT()": FunctionFragment;
     "_calcAllTokensInGivenExactBptOut(uint256[],uint256,uint256)": FunctionFragment;
-    "_calcBptInGivenExactTokensOut(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
-    "_calcBptOutGivenExactTokensIn(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
+    "_calcLpInGivenExactTokensOut(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
+    "_calcLpOutGivenExactTokensIn(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
     "_calcDueTokenProtocolSwapFeeAmount(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
     "_calcInGivenOut(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
     "_calcOutGivenIn(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
@@ -67,7 +67,7 @@ interface RequiemWeightedMathInterface extends ethers.utils.Interface {
     values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "_calcBptInGivenExactTokensOut",
+    functionFragment: "_calcLpInGivenExactTokensOut",
     values: [
       BigNumberish[],
       BigNumberish[],
@@ -77,7 +77,7 @@ interface RequiemWeightedMathInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "_calcBptOutGivenExactTokensIn",
+    functionFragment: "_calcLpOutGivenExactTokensIn",
     values: [
       BigNumberish[],
       BigNumberish[],
@@ -174,11 +174,11 @@ interface RequiemWeightedMathInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "_calcBptInGivenExactTokensOut",
+    functionFragment: "_calcLpInGivenExactTokensOut",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "_calcBptOutGivenExactTokensIn",
+    functionFragment: "_calcLpOutGivenExactTokensIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -276,7 +276,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
-    _calcBptInGivenExactTokensOut(
+    _calcLpInGivenExactTokensOut(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsOut: BigNumberish[],
@@ -285,7 +285,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber[]]>;
 
-    _calcBptOutGivenExactTokensIn(
+    _calcLpOutGivenExactTokensIn(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsIn: BigNumberish[],
@@ -376,7 +376,7 @@ export class RequiemWeightedMath extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  _calcBptInGivenExactTokensOut(
+  _calcLpInGivenExactTokensOut(
     balances: BigNumberish[],
     normalizedWeights: BigNumberish[],
     amountsOut: BigNumberish[],
@@ -385,7 +385,7 @@ export class RequiemWeightedMath extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber[]]>;
 
-  _calcBptOutGivenExactTokensIn(
+  _calcLpOutGivenExactTokensIn(
     balances: BigNumberish[],
     normalizedWeights: BigNumberish[],
     amountsIn: BigNumberish[],
@@ -476,7 +476,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    _calcBptInGivenExactTokensOut(
+    _calcLpInGivenExactTokensOut(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsOut: BigNumberish[],
@@ -485,7 +485,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber[]]>;
 
-    _calcBptOutGivenExactTokensIn(
+    _calcLpOutGivenExactTokensIn(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsIn: BigNumberish[],
@@ -579,7 +579,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    _calcBptInGivenExactTokensOut(
+    _calcLpInGivenExactTokensOut(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsOut: BigNumberish[],
@@ -588,7 +588,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    _calcBptOutGivenExactTokensIn(
+    _calcLpOutGivenExactTokensIn(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsIn: BigNumberish[],
@@ -682,7 +682,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    _calcBptInGivenExactTokensOut(
+    _calcLpInGivenExactTokensOut(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsOut: BigNumberish[],
@@ -691,7 +691,7 @@ export class RequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    _calcBptOutGivenExactTokensIn(
+    _calcLpOutGivenExactTokensIn(
       balances: BigNumberish[],
       normalizedWeights: BigNumberish[],
       amountsIn: BigNumberish[],

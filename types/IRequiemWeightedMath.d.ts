@@ -27,10 +27,10 @@ interface IRequiemWeightedMathInterface extends ethers.utils.Interface {
     "_MIN_INVARIANT_RATIO()": FunctionFragment;
     "_MIN_WEIGHT()": FunctionFragment;
     "_calcAllTokensInGivenExactBptOut(uint256[],uint256,uint256)": FunctionFragment;
-    "_calcBptInGivenExactTokensOut(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
-    "_calcBptOutGivenExactTokensIn(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
     "_calcDueTokenProtocolSwapFeeAmount(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
     "_calcInGivenOut(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "_calcLpInGivenExactTokensOut(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
+    "_calcLpOutGivenExactTokensIn(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
     "_calcOutGivenIn(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
     "_calcTokenInGivenExactBptOut(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
     "_calcTokenOutGivenExactBptIn(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
@@ -67,26 +67,6 @@ interface IRequiemWeightedMathInterface extends ethers.utils.Interface {
     values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "_calcBptInGivenExactTokensOut",
-    values: [
-      BigNumberish[],
-      BigNumberish[],
-      BigNumberish[],
-      BigNumberish,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_calcBptOutGivenExactTokensIn",
-    values: [
-      BigNumberish[],
-      BigNumberish[],
-      BigNumberish[],
-      BigNumberish,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
     functionFragment: "_calcDueTokenProtocolSwapFeeAmount",
     values: [
       BigNumberish,
@@ -102,6 +82,26 @@ interface IRequiemWeightedMathInterface extends ethers.utils.Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcLpInGivenExactTokensOut",
+    values: [
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcLpOutGivenExactTokensIn",
+    values: [
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish[],
       BigNumberish,
       BigNumberish
     ]
@@ -174,19 +174,19 @@ interface IRequiemWeightedMathInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "_calcBptInGivenExactTokensOut",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_calcBptOutGivenExactTokensIn",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "_calcDueTokenProtocolSwapFeeAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "_calcInGivenOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcLpInGivenExactTokensOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcLpOutGivenExactTokensIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -276,24 +276,6 @@ export class IRequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
-    _calcBptInGivenExactTokensOut(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsOut: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber[]]>;
-
-    _calcBptOutGivenExactTokensIn(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsIn: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber[]]>;
-
     _calcDueTokenProtocolSwapFeeAmount(
       balance: BigNumberish,
       normalizedWeight: BigNumberish,
@@ -311,6 +293,24 @@ export class IRequiemWeightedMath extends BaseContract {
       amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
 
     _calcOutGivenIn(
       balanceIn: BigNumberish,
@@ -376,24 +376,6 @@ export class IRequiemWeightedMath extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  _calcBptInGivenExactTokensOut(
-    balances: BigNumberish[],
-    normalizedWeights: BigNumberish[],
-    amountsOut: BigNumberish[],
-    bptTotalSupply: BigNumberish,
-    swapFeePercentage: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber[]]>;
-
-  _calcBptOutGivenExactTokensIn(
-    balances: BigNumberish[],
-    normalizedWeights: BigNumberish[],
-    amountsIn: BigNumberish[],
-    bptTotalSupply: BigNumberish,
-    swapFeePercentage: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber[]]>;
-
   _calcDueTokenProtocolSwapFeeAmount(
     balance: BigNumberish,
     normalizedWeight: BigNumberish,
@@ -411,6 +393,24 @@ export class IRequiemWeightedMath extends BaseContract {
     amountOut: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  _calcLpInGivenExactTokensOut(
+    balances: BigNumberish[],
+    normalizedWeights: BigNumberish[],
+    amountsOut: BigNumberish[],
+    bptTotalSupply: BigNumberish,
+    swapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber[]]>;
+
+  _calcLpOutGivenExactTokensIn(
+    balances: BigNumberish[],
+    normalizedWeights: BigNumberish[],
+    amountsIn: BigNumberish[],
+    bptTotalSupply: BigNumberish,
+    swapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber[]]>;
 
   _calcOutGivenIn(
     balanceIn: BigNumberish,
@@ -476,24 +476,6 @@ export class IRequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    _calcBptInGivenExactTokensOut(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsOut: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber[]]>;
-
-    _calcBptOutGivenExactTokensIn(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsIn: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber[]]>;
-
     _calcDueTokenProtocolSwapFeeAmount(
       balance: BigNumberish,
       normalizedWeight: BigNumberish,
@@ -511,6 +493,24 @@ export class IRequiemWeightedMath extends BaseContract {
       amountOut: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
 
     _calcOutGivenIn(
       balanceIn: BigNumberish,
@@ -579,24 +579,6 @@ export class IRequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    _calcBptInGivenExactTokensOut(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsOut: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    _calcBptOutGivenExactTokensIn(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsIn: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     _calcDueTokenProtocolSwapFeeAmount(
       balance: BigNumberish,
       normalizedWeight: BigNumberish,
@@ -612,6 +594,24 @@ export class IRequiemWeightedMath extends BaseContract {
       balanceOut: BigNumberish,
       weightOut: BigNumberish,
       amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -682,24 +682,6 @@ export class IRequiemWeightedMath extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    _calcBptInGivenExactTokensOut(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsOut: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _calcBptOutGivenExactTokensIn(
-      balances: BigNumberish[],
-      normalizedWeights: BigNumberish[],
-      amountsIn: BigNumberish[],
-      bptTotalSupply: BigNumberish,
-      swapFeePercentage: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     _calcDueTokenProtocolSwapFeeAmount(
       balance: BigNumberish,
       normalizedWeight: BigNumberish,
@@ -715,6 +697,24 @@ export class IRequiemWeightedMath extends BaseContract {
       balanceOut: BigNumberish,
       weightOut: BigNumberish,
       amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      bptTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
