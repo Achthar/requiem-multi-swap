@@ -63,7 +63,7 @@ library WeightedPoolLib {
         uint256[] memory normalizedNewAmounts = new uint256[](count);
 
         (mintAmount, swapFees) = WeightedMath._calcBptOutGivenExactTokensIn(
-            self.balances,
+            _xp(self.balances, self.tokenMultipliers),
             self.normalizedWeights,
             _xp( amounts, self.tokenMultipliers),
             tokenSupply,
@@ -121,8 +121,7 @@ library WeightedPoolLib {
      *  @notice Calculates the output amount and swaps it. As we use the WeightedMath library, no additional check
      *  of the invariant is needed since the amount out formula is equivalent to the local invariant equation.
      *   - designed to be used in the Requiem Swap framework
-     *   - deducts the fee from the input
-     *   - viable function for batch swapping
+     *   - input is derived from increased actual token balance
      * @param inIndex token index in
      * @param outIndex token index out
      */
@@ -157,20 +156,9 @@ library WeightedPoolLib {
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount ;
-        self.collectedFees[inIndex] += (inAmount * self.fee * self.adminFee)  / FEE_DENOMINATOR;
+        self.collectedFees[inIndex] += (inAmount * self.fee * self.adminFee)  / FEE_DENOMINATOR / FEE_DENOMINATOR;
         // transfer amount
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
-
-        // update invariant multipliers
-        self.invariantMultipliers[inIndex] = WeightedMath._calculateInvariantMultiplier(
-            self.normalizedWeights[inIndex],
-            balanceIn * self.tokenMultipliers[inIndex] * FEE_DENOMINATOR
-             );
-
-        self.invariantMultipliers[outIndex] = WeightedMath._calculateInvariantMultiplier(
-            self.normalizedWeights[outIndex],
-            self.balances[outIndex] * self.tokenMultipliers[outIndex] * FEE_DENOMINATOR
-             );
     }
 
     /**
@@ -191,47 +179,29 @@ library WeightedPoolLib {
         // get actual new in balance
         uint256 balanceIn =  self.pooledTokens[inIndex].balanceOf(address(this));
 
-        // get normalized amount in
-        inAmount =  (balanceIn - self.balances[inIndex])  * self.tokenMultipliers[inIndex];
-
-        // get virtual amount in for checking invariants
-        uint256 inAmountWithFee = inAmount * (FEE_DENOMINATOR  - self.fee);
-
-        uint256 multiplierInNew = WeightedMath._calculateInvariantMultiplier(
+        // calculate in amount with upscaled balances
+        inAmount = WeightedMath._calcInGivenOut(
+            self.balances[inIndex] * self.tokenMultipliers[inIndex] * FEE_DENOMINATOR,
             self.normalizedWeights[inIndex],
-            balanceIn * self.tokenMultipliers[inIndex] * FEE_DENOMINATOR
-            );
+            self.balances[outIndex] * self.tokenMultipliers[outIndex] * FEE_DENOMINATOR,
+            self.normalizedWeights[outIndex],
+            outAmount * self.tokenMultipliers[outIndex] * FEE_DENOMINATOR
+        );
+        // adjust for fee and scale down - rounding up
+        inAmount = inAmount / (FEE_DENOMINATOR -self.fee) /  self.tokenMultipliers[inIndex] + 1;
+        
+        // collect admin fee
+        self.collectedFees[inIndex] += inAmount * self.fee * self.adminFee / FEE_DENOMINATOR / FEE_DENOMINATOR;
 
-        // adjust balance out before recalculating multiplier
-        self.balances[outIndex] -= outAmount;
-        uint256 multiplierOutNew = WeightedMath._calculateInvariantMultiplier(
-            self.normalizedWeights[outIndex], 
-            self.balances[outIndex] * self.tokenMultipliers[outIndex] * FEE_DENOMINATOR
-            );
+        //validate trade
+        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
 
-        // compare local invariants
-        require(
-            self.invariantMultipliers[inIndex] * self.invariantMultipliers[outIndex] <=
-            WeightedMath._calculateInvariantMultiplier(
-                self.normalizedWeights[inIndex],
-                self.balances[inIndex] * self.tokenMultipliers[inIndex]  * FEE_DENOMINATOR + inAmountWithFee
-            )
-            * multiplierOutNew,
-            "invariant"
-         );
-
-        // update balance in
-        self.balances[inIndex] = balanceIn;
-
-        // add admin fees
-        self.collectedFees[outIndex] += ((inAmount - inAmountWithFee / FEE_DENOMINATOR) * self.adminFee) / FEE_DENOMINATOR / self.tokenMultipliers[outIndex];
-
-        // finally transfer the tokens
+        //send tokens
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
 
-        // update invariant multipliers
-        self.invariantMultipliers[inIndex] = multiplierInNew;
-        self.invariantMultipliers[outIndex] = multiplierOutNew;
+        // update balances
+        self.balances[inIndex] = balanceIn;
+        self.balances[outIndex] -= outAmount;
     }
 
     /**  
@@ -450,17 +420,16 @@ library WeightedPoolLib {
 
     function calculateSwapGivenOut(WeightedSwapStorage storage self, uint256 inIndex, uint256 outIndex, uint256 amountOut) external view 
     returns(uint256 amountIn) {
-        uint256 amountOutWithFee = amountOut * self.tokenMultipliers[outIndex] * (FEE_DENOMINATOR + self.fee);
         // calculate in amount with upscaled balances
         amountIn = WeightedMath._calcInGivenOut(
             self.balances[inIndex] * self.tokenMultipliers[inIndex] * FEE_DENOMINATOR,
             self.normalizedWeights[inIndex],
             self.balances[outIndex] * self.tokenMultipliers[outIndex] * FEE_DENOMINATOR,
             self.normalizedWeights[outIndex],
-            amountOutWithFee
+            amountOut * self.tokenMultipliers[outIndex]* FEE_DENOMINATOR
         );
         // adjust for fee and scale down - rounding up
-        amountIn = amountIn / FEE_DENOMINATOR / self.tokenMultipliers[inIndex] + 1;
+        amountIn = amountIn / (FEE_DENOMINATOR - self.fee) / self.tokenMultipliers[inIndex] + 1;
     }
 
     function sync(

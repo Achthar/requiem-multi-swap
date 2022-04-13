@@ -62,7 +62,7 @@ library WeightedMath {
 
         invariant = FixedPoint.ONE;
         for (uint256 i = 0; i < normalizedWeights.length; i++) {
-            invariant = invariant.mulDown(balances[i].powDown(normalizedWeights[i]));
+            invariant = invariant.mulDown(balances[i].powUp(normalizedWeights[i]));
         }
 
         require(invariant > 0, "ZERO_INVARIANT");
