@@ -108,7 +108,7 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
     "FlashLoan(address,uint256[],uint256[])": EventFragment;
-    "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
+    "NewFee(uint256,uint256,uint256)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256)": EventFragment;
     "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)": EventFragment;
     "RemoveLiquidityOne(address,uint256,uint256,uint256)": EventFragment;
@@ -152,9 +152,8 @@ export type FlashLoanEvent = TypedEvent<
 >;
 
 export type NewFeeEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber, BigNumber] & {
+  [BigNumber, BigNumber, BigNumber] & {
     fee: BigNumber;
-    flashFee: BigNumber;
     adminFee: BigNumber;
     withdrawFee: BigNumber;
   }
@@ -473,34 +472,22 @@ export class IWeightedSwap extends BaseContract {
       { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
     >;
 
-    "NewFee(uint256,uint256,uint256,uint256)"(
+    "NewFee(uint256,uint256,uint256)"(
       fee?: null,
-      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        fee: BigNumber;
-        flashFee: BigNumber;
-        adminFee: BigNumber;
-        withdrawFee: BigNumber;
-      }
+      [BigNumber, BigNumber, BigNumber],
+      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
     >;
 
     NewFee(
       fee?: null,
-      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        fee: BigNumber;
-        flashFee: BigNumber;
-        adminFee: BigNumber;
-        withdrawFee: BigNumber;
-      }
+      [BigNumber, BigNumber, BigNumber],
+      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
     >;
 
     "RemoveLiquidity(address,uint256[],uint256)"(

@@ -20,7 +20,7 @@ interface IWeightedSwap {
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
 
-    event NewFee(uint256 fee, uint256 flashFee, uint256 adminFee, uint256 withdrawFee);
+    event NewFee(uint256 fee, uint256 adminFee, uint256 withdrawFee);
 
     event FeeControllerChanged(address newController);
 

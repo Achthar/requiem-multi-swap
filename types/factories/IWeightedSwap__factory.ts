@@ -101,12 +101,6 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "flashFee",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
         name: "adminFee",
         type: "uint256",
       },

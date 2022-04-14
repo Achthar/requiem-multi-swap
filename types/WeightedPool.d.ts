@@ -33,6 +33,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "flashLoan(address,uint256[],bytes)": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
+    "getTokenMultipliers()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
     "initialize(address[],uint8[],uint256[],uint256[],string,string,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
@@ -44,7 +45,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "removeLiquidityExactOut(uint256[],uint256,uint256)": FunctionFragment;
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setFee(uint256,uint256,uint256,uint256)": FunctionFragment;
+    "setFee(uint256,uint256,uint256)": FunctionFragment;
     "setFeeControllerAndDistributor(address)": FunctionFragment;
     "setFeeDistributor(address)": FunctionFragment;
     "swapStorage()": FunctionFragment;
@@ -103,6 +104,10 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getTokenMultipliers",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getTokenWeights",
     values?: undefined
   ): string;
@@ -149,7 +154,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFee",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeControllerAndDistributor",
@@ -223,6 +228,10 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getTokenMultipliers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getTokenWeights",
     data: BytesLike
   ): Result;
@@ -286,7 +295,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
     "FlashLoan(address,uint256[],uint256[])": EventFragment;
-    "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
+    "NewFee(uint256,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256)": EventFragment;
@@ -336,9 +345,8 @@ export type FlashLoanEvent = TypedEvent<
 >;
 
 export type NewFeeEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber, BigNumber] & {
+  [BigNumber, BigNumber, BigNumber] & {
     fee: BigNumber;
-    flashFee: BigNumber;
     adminFee: BigNumber;
     withdrawFee: BigNumber;
   }
@@ -489,6 +497,8 @@ export class WeightedPool extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
+    getTokenMultipliers(overrides?: CallOverrides): Promise<[BigNumber[]]>;
+
     getTokenWeights(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     initialize(
@@ -556,7 +566,6 @@ export class WeightedPool extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
-      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -655,6 +664,8 @@ export class WeightedPool extends BaseContract {
 
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
+  getTokenMultipliers(overrides?: CallOverrides): Promise<BigNumber[]>;
+
   getTokenWeights(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   initialize(
@@ -722,7 +733,6 @@ export class WeightedPool extends BaseContract {
 
   setFee(
     newSwapFee: BigNumberish,
-    newFlashFee: BigNumberish,
     newAdminFee: BigNumberish,
     newWithdrawFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -823,6 +833,8 @@ export class WeightedPool extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
+    getTokenMultipliers(overrides?: CallOverrides): Promise<BigNumber[]>;
+
     getTokenWeights(overrides?: CallOverrides): Promise<BigNumber[]>;
 
     initialize(
@@ -886,7 +898,6 @@ export class WeightedPool extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
-      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: CallOverrides
@@ -991,34 +1002,22 @@ export class WeightedPool extends BaseContract {
       { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
     >;
 
-    "NewFee(uint256,uint256,uint256,uint256)"(
+    "NewFee(uint256,uint256,uint256)"(
       fee?: null,
-      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        fee: BigNumber;
-        flashFee: BigNumber;
-        adminFee: BigNumber;
-        withdrawFee: BigNumber;
-      }
+      [BigNumber, BigNumber, BigNumber],
+      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
     >;
 
     NewFee(
       fee?: null,
-      flashFee?: null,
       adminFee?: null,
       withdrawFee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        fee: BigNumber;
-        flashFee: BigNumber;
-        adminFee: BigNumber;
-        withdrawFee: BigNumber;
-      }
+      [BigNumber, BigNumber, BigNumber],
+      { fee: BigNumber; adminFee: BigNumber; withdrawFee: BigNumber }
     >;
 
     "OwnershipTransferred(address,address)"(
@@ -1218,6 +1217,8 @@ export class WeightedPool extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getTokenMultipliers(overrides?: CallOverrides): Promise<BigNumber>;
+
     getTokenWeights(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
@@ -1285,7 +1286,6 @@ export class WeightedPool extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
-      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1377,6 +1377,10 @@ export class WeightedPool extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getTokenMultipliers(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getTokenWeights(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
@@ -1444,7 +1448,6 @@ export class WeightedPool extends BaseContract {
 
     setFee(
       newSwapFee: BigNumberish,
-      newFlashFee: BigNumberish,
       newAdminFee: BigNumberish,
       newWithdrawFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

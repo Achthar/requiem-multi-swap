@@ -19,7 +19,7 @@ using SafeERC20 for IERC20 global;
 contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
-    uint256 internal constant MAX_ADMIN_FEE = 1e10; // 100%
+    uint256 internal constant MAX_ADMIN_FEE = 5e9; // 50%
     uint256 internal constant MAX_TRANSACTION_FEE = 1e8; // 1%
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
@@ -212,12 +212,12 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
         uint256 amount,
         uint256 index
     ) external view override returns (uint256 amountOut, uint256 fee) {
-        (amountOut, fee) =  swapStorage.calculateRemoveLiquidityExactIn( index, amount);
+        (amountOut, fee) =  swapStorage.calculateRemoveLiquidityOneTokenExactIn( index, amount);
     }
 
     /**
-     * @notice Sets the admin fee
-     * @dev adminFee cannot be higher than 100% of the swap fee
+     * @notice Sets the all applicable fees
+     * @dev adminFee cannot be higher than 50% of the swap fee
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
      * @param newAdminFee new admin fee to be applied on future transactions
@@ -225,17 +225,15 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
      */
     function setFee(
         uint256 newSwapFee,
-        uint256 newFlashFee,
         uint256 newAdminFee,
         uint256 newWithdrawFee
     ) external onlyOwner {
         require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
-        require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
 
-        emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);
+        emit NewFee(newSwapFee,  newAdminFee, newWithdrawFee);
     }
 
     function setFeeControllerAndDistributor(address _feeController) external onlyOwner {
@@ -262,8 +260,11 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
         return swapStorage.normalizedWeights;
     }
 
-
     function getCollectedFees() external view returns (uint256[] memory) {
         return swapStorage.collectedFees;
+    }
+
+    function getTokenMultipliers() external view returns (uint256[] memory) {
+        return swapStorage.tokenMultipliers;
     }
 }

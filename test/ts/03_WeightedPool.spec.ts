@@ -52,9 +52,6 @@ describe('WeightedPool-Test', () => {
 	let tokenWETH: Contract
 	let tokenWBTC: Contract
 
-	let swapLib: Contract
-	let swap: Contract
-
 	let swapLibNew: Contract
 	let swapNew: Contract
 
@@ -78,6 +75,8 @@ describe('WeightedPool-Test', () => {
 	let pairB_C_Contract2: Contract
 	let pairC_WBTC_Contract2: Contract
 	let pairB_WETH_Contract2: Contract
+	let pairWBTC_C_Contract2: Contract
+	let pairC_WETH_Contract2: Contract
 
 	// specs for pair
 	let tokenWeightA = BigNumber.from(40)
@@ -132,7 +131,7 @@ describe('WeightedPool-Test', () => {
 		tokenB = await new MockERC20__factory(wallet).deploy("token B", "B", 18)
 		tokenWETH = await new MockERC20__factory(wallet).deploy("WETH", "WETH", 18)
 		tokenWBTC = await new MockERC20__factory(wallet).deploy("WBTC", "WBTC", 18)
-		tokenC = await new MockERC20__factory(wallet).deploy("token C", "C", 8)
+		tokenC = await new MockERC20__factory(wallet).deploy("token C", "C", 9)
 
 
 		tokenUSDC = await new MockERC20__factory(wallet).deploy("MockUSDC", "MUSDC", 6)
@@ -231,6 +230,17 @@ describe('WeightedPool-Test', () => {
 			wallet.address
 		)
 
+		await new router2.createPair(
+			tokenC.address,
+			tokenWETH.address,
+			parseUnits('1000', 9),
+			parseUnits('1000', 18),
+			42,
+			swapFee,
+			amplification,
+			wallet.address
+		)
+
 
 
 		const pairA_USDC2 = await factory2.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
@@ -247,12 +257,22 @@ describe('WeightedPool-Test', () => {
 		const pairB_C2 = await factory2.getPair(tokenC.address, tokenB.address, 22)
 		pairB_C_Contract2 = await ethers.getContractAt('RequiemPair', pairB_C2)
 
+		const pairWBTC_C2 = await factory2.getPair(tokenC.address, tokenWBTC.address, 52)
+		pairWBTC_C_Contract2 = await ethers.getContractAt('RequiemPair', pairWBTC_C2)
+
+
+
 
 		const pairC_WBTC = await factory2.getPair(tokenC.address, tokenWBTC.address, 52)
 		pairC_WBTC_Contract2 = await ethers.getContractAt('RequiemPair', pairC_WBTC)
 
 		const pairB_WETH = await factory2.getPair(tokenB.address, tokenWETH.address, 98)
 		pairB_WETH_Contract2 = await ethers.getContractAt('RequiemPair', pairB_WETH)
+
+
+		const pairC_WETH = await factory2.getPair(tokenC.address, tokenWETH.address, 42)
+		pairC_WETH_Contract2 = await ethers.getContractAt('RequiemPair', pairC_WETH)
+
 
 		// swap libnew 
 		swapLibNew = await new WeightedPoolLib__factory(wallet).deploy()
@@ -504,7 +524,7 @@ describe('WeightedPool-Test', () => {
 			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
-			1234, //_fee = 0.123111%
+			1237654, //_fee = 0.123111%
 			5e6, //_admin_fee, 50%,
 			feeDistributor.address
 		)
@@ -865,15 +885,6 @@ describe('WeightedPool-Test', () => {
 									pools = [swapNew.address]
 
 									console.log("THIEF1")
-									// amountIn = parseUnits("1", 6)
-									// await expect(thiefRouter.onSwapExactTokensForTokens(
-									// 	pools,
-									// 	tokens,
-									// 	amountIn,
-									// 	amountOutMin,
-									// 	wallet.address,
-									// 	1
-									// )).to.be.revertedWith("insufficient in")
 
 									__amountOut = parseUnits("1", 18)
 
@@ -901,21 +912,6 @@ describe('WeightedPool-Test', () => {
 										wallet.address,
 										2
 									)).to.be.revertedWith("insufficient in")
-
-									// switch - low decimals first
-									// console.log("THIEF3")
-
-									// tokens = [tokenWETH.address, tokenA.address]
-									// // pools = [swapNew.address]
-									// amountIn = BigNumber.from('12345678901')
-									// await expect(thiefRouter.onSwapExactTokensForTokens(
-									// 	pools,
-									// 	tokens,
-									// 	amountIn,
-									// 	amountOutMin,
-									// 	wallet.address,
-									// 	1
-									// )).to.be.revertedWith("insufficient in")
 
 									tokens = [tokenWBTC.address, tokenUSDC.address]
 									console.log("THIEF4")
@@ -982,24 +978,36 @@ describe('WeightedPool-Test', () => {
 
 
 
-							balancesPoolActual = [
-								await tokenUSDC.balanceOf(swapNew.address),
-								await tokenUSDT.balanceOf(swapNew.address),
-								await tokenDAI.balanceOf(swapNew.address),
-								await tokenTUSD.balanceOf(swapNew.address)
-							]
-							balancesVitual = await swapNew.getTokenBalances()
 
-							console.log("BALANCES VOMP")
-							console.log("ACT", balancesPoolActual)
-							console.log("VRT", balancesVitual)
-							
+
 							await validateSwapBals()
 
-							describe('Multi-Swap 4 Pool', () => {
+							describe('Multi-Swap 4 Pool - after new Liquidity add', () => {
 								it('2S1 struct', async () => {
-									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
-									pools = [pairA_B_Contract2.address, pairA_USDC_Contract2.address, swap.address, pairDAI_B_Contract2.address]
+									await validateBals()
+									let bals = await swapNew.getTokenBalances()
+									let liquidityAmounts = bals.map((b: BigNumber) => b.div(20))
+									const expectedLp = await swapNew.calculateTokenAmount(
+										liquidityAmounts,
+										1 // true
+									)
+									console.log("Expected lp", expectedLp, "for", liquidityAmounts)
+									tx = await swapNew.addLiquidityExactIn(
+										liquidityAmounts,
+										1,
+										deadline
+									)
+
+									// record gas
+									receipt = await tx.wait();
+									gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
+									gasCosts = { ...gasCosts, lpAddCost: gasUsed }
+
+
+
+									amountOut = BigNumber.from(122314211)
+									tokens = [tokenB.address, tokenA.address, tokenUSDC.address]
+									pools = [pairA_B_Contract2.address, swapNew.address]
 									tx = await router2.onSwapTokensForExactTokens(
 										pools,
 										tokens,
@@ -1008,6 +1016,7 @@ describe('WeightedPool-Test', () => {
 										wallet.address,
 										deadline
 									)
+
 									// record gas
 									receipt = await tx.wait();
 									gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
@@ -1015,8 +1024,8 @@ describe('WeightedPool-Test', () => {
 
 									userBalanceAfter = await tokenB.balanceOf(wallet.address)
 
-									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
-									pools = [pairA_B_Contract2.address, pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
+									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenWBTC.address]
+									pools = [pairA_B_Contract2.address, pairA_USDC_Contract2.address, swapNew.address]
 									tx = await router2.onSwapTokensForExactTokens(
 										pools,
 										tokens,
@@ -1039,26 +1048,10 @@ describe('WeightedPool-Test', () => {
 							})
 							describe('Multi-Swap 4 Pool 1S2', () => {
 								it('1S2 struct 2', async () => {
-									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
-									pools = [pairA_B_Contract.address, pairA_USDC_Contract.address, swap.address, pairDAI_B_Contract.address]
-									console.log("----------------------- test 1 Orig")
-									tx = await router2.onSwapTokensForExactTokens(
-										pools,
-										tokens,
-										amountOut,
-										amountInMax,
-										wallet.address,
-										deadline
-									)
-									// record gas
-									receipt = await tx.wait();
-									gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-									gasCosts = { ...gasCosts, exactOut4Standard: gasUsed }
 
-									userBalanceAfter = await tokenB.balanceOf(wallet.address)
 
-									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
-									pools = [pairA_B_Contract2.address, pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
+									tokens = [tokenB.address, tokenA.address, tokenUSDC.address]
+									pools = [pairA_B_Contract2.address, swapNew.address]
 									console.log("----------------------- test 1 New")
 									tx = await router2.onSwapTokensForExactTokens(
 										pools,
@@ -1078,181 +1071,149 @@ describe('WeightedPool-Test', () => {
 
 									// 6 Swap
 									let _tokens = [
-										tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address, tokenC.address
+										tokenB.address, tokenA.address, tokenUSDC.address, tokenWETH.address
 									]
-									let poolsBase = [
-										pairA_B_Contract2, pairA_USDC_Contract2, swap, pairDAI_B_Contract2, pairB_C_Contract2
-									]
+
 									let poolsNew = [
-										pairA_B_Contract2, pairA_USDC_Contract2, swapNew, pairDAI_B_Contract2, pairB_C_Contract2
+										pairA_B_Contract2, pairA_USDC_Contract2, swapNew
 									]
 
 									let _amountOut = parseUnits("1", 10)
 
 									await testSwapExactOut(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountOut, //   _amountOut: BigNumber
-										'USDC-DAI-6T-mid'
+										'USDC-WETH-4T-end'
 									)
+
+									console.log("GASOVERVIEW x", gasCosts)
 
 									// 6 Swap
 									_tokens = [
-										tokenC.address, tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address, tokenB.address
-									]
-									poolsBase = [
-										pairB_C_Contract2, pairDAI_B_Contract2, swap, pairA_USDC_Contract2, pairA_B_Contract2
+										tokenC.address, tokenWBTC.address, tokenUSDC.address, tokenA.address, tokenB.address
 									]
 									poolsNew = [
-										pairB_C_Contract2, pairDAI_B_Contract2, swapNew, pairA_USDC_Contract2, pairA_B_Contract2
+										pairWBTC_C_Contract2, swapNew, pairA_USDC_Contract2, pairA_B_Contract2
 									]
 
 									_amountOut = BigNumber.from('1234567890123456789')
 									await testSwapExactOut(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountOut, //   _amountOut: BigNumber
-										'DAI-USDC-6T-mid'
+										'WBTC-USDC-5T-mid'
 									)
 
 									// stable at end
 									_tokens = [
-										tokenB.address, tokenDAI.address, tokenUSDC.address
-									]
-									poolsBase = [
-										pairDAI_B_Contract2, swap
+										tokenC.address, tokenWBTC.address, tokenUSDC.address
 									]
 									poolsNew = [
-										pairDAI_B_Contract2, swapNew
+										pairWBTC_C_Contract2, swapNew
 									]
 
 									_amountOut = parseUnits("1", 6)
 
 									await testSwapExactOut(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountOut, //   _amountOut: BigNumber
-										'DAI-USDT-3T-end'
+										'WBTC-USDC-3T-end'
 									)
 									// stable at beginning
 									_tokens = [
-										tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address
-									]
-									poolsBase = [
-										pairDAI_B_Contract2, swap, pairA_USDC_Contract2
+										tokenA.address, tokenUSDC.address, tokenWBTC.address
 									]
 									poolsNew = [
-										pairDAI_B_Contract2, swapNew, pairA_USDC_Contract2
+										pairA_USDC_Contract2, swapNew,
 									]
 
-									_amountOut = parseUnits("1", 6)
-
-									await testSwapExactOut(
-										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
-										poolsNew, //   poolsNew: Contract[], 
-										_amountOut, //   _amountOut: BigNumber
-										'DAI-USDC-3T-mid'
-									)
-
-									// beginning low decimal
-									_tokens = [
-										tokenUSDC.address, tokenDAI.address, tokenB.address
-									]
-									poolsBase = [
-										swap, pairDAI_B_Contract2
-									]
-									poolsNew = [
-										swapNew, pairDAI_B_Contract2
-									]
-
-									_amountOut = parseUnits("1", 18)
-
-									await testSwapExactOut(
-										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
-										poolsNew, //   poolsNew: Contract[], 
-										_amountOut, //   _amountOut: BigNumber
-										'USDC-DAI-3T-start'
-									)
-
-
-									// beginning high decimal
-									_tokens = [
-										tokenDAI.address, tokenUSDC.address, tokenA.address, tokenB.address, tokenC.address
-									]
-									poolsBase = [
-										swap, pairA_USDC_Contract2, pairA_B_Contract2, pairB_C_Contract2
-									]
-									poolsNew = [
-										swapNew, pairA_USDC_Contract2, pairA_B_Contract2, pairB_C_Contract2
-									]
+									console.log("GASOVERVIEW y", gasCosts)
 
 									_amountOut = parseUnits("1", 8)
 
 									await testSwapExactOut(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountOut, //   _amountOut: BigNumber
-										'DAI-USDC-5T-start'
+										'USDC-WBTC-3T-end'
 									)
-
 
 									/// ============ amount in exact
 
 									// 6 Swap
 									_tokens = [
-										tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address, tokenC.address
-									]
-									poolsBase = [
-										pairA_B_Contract2, pairA_USDC_Contract2, swap, pairDAI_B_Contract2, pairB_C_Contract2
+										tokenB.address, tokenA.address, tokenWETH.address, tokenC.address
 									]
 									poolsNew = [
-										pairA_B_Contract2, pairA_USDC_Contract2, swapNew, pairDAI_B_Contract2, pairB_C_Contract2
+										pairA_B_Contract2, swapNew, pairC_WETH_Contract2,
 									]
 
 									let _amountIn = parseUnits("1", 19)
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountIn, //   _amountIn: BigNumber
-										'USDC-DAI-6T-mid'
+										'A-WETH-6T-mid'
 									)
 
 									// stable at end
 									_tokens = [
-										tokenB.address, tokenDAI.address, tokenUSDC.address
-									]
-									poolsBase = [
-										pairDAI_B_Contract2, swap
+										tokenB.address, tokenWETH.address, tokenUSDC.address
 									]
 									poolsNew = [
-										pairDAI_B_Contract2, swapNew
+										pairB_WETH_Contract2, swapNew
 									]
 
 									_amountIn = parseUnits("122", 16)
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountIn, //   _amountIn: BigNumber
-										'DAI-USDC-3T-end'
+										'WETH-USDC-3T-end'
 									)
 
 
 									// beginning low decimal single
 									_tokens = [
-										tokenUSDC.address, tokenDAI.address,
+										tokenWBTC.address, tokenWETH.address,
 									]
-									poolsBase = [
-										swap
+									poolsNew = [
+										swapNew
+									]
+
+									_amountIn = parseUnits("1", 8)
+
+									await testSwapExactIn(
+										_tokens, // _tokens: string[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountIn, //   _amountIn: BigNumber
+										'WBTC-WETH-single'
+									)
+
+									// stable high dec at beginning
+									_tokens = [
+										tokenA.address, tokenUSDC.address
+									]
+									poolsNew = [
+										swapNew
+									]
+
+									_amountIn = parseUnits("1", 18)
+
+									await testSwapExactIn(
+										_tokens, // _tokens: string[],
+										poolsNew, //   poolsNew: Contract[], 
+										_amountIn, //   _amountIn: BigNumber
+										'A-USDC-single'
+									)
+
+									// stable high dec at beginning
+									_tokens = [
+										tokenUSDC.address, tokenA.address
 									]
 									poolsNew = [
 										swapNew
@@ -1262,49 +1223,24 @@ describe('WeightedPool-Test', () => {
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountIn, //   _amountIn: BigNumber
-										'USDC-DAI-single'
+										'USDC-A-single'
 									)
 
-									// stable high dec at beginning
-									_tokens = [
-										tokenDAI.address, tokenUSDC.address
-									]
-									poolsBase = [
-										swap
-									]
-									poolsNew = [
-										swapNew
-									]
-
-									_amountIn = parseUnits("1", 18)
-
-									await testSwapExactIn(
-										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
-										poolsNew, //   poolsNew: Contract[], 
-										_amountIn, //   _amountIn: BigNumber
-										'DAI-USDC-single'
-									)
 
 									// stable at beginning
 									_tokens = [
-										tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address
-									]
-									poolsBase = [
-										pairDAI_B_Contract2, swap, pairA_USDC_Contract2
+										tokenB.address, tokenWETH.address, tokenUSDC.address, tokenA.address
 									]
 									poolsNew = [
-										pairDAI_B_Contract2, swapNew, pairA_USDC_Contract2
+										pairB_WETH_Contract2, swapNew, pairA_USDC_Contract2
 									]
 
 									_amountIn = parseUnits("1", 18)
 									// console.log("================ WEIGHTED TEST0")
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountIn, //   _amountIn: BigNumber
 										'DAI-USDC-4T-mid'
@@ -1315,10 +1251,7 @@ describe('WeightedPool-Test', () => {
 
 									// beginning low decimal
 									_tokens = [
-										tokenUSDC.address, tokenDAI.address
-									]
-									poolsBase = [
-										swap
+										tokenUSDC.address, tokenWETH.address
 									]
 									poolsNew = [
 										swapNew
@@ -1328,32 +1261,27 @@ describe('WeightedPool-Test', () => {
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountIn, //   _amountIn: BigNumber
-										'USDC-DAI-2T-start'
+										'USDC-WETH-2T-start'
 									)
 
 
 									// beginning low decimal
 									_tokens = [
-										tokenUSDC.address, tokenDAI.address, tokenB.address
-									]
-									poolsBase = [
-										swap, pairDAI_B_Contract2
+										tokenUSDC.address, tokenWBTC.address, tokenC.address
 									]
 									poolsNew = [
-										swapNew, pairDAI_B_Contract2
+										swapNew, pairC_WBTC_Contract2
 									]
 
 									_amountIn = parseUnits("1", 6)
 
 									await testSwapExactIn(
 										_tokens, // _tokens: string[],
-										poolsBase, //  poolsBase: Contract[],
 										poolsNew, //   poolsNew: Contract[], 
 										_amountIn, //   _amountIn: BigNumber
-										'USDC-DAI-3T-start'
+										'USDC-WBTC-3T-start'
 									)
 									const fees = await swapNew.getCollectedFees()
 									console.log("FEES COLLECTED", fees)
@@ -1368,23 +1296,23 @@ describe('WeightedPool-Test', () => {
 							describe('Weighted Pool-Calculation matches swap', () => {
 								it('calculation', async () => {
 
-									pools = [pairDAI_B_Contract.address, swapNew.address, pairA_USDC_Contract.address]
-									tokens = [tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address]
+									pools = [pairB_WETH_Contract2.address, swapNew.address, pairC_WBTC_Contract2.address]
+									tokens = [tokenB.address, tokenWETH.address, tokenWBTC.address, tokenC.address]
 									console.log("Pools", pools)
 									console.log("Tokens", tokens)
-									amountOut = parseUnits("1", 15)
-									const preBalA = await tokenA.balanceOf(wallet.address)
+									amountOut = parseUnits("1", 9)
+									const preBalA = await tokenC.balanceOf(wallet.address)
 									const preBalB = await tokenB.balanceOf(wallet.address)
 
 
 
 
-									const in02 = await pairA_USDC_Contract.calculateSwapGivenOut(tokenDAI.address, tokenA.address, amountOut)
+									const in02 = await pairC_WBTC_Contract2.calculateSwapGivenOut(tokenWBTC.address, tokenC.address, amountOut)
 
-									const in01 = await swapNew.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, in02)
+									const in01 = await swapNew.calculateSwapGivenOut(tokenWETH.address, tokenWBTC.address, in02)
 
 
-									const inB = await pairDAI_B_Contract.calculateSwapGivenOut(tokenB.address, tokenDAI.address, in01)
+									const inB = await pairB_WETH_Contract2.calculateSwapGivenOut(tokenB.address, tokenWETH.address, in01)
 
 									await router2.onSwapTokensForExactTokens(
 										pools,
@@ -1394,7 +1322,7 @@ describe('WeightedPool-Test', () => {
 										wallet.address,
 										deadline
 									)
-									const postBalA = await tokenA.balanceOf(wallet.address)
+									const postBalA = await tokenC.balanceOf(wallet.address)
 									const postBalB = await tokenB.balanceOf(wallet.address)
 									console.log("VALIDITY")
 									console.log("deltaA", postBalA.sub(preBalA))
@@ -1433,11 +1361,20 @@ describe('WeightedPool-Test', () => {
 									const lpBal = await lpToken.balanceOf(wallet.address)
 
 									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)
-									const toRemove = await swapNew.calculateRemoveLiquidity(wallet.address, lpBal.div(2))
+									let toRemove = await swapNew.calculateRemoveLiquidityExactIn(lpBal.div(5))
 									console.log("to Remove ", toRemove)
 									await printBals("pre withdrawl balances")
-									await swapNew.removeLiquidity(lpBal.div(2), balancesPoolActual.map(x => ZERO), deadline)
+									await swapNew.removeLiquidityExactIn(lpBal.div(5), balancesPoolActual.map(x => ZERO), deadline)
 									await printBals("post withdrawl balances")
+
+									let poolBals = await lpToken.balanceOf(swapNew.address)
+									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)
+									toRemove = await swapNew.calculateRemoveLiquidityOneToken(lpBal.div(10), 3)
+									console.log("to Remove ", toRemove)
+									await printBals("pre withdrawl balances")
+									await swapNew.removeLiquidityOneToken(lpBal.div(10), 3, 0, deadline)
+									await printBals("post withdrawl balances")
+
 								})
 							})
 						})
@@ -1445,63 +1382,6 @@ describe('WeightedPool-Test', () => {
 				})
 			})
 		})
-		// it('approve', async () => {
-		// 	await expect(token.approve(other.address, TEST_AMOUNT))
-		// 		.to.emit(token, 'Approval')
-		// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-		// 	expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-		// })
-
-		// it('transfer', async () => {
-		// 	await expect(token.transfer(other.address, TEST_AMOUNT))
-		// 		.to.emit(token, 'Transfer')
-		// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-		// 	expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-		// 	expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-		// })
-
-		// it('transfer:fail', async () => {
-		// 	await expect(token.transfer(other.address, TOTAL_SUPPLY.add(1))).to.be.reverted // ds-math-sub-underflow
-		// 	await expect(token.connect(other).transfer(wallet.address, 1)).to.be.reverted // ds-math-sub-underflow
-		// })
-
-		// it('transferFrom', async () => {
-		// 	await token.approve(other.address, TEST_AMOUNT)
-		// 	await expect(token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
-		// 		.to.emit(token, 'Transfer')
-		// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-		// 	expect(await token.allowance(wallet.address, other.address)).to.eq(0)
-		// 	expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-		// 	expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-		// })
-
-		// it('transferFrom:max', async () => {
-		// 	await token.approve(other.address, maxUint256)
-		// 	await expect(token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
-		// 		.to.emit(token, 'Transfer')
-		// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-		// 	expect(await token.allowance(wallet.address, other.address)).to.eq(maxUint256)
-		// 	expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-		// 	expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-		// })
-
-		// it('permit', async () => {
-		// 	const nonce = await token.nonces(wallet.address)
-		// 	const deadline = maxUint256
-		// 	const digest = await getApprovalDigest(
-		// 		token,
-		// 		{ owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
-		// 		nonce,
-		// 		deadline
-		// 	)
-		// 	const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(deployWallet.privateKey.slice(2), 'hex'))
-
-		// 	await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
-		// 		.to.emit(token, 'Approval')
-		// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-		// 	expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-		// 	expect(await token.nonces(wallet.address)).to.eq(BigNumber.from(1))
-		// })
 	})
 
 })
