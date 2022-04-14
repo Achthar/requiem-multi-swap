@@ -127,51 +127,6 @@ library StableSwapLib {
     }
 
     /**
-     * @notice Expects that amounts already have been sent to the contract
-     *   - designed to be used in the Requiem Swap framework
-     *   - deducts the fee from the output
-     *   - viable function for batch swapping as it expects that the amountIn has been sent befor the call
-     * @param i token index in
-     * @param j token index out
-     * @param outAmount the target out amount - only a cap at the decimalplaces of the lower one, the rest is taken as fee
-     *                  - that fee is always about the lowes amount possible of the one with the lower decimal number
-     *                  this will have a negative
-     */
-    function onSwap(
-        SwapStorage storage self,
-        uint256 i,
-        uint256 j,
-        uint256,
-        uint256 outAmount,
-        address to
-    ) external {
-
-        uint256[] memory normalizedBalances = _xp(self);
-
-        uint256 newOutBalance = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
-        uint256 inAmountVirtual = divUp(_getY(self, j, i, newOutBalance, normalizedBalances) - normalizedBalances[i], self.tokenMultipliers[i]);
-        // add fee to in Amounts
-        inAmountVirtual += inAmountVirtual * self.fee / FEE_DENOMINATOR;
-
-        uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
-        uint256 inAmountActual = balanceIn - self.balances[i];
-
-        // check the whether sufficient amounts have been sent in
-        require(inAmountVirtual <= inAmountActual, "insufficient in");
-
-        // update balances
-        self.balances[i] = balanceIn;
-        self.balances[j] -= outAmount;
-
-        // collect admin fee
-        self.collectedFees[i] += (inAmountActual * self.fee  * self.adminFee) /  FEE_DENOMINATOR / FEE_DENOMINATOR;
-
-        // finally transfer the tokens
-        self.pooledTokens[j].safeTransfer(to, outAmount);
-        emit TokenExchange(to, i, inAmountActual, j, outAmount);
-    }
-
-    /**
      *  the same function as swap, but it expects that amounts already have been
      *  sent to the contract
      *   - designed to be used in the Requiem Swap framework

@@ -293,6 +293,10 @@ contract StableSwap is ISwap, OwnerPausable, ReentrancyGuard, Initializable, ISt
         return swapStorage.balances;
     }
 
+    function getTokenMultipliers() external view  returns (uint256[] memory) {
+        return swapStorage.tokenMultipliers;
+    }
+
     function getCollectedFees() external view returns (uint256[] memory) {
         return swapStorage.collectedFees;
     }

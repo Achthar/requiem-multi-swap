@@ -523,117 +523,11 @@ describe('StableSwap-Test', () => {
 						console.log("GAS single", gasCosts)
 					})
 
-					describe('StableSwap-Transaction single', () => {
-						it('Swaps single', async () => {
-							// pools = [swapNew.address]
-							// tokens = [tokenDAI.address, tokenUSDC.address]
-							// amountOut = parseUnits('12', 6)
-
-							// let balancesPre = [
-							// 	await tokenUSDC.balanceOf(swapNew.address),
-							// 	await tokenUSDT.balanceOf(swapNew.address),
-							// 	await tokenDAI.balanceOf(swapNew.address),
-							// 	await tokenTUSD.balanceOf(swapNew.address)
-							// ]
-
-							// const userBalsPre = [
-
-							// 	await tokenUSDC.balanceOf(wallet.address),
-							// 	await tokenUSDT.balanceOf(wallet.address),
-							// 	await tokenDAI.balanceOf(wallet.address),
-							// 	await tokenTUSD.balanceOf(wallet.address)
-							// ]
-
-							// console.log("bals pre pool", balancesPre)
-							// console.log("bals pre user", userBalsPre)
-							// const expectedIn = await swapNew.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, amountOut)
-							// const expectedIn2 = await swap.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, amountOut)
-
-
-							// balancesVitual = await swapNew.getTokenBalances()
-							// balancesPoolActual = [
-							// 	await tokenUSDC.balanceOf(swapNew.address),
-							// 	await tokenUSDT.balanceOf(swapNew.address),
-							// 	await tokenDAI.balanceOf(swapNew.address),
-							// 	await tokenTUSD.balanceOf(swapNew.address)
-							// ]
-							// console.log("BALANCES VOMP single pre")
-							// console.log("ACT", balancesPoolActual)
-							// console.log("VRT", balancesVitual)
-
-							// await validateSwapBals()
-							// tx = await router2.onSwapTokensForExactTokens(
-							// 	pools,
-							// 	tokens,
-							// 	amountOut,
-							// 	amountInMax,
-							// 	wallet.address,
-							// 	deadline
-							// )
-							// receipt = await tx.wait();
-							// gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-							// gasCosts = { ...gasCosts, exactOutSingleNew: gasUsed }
-							// let postBalances = [
-							// 	await tokenUSDC.balanceOf(swapNew.address),
-							// 	await tokenUSDT.balanceOf(swapNew.address),
-							// 	await tokenDAI.balanceOf(swapNew.address),
-							// 	await tokenTUSD.balanceOf(swapNew.address)
-							// ]
-							// const userBalsPost = [
-							// 	await tokenUSDC.balanceOf(wallet.address),
-							// 	await tokenUSDT.balanceOf(wallet.address),
-							// 	await tokenDAI.balanceOf(wallet.address),
-							// 	await tokenTUSD.balanceOf(wallet.address)
-							// ]
-
-
-							// expect(userBalsPost[0].sub(userBalsPre[0])).to.eq(amountOut)
-
-							// console.log("calculated", expectedIn, expectedIn2, "exp", userBalsPre[2].sub(userBalsPost[2]))
-							// expect(userBalsPre[2].sub(userBalsPost[2])).to.eq(expectedIn)
-
-
-							// balancesVitual = await swapNew.getTokenBalances()
-							// balancesPoolActual = [
-							// 	await tokenUSDC.balanceOf(swapNew.address),
-							// 	await tokenUSDT.balanceOf(swapNew.address),
-							// 	await tokenDAI.balanceOf(swapNew.address),
-							// 	await tokenTUSD.balanceOf(swapNew.address)
-							// ]
-							// console.log("BALANCES VOMP sngle post")
-							// console.log("ACT", balancesPoolActual)
-							// console.log("VRT", balancesVitual)
-
-							// // console.log("ACT:", usdcBal, usdtBal, daiBal, tusdBal)
-
-							// await validateSwapBals()
-							// console.log("bals post pool", postBalances)
-
-							// console.log("bals post user", userBalsPost)
-
-							// // await tokenDAI.connect(other).approve(router2.address, ethers.constants.MaxUint256)
-							// tx = await router2.onSwapTokensForExactTokens(
-							// 	[swap.address],
-							// 	tokens,
-							// 	amountOut,
-							// 	amountInMax,
-							// 	other.address,
-							// 	deadline
-							// )
-							// receipt = await tx.wait();
-							// gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-							// gasCosts = { ...gasCosts, exactOutSingleStandard: gasUsed }
-
-
-							// await validateSwapBals()
-							// console.log("REGSWAP ", gasCosts)
-						})
-					})
 					describe('StableSwap-Transactions Swaps multi', () => {
 						it('Swaps', async () => {
 							let amountOutMin = ZERO
 							tokens = [tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
-						
+
 							pools = [pairA_USDC_Contract2.address, swapNew.address, pairDAI_B_Contract2.address]
 							console.log("Exact in multi")
 
@@ -826,7 +720,7 @@ describe('StableSwap-Test', () => {
 
 							describe('Multi-Swap 4 Pool', () => {
 								it('2S1 struct', async () => {
-	
+
 									userBalanceAfter = await tokenB.balanceOf(wallet.address)
 
 									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
@@ -853,7 +747,7 @@ describe('StableSwap-Test', () => {
 							})
 							describe('Multi-Swap 4 Pool 1S2', () => {
 								it('1S2 struct 2', async () => {
-			
+
 									userBalanceAfter = await tokenB.balanceOf(wallet.address)
 
 									tokens = [tokenB.address, tokenA.address, tokenUSDC.address, tokenDAI.address, tokenB.address]
@@ -1232,11 +1126,19 @@ describe('StableSwap-Test', () => {
 									const lpBal = await lpToken.balanceOf(wallet.address)
 
 									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)
-									const toRemove = await swapNew.calculateRemoveLiquidity(wallet.address, lpBal.div(2))
+									let toRemove = await swapNew.calculateRemoveLiquidity(wallet.address, lpBal.div(2))
 									console.log("to Remove ", toRemove)
 									await printBals("pre withdrawl balances")
 									await swapNew.removeLiquidity(lpBal.div(2), balancesPoolActual.map(x => ZERO), deadline)
 									await printBals("post withdrawl balances")
+
+
+									toRemove = await swapNew.calculateRemoveLiquidityOneToken(wallet.address, lpBal.div(5), 2)
+									console.log("to Remove single", toRemove)
+									await printBals("pre withdrawl balances")
+									await swapNew.removeLiquidityOneToken(lpBal.div(5), 2, 0, deadline)
+									await printBals("post withdrawl balances")
+
 								})
 							})
 						})
