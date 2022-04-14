@@ -48,10 +48,13 @@ library StableSwapLib {
         LPToken lpToken;
         /// @dev token i multiplier to reach POOL_TOKEN_COMMON_DECIMALS
         uint256[] tokenMultipliers;
+        uint256 nTokens;
         /// @dev effective balance which might different from token balance of the contract 'cause it hold admin fee as well
         uint256[] balances;
-        /// @dev swap and flash loanfee ratio. Charge on any action which move balance state far from the ideal state
+        /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
         uint256 fee;
+        /// @dev flash loanfee ratio. Charge on any action which move balance state far from the ideal state
+        uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
         /// @dev observation of A, multiplied with A_PRECISION
@@ -113,7 +116,8 @@ library StableSwapLib {
                 diff = _distance((D1 * self.balances[i]) / D0, newBalances[i]);
                 fees[i] = (_fee * diff) / FEE_DENOMINATOR;
                 self.balances[i] = newBalances[i];
-                self.collectedFees[i] +=  (fees[i] * self.adminFee) / FEE_DENOMINATOR;
+                // collect admin fee on a normalized basis
+                self.collectedFees[i] +=  (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
                 newBalances[i] -= fees[i];
             }
             D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
@@ -159,7 +163,7 @@ library StableSwapLib {
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= dy ;
-        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR;
+        self.collectedFees[j] += (dy_fee * self.tokenMultipliers[j] * self.adminFee) / FEE_DENOMINATOR;
        
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
@@ -200,7 +204,7 @@ library StableSwapLib {
         self.balances[j] -= outAmount;
 
         // collect admin fee
-        self.collectedFees[i] += (inAmountActual * self.fee  * self.adminFee) /  FEE_DENOMINATOR / FEE_DENOMINATOR;
+        self.collectedFees[i] += (inAmountActual * self.fee * self.tokenMultipliers[i] * self.adminFee) /  FEE_DENOMINATOR / FEE_DENOMINATOR;
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
@@ -222,7 +226,7 @@ library StableSwapLib {
             uint256 amount = amounts[i];
 
             preLoanBalances[i] = token.balanceOf(address(this));
-            feeAmounts[i] = (amount * self.fee) / FEE_DENOMINATOR;
+            feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
             require(preLoanBalances[i] >= amount, "pre balances");
             token.safeTransfer(address(recipient), amount);
@@ -239,7 +243,7 @@ library StableSwapLib {
             uint256 postLoanBalance = token.balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post balances");
             self.balances[i] = postLoanBalance;
-            self.collectedFees[i] +=  feeAmounts[i] * self.adminFee / FEE_DENOMINATOR;
+            self.collectedFees[i] +=  feeAmounts[i] * self.tokenMultipliers[i] * self.adminFee / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
@@ -304,8 +308,7 @@ library StableSwapLib {
         uint256[] memory amounts,
         uint256 maxBurnAmount
     ) external returns (uint256 burnAmount) {
-        uint256 nCoins = self.pooledTokens.length;
-        require(amounts.length == nCoins, "arrayError");
+        require(amounts.length == self.nTokens, "arrayError");
         uint256 totalSupply = self.lpToken.totalSupply();
         require(totalSupply != 0, "supplyError");
         uint256 _fee = _feePerToken(self);
@@ -314,19 +317,22 @@ library StableSwapLib {
         uint256[] memory newBalances = self.balances;
         uint256 D0 = _getD(_xp(self), amp);
 
-        for (uint256 i = 0; i < nCoins; i++) {
+        for (uint256 i = 0; i < self.nTokens; i++) {
             newBalances[i] -= amounts[i];
         }
 
         uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-        uint256[] memory fees = new uint256[](nCoins);
+        uint256[] memory fees = new uint256[](self.nTokens);
 
-        for (uint256 i = 0; i < nCoins; i++) {
+        for (uint256 i = 0; i < self.nTokens; i++) {
             uint256 idealBalance = (D1 * self.balances[i]) / D0;
-            uint256 diff = _distance(newBalances[i], idealBalance);
-            fees[i] = (_fee * diff) / FEE_DENOMINATOR;
-            self.balances[i] = newBalances[i] - ((fees[i] * self.adminFee) / FEE_DENOMINATOR);
+            fees[i] = (_fee * _distance(newBalances[i], idealBalance)) / FEE_DENOMINATOR;
+            self.balances[i] = newBalances[i];
+            self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
             newBalances[i] -= fees[i];
+             if (amounts[i] != 0) {
+                self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
+            }
         }
 
         // recalculate invariant with fee charged balances
@@ -338,12 +344,6 @@ library StableSwapLib {
 
         self.lpToken.burnFrom(msg.sender, burnAmount);
 
-        for (uint256 i = 0; i < nCoins; i++) {
-            if (amounts[i] != 0) {
-                self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
-            }
-        }
-
         emit RemoveLiquidityImbalance(msg.sender, amounts, fees, D1, totalSupply - burnAmount);
     }
 
@@ -354,7 +354,7 @@ library StableSwapLib {
     ) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             IERC20 token = self.pooledTokens[i];
-            uint256 fee = self.collectedFees[i];
+            uint256 fee = self.collectedFees[i] / self.tokenMultipliers[i];
             if (fee != 0) {
                 token.safeTransfer(receiver, fee);
                 self.collectedFees[i] = 0;
@@ -578,7 +578,7 @@ library StableSwapLib {
         uint256[] memory normalizedBalances
     ) internal view returns (uint256) {
         require(inIndex != outIndex, "tokenError");
-        uint256 nCoins = self.pooledTokens.length;
+        uint256 nCoins = self.nTokens;
         require(inIndex < nCoins && outIndex < nCoins, "arrayError");
 
         uint256 amp = _getAPrecise(self);
@@ -664,7 +664,7 @@ library StableSwapLib {
     }
 
     function _feePerToken(SwapStorage storage self) internal view returns (uint256) {
-        uint256 nCoins = self.pooledTokens.length;
+        uint256 nCoins = self.nTokens;
         return (self.fee * nCoins) / (4 * (nCoins - 1));
     }
 
@@ -675,7 +675,7 @@ library StableSwapLib {
         uint256[] memory xp,
         uint256 D
     ) internal view returns (uint256) {
-        uint256 nCoins = self.pooledTokens.length;
+        uint256 nCoins = self.nTokens;
         assert(index < nCoins);
         uint256 Ann = A * nCoins;
         uint256 c = D;

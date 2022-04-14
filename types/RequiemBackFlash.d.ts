@@ -19,25 +19,25 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IBackwardFlashInterface extends ethers.utils.Interface {
+interface RequiemBackFlashInterface extends ethers.utils.Interface {
   functions: {
-    "swapGivenOutFlash(uint256,address[])": FunctionFragment;
+    "backwardTrade(uint256,address[])": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "swapGivenOutFlash",
+    functionFragment: "backwardTrade",
     values: [BigNumberish, string[]]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "swapGivenOutFlash",
+    functionFragment: "backwardTrade",
     data: BytesLike
   ): Result;
 
   events: {};
 }
 
-export class IBackwardFlash extends BaseContract {
+export class RequiemBackFlash extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -78,26 +78,26 @@ export class IBackwardFlash extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IBackwardFlashInterface;
+  interface: RequiemBackFlashInterface;
 
   functions: {
-    swapGivenOutFlash(
-      outAmount: BigNumberish,
-      swaps: string[],
+    backwardTrade(
+      amountOut: BigNumberish,
+      backTrades: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  swapGivenOutFlash(
-    outAmount: BigNumberish,
-    swaps: string[],
+  backwardTrade(
+    amountOut: BigNumberish,
+    backTrades: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    swapGivenOutFlash(
-      outAmount: BigNumberish,
-      swaps: string[],
+    backwardTrade(
+      amountOut: BigNumberish,
+      backTrades: string[],
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -105,17 +105,17 @@ export class IBackwardFlash extends BaseContract {
   filters: {};
 
   estimateGas: {
-    swapGivenOutFlash(
-      outAmount: BigNumberish,
-      swaps: string[],
+    backwardTrade(
+      amountOut: BigNumberish,
+      backTrades: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    swapGivenOutFlash(
-      outAmount: BigNumberish,
-      swaps: string[],
+    backwardTrade(
+      amountOut: BigNumberish,
+      backTrades: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

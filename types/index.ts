@@ -82,6 +82,7 @@ export type { RequiemStableSwapLib } from "./RequiemStableSwapLib";
 export type { RequiemWeightedPair } from "./RequiemWeightedPair";
 export type { RequiemWeightedPairFactory } from "./RequiemWeightedPairFactory";
 export type { RequiemZap } from "./RequiemZap";
+export type { RequiemBackFlash } from "./RequiemBackFlash";
 export type { StableSwap } from "./StableSwap";
 export type { StableSwapLib } from "./StableSwapLib";
 export type { StakePool } from "./StakePool";
@@ -202,6 +203,7 @@ export { RequiemStableSwapLib__factory } from "./factories/RequiemStableSwapLib_
 export { RequiemWeightedPair__factory } from "./factories/RequiemWeightedPair__factory";
 export { RequiemWeightedPairFactory__factory } from "./factories/RequiemWeightedPairFactory__factory";
 export { RequiemZap__factory } from "./factories/RequiemZap__factory";
+export { RequiemBackFlash__factory } from "./factories/RequiemBackFlash__factory";
 export { StableSwap__factory } from "./factories/StableSwap__factory";
 export { StableSwapLib__factory } from "./factories/StableSwapLib__factory";
 export { StakePool__factory } from "./factories/StakePool__factory";

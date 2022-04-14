@@ -462,6 +462,7 @@ describe('StableSwap-Test', () => {
 			'zDollar', //_pool_token
 			600, // _A
 			1e6, //_fee = 0.01%
+			5e6, //_flashfee = 0.05%
 			5e9, //_admin_fee, 50%,
 			5e7, //withdraw fee = 0.5%
 			feeDistributor.address
@@ -1100,6 +1101,11 @@ describe('StableSwap-Test', () => {
 							})
 							describe('StableSwap-Post transactions', () => {
 								it('Fee withdrawl', async () => {
+									let fees = await swapNew.getCollectedFees()
+									let bals = await swapNew.getTokenBalances()
+									console.log("FEES TO COLLECT ", fees)
+									console.log("Balabnce ", bals)
+
 
 									let balancesPre = [
 										await tokenUSDC.balanceOf(wallet.address),

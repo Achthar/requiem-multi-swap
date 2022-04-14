@@ -35,7 +35,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "getTokenBalances()": FunctionFragment;
     "getTokenMultipliers()": FunctionFragment;
     "getVirtualPrice()": FunctionFragment;
-    "initialize(address[],uint8[],string,string,uint256,uint256,uint256,uint256,address)": FunctionFragment;
+    "initialize(address[],uint8[],string,string,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,address)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -121,6 +121,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
       BigNumberish[],
       string,
       string,
+      BigNumberish,
       BigNumberish,
       BigNumberish,
       BigNumberish,
@@ -540,6 +541,7 @@ export class StableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -635,10 +637,14 @@ export class StableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
+        nTokens: BigNumber;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -741,6 +747,7 @@ export class StableSwap extends BaseContract {
     lpTokenSymbol: string,
     _A: BigNumberish,
     _fee: BigNumberish,
+    _flashFee: BigNumberish,
     _adminFee: BigNumberish,
     _withdrawFee: BigNumberish,
     _feeDistributor: string,
@@ -836,10 +843,14 @@ export class StableSwap extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
+      BigNumber,
+      BigNumber,
       BigNumber
     ] & {
       lpToken: string;
+      nTokens: BigNumber;
       fee: BigNumber;
+      flashFee: BigNumber;
       adminFee: BigNumber;
       initialA: BigNumber;
       futureA: BigNumber;
@@ -942,6 +953,7 @@ export class StableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -1031,10 +1043,14 @@ export class StableSwap extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
+        BigNumber,
+        BigNumber,
         BigNumber
       ] & {
         lpToken: string;
+        nTokens: BigNumber;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
         initialA: BigNumber;
         futureA: BigNumber;
@@ -1418,6 +1434,7 @@ export class StableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,
@@ -1600,6 +1617,7 @@ export class StableSwap extends BaseContract {
       lpTokenSymbol: string,
       _A: BigNumberish,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _withdrawFee: BigNumberish,
       _feeDistributor: string,

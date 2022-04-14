@@ -5,40 +5,40 @@
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
 import type {
-  IBackwardFlash,
-  IBackwardFlashInterface,
-} from "../IBackwardFlash";
+  RequiemBackFlash,
+  RequiemBackFlashInterface,
+} from "../RequiemBackFlash";
 
 const _abi = [
   {
     inputs: [
       {
         internalType: "uint256",
-        name: "outAmount",
+        name: "amountOut",
         type: "uint256",
       },
       {
         internalType: "address[]",
-        name: "swaps",
+        name: "backTrades",
         type: "address[]",
       },
     ],
-    name: "swapGivenOutFlash",
+    name: "backwardTrade",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
 ];
 
-export class IBackwardFlash__factory {
+export class RequiemBackFlash__factory {
   static readonly abi = _abi;
-  static createInterface(): IBackwardFlashInterface {
-    return new utils.Interface(_abi) as IBackwardFlashInterface;
+  static createInterface(): RequiemBackFlashInterface {
+    return new utils.Interface(_abi) as RequiemBackFlashInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IBackwardFlash {
-    return new Contract(address, _abi, signerOrProvider) as IBackwardFlash;
+  ): RequiemBackFlash {
+    return new Contract(address, _abi, signerOrProvider) as RequiemBackFlash;
   }
 }

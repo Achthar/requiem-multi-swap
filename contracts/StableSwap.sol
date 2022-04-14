@@ -48,6 +48,7 @@ contract StableSwap is ISwap, OwnerPausable, ReentrancyGuard, Initializable, ISt
         string memory lpTokenSymbol,
         uint256 _A,
         uint256 _fee,
+        uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
         address _feeDistributor
@@ -77,6 +78,8 @@ contract StableSwap is ISwap, OwnerPausable, ReentrancyGuard, Initializable, ISt
         swapStorage.initialA = _A * StableSwapLib.A_PRECISION;
         swapStorage.futureA = _A * StableSwapLib.A_PRECISION;
         swapStorage.fee = _fee;
+        swapStorage.nTokens = numberOfCoins;
+        swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
@@ -227,6 +230,7 @@ contract StableSwap is ISwap, OwnerPausable, ReentrancyGuard, Initializable, ISt
         require(newWithdrawFee <= MAX_TRANSACTION_FEE, "feeError");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
+        swapStorage.flashFee = newFlashFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
 
         emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);

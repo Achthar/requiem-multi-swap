@@ -345,6 +345,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemZap__factory>;
     getContractFactory(
+      name: "RequiemBackFlash",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.RequiemBackFlash__factory>;
+    getContractFactory(
       name: "StableSwap",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StableSwap__factory>;
@@ -916,6 +920,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.RequiemZap>;
+    getContractAt(
+      name: "RequiemBackFlash",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.RequiemBackFlash>;
     getContractAt(
       name: "StableSwap",
       address: string,
