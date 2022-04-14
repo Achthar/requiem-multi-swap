@@ -262,7 +262,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "addLiquidity",
+    name: "addLiquidityExactIn",
     outputs: [
       {
         internalType: "uint256",

@@ -754,7 +754,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "bptOut",
+        name: "LpOut",
         type: "uint256",
       },
       {

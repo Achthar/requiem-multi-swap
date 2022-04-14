@@ -68,7 +68,6 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
 
         swapStorage.lpToken = new WeightedLPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
-        swapStorage.invariantMultipliers = new uint256[](numberOfCoins);
         swapStorage.tokenMultipliers = rates;
         swapStorage.nTokens = numberOfCoins;
         swapStorage.pooledTokens = coins;
@@ -93,12 +92,18 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
     }
 
     /// PUBLIC FUNCTIONS
-    function addLiquidity(
+
+    /**
+    * @notice add liquidity for specified pool token amounts input
+    * @param amounts amounts of pooled token ordered the same way as in the pool
+    * 
+     */
+    function addLiquidityExactIn(
         uint256[] memory amounts,
         uint256 minMintAmount,
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
-        mintAmount = swapStorage.addLiquidity(amounts, minMintAmount);
+        mintAmount = swapStorage.addLiquidityExactTokensIn(amounts, minMintAmount);
         emit AddLiquidity(msg.sender, amounts, swapStorage.lastInvariant, mintAmount);
     }
 

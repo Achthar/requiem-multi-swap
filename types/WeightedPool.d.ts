@@ -22,7 +22,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface WeightedPoolInterface extends ethers.utils.Interface {
   functions: {
     "POOL_TOKEN_COMMON_DECIMALS()": FunctionFragment;
-    "addLiquidity(uint256[],uint256,uint256)": FunctionFragment;
+    "addLiquidityExactIn(uint256[],uint256,uint256)": FunctionFragment;
     "calculateRemoveLiquidityExactIn(uint256)": FunctionFragment;
     "calculateRemoveLiquidityOneToken(uint256,uint256)": FunctionFragment;
     "calculateSwapGivenIn(address,address,uint256)": FunctionFragment;
@@ -59,7 +59,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "addLiquidity",
+    functionFragment: "addLiquidityExactIn",
     values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -182,7 +182,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "addLiquidity",
+    functionFragment: "addLiquidityExactIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -434,7 +434,7 @@ export class WeightedPool extends BaseContract {
   functions: {
     POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
       deadline: BigNumberish,
@@ -602,7 +602,7 @@ export class WeightedPool extends BaseContract {
 
   POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
-  addLiquidity(
+  addLiquidityExactIn(
     amounts: BigNumberish[],
     minMintAmount: BigNumberish,
     deadline: BigNumberish,
@@ -768,7 +768,7 @@ export class WeightedPool extends BaseContract {
   callStatic: {
     POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
       deadline: BigNumberish,
@@ -1165,7 +1165,7 @@ export class WeightedPool extends BaseContract {
   estimateGas: {
     POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
       deadline: BigNumberish,
@@ -1324,7 +1324,7 @@ export class WeightedPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minMintAmount: BigNumberish,
       deadline: BigNumberish,

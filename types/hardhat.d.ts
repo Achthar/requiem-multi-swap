@@ -33,6 +33,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Permit__factory>;
     getContractFactory(
+      name: "IBackwardFlash",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBackwardFlash__factory>;
+    getContractFactory(
       name: "IEpochController",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IEpochController__factory>;
@@ -522,6 +526,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Permit>;
+    getContractAt(
+      name: "IBackwardFlash",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBackwardFlash>;
     getContractAt(
       name: "IEpochController",
       address: string,

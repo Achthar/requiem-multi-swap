@@ -169,8 +169,8 @@ contract WeightedMathTest {
             swapFeePercentage
         );
 
-        uint256 bptOut = (invariantRatio > FixedPoint.ONE) ? bptTotalSupply.mulDown(invariantRatio - FixedPoint.ONE) : 0;
-        return (bptOut, swapFees);
+        uint256 LpOut = (invariantRatio > FixedPoint.ONE) ? bptTotalSupply.mulDown(invariantRatio - FixedPoint.ONE) : 0;
+        return (LpOut, swapFees);
     }
 
     /**
@@ -209,7 +209,7 @@ contract WeightedMathTest {
         }
     }
 
-    function _calcTokenInGivenExactBptOut(
+    function _calcTokenInGivenExactLpOut(
         uint256 balance,
         uint256 normalizedWeight,
         uint256 bptAmountOut,
@@ -217,10 +217,10 @@ contract WeightedMathTest {
         uint256 swapFeePercentage
     ) internal pure returns (uint256 amountIn, uint256 swapFee) {
         /******************************************************************************************
-        // tokenInForExactBPTOut                                                                 //
+        // tokenInForExactLpOut                                                                 //
         // a = amountIn                                                                          //
-        // b = balance                      /  /    totalBPT + bptOut      \    (1 / w)       \  //
-        // bptOut = bptAmountOut   a = b * |  | --------------------------  | ^          - 1  |  //
+        // b = balance                      /  /    totalBPT + LpOut      \    (1 / w)       \  //
+        // LpOut = bptAmountOut   a = b * |  | --------------------------  | ^          - 1  |  //
         // bpt = totalBPT                   \  \       totalBPT            /                  /  //
         // w = weight                                                                            //
         ******************************************************************************************/
@@ -248,17 +248,17 @@ contract WeightedMathTest {
         amountIn = nonTaxableAmount + taxableAmountPlusFees;
     }
 
-    function _calcAllTokensInGivenExactBptOut(
+    function _calcAllTokensInGivenExactLpOut(
         uint256[] memory balances,
         uint256 bptAmountOut,
         uint256 totalBPT
     ) internal pure returns (uint256[] memory) {
         /************************************************************************************
-        // tokensInForExactBptOut                                                          //
+        // tokensInForExactLpOut                                                          //
         // (per token)                                                                     //
-        // aI = amountIn                   /   bptOut   \                                  //
+        // aI = amountIn                   /   LpOut   \                                  //
         // b = balance           aI = b * | ------------ |                                 //
-        // bptOut = bptAmountOut           \  totalBPT  /                                  //
+        // LpOut = bptAmountOut           \  totalBPT  /                                  //
         // bpt = totalBPT                                                                  //
         ************************************************************************************/
 

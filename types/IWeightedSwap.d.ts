@@ -21,7 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface IWeightedSwapInterface extends ethers.utils.Interface {
   functions: {
-    "addLiquidity(uint256[],uint256,uint256)": FunctionFragment;
+    "addLiquidityExactIn(uint256[],uint256,uint256)": FunctionFragment;
     "calculateRemoveLiquidityExactIn(uint256)": FunctionFragment;
     "calculateRemoveLiquidityOneToken(uint256,uint256)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
@@ -33,7 +33,7 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
-    functionFragment: "addLiquidity",
+    functionFragment: "addLiquidityExactIn",
     values: [BigNumberish[], BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -70,7 +70,7 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "addLiquidity",
+    functionFragment: "addLiquidityExactIn",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -240,7 +240,7 @@ export class IWeightedSwap extends BaseContract {
   interface: IWeightedSwapInterface;
 
   functions: {
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minToMint: BigNumberish,
       deadline: BigNumberish,
@@ -296,7 +296,7 @@ export class IWeightedSwap extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  addLiquidity(
+  addLiquidityExactIn(
     amounts: BigNumberish[],
     minToMint: BigNumberish,
     deadline: BigNumberish,
@@ -352,7 +352,7 @@ export class IWeightedSwap extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minToMint: BigNumberish,
       deadline: BigNumberish,
@@ -617,7 +617,7 @@ export class IWeightedSwap extends BaseContract {
   };
 
   estimateGas: {
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minToMint: BigNumberish,
       deadline: BigNumberish,
@@ -674,7 +674,7 @@ export class IWeightedSwap extends BaseContract {
   };
 
   populateTransaction: {
-    addLiquidity(
+    addLiquidityExactIn(
       amounts: BigNumberish[],
       minToMint: BigNumberish,
       deadline: BigNumberish,

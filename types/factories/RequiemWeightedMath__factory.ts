@@ -106,7 +106,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "_calcAllTokensInGivenExactBptOut",
+    name: "_calcAllTokensInGivenExactLpOut",
     outputs: [
       {
         internalType: "uint256[]",
@@ -350,7 +350,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "_calcTokenInGivenExactBptOut",
+    name: "_calcTokenInGivenExactLpOut",
     outputs: [
       {
         internalType: "uint256",

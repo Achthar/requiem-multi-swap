@@ -84,7 +84,7 @@ interface IRequiemWeightedMath {
     //     uint256 swapFeePercentage
     // ) external pure returns (uint256 invariantRatio, uint256[] memory swapFees);
 
-    function _calcTokenInGivenExactBptOut(
+    function _calcTokenInGivenExactLpOut(
         uint256 balance,
         uint256 normalizedWeight,
         uint256 bptAmountOut,
@@ -92,7 +92,7 @@ interface IRequiemWeightedMath {
         uint256 swapFeePercentage
     ) external pure returns (uint256 amountIn, uint256 swapFee);
 
-    function _calcAllTokensInGivenExactBptOut(
+    function _calcAllTokensInGivenExactLpOut(
         uint256[] memory balances,
         uint256 bptAmountOut,
         uint256 totalBPT

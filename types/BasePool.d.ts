@@ -739,7 +739,7 @@ export class BasePool extends BaseContract {
       userData: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber[]] & { bptOut: BigNumber; amountsIn: BigNumber[] }
+      [BigNumber, BigNumber[]] & { LpOut: BigNumber; amountsIn: BigNumber[] }
     >;
 
     setAssetManagerPoolConfig(

@@ -33,8 +33,6 @@ library WeightedPoolLib {
         uint256[] balances;
         /// @dev weights for the tokens
         uint256[] normalizedWeights;
-        /// @dev (balance[i]*tokenMultipliers[i])^normalizedWeights[i]
-        uint256[] invariantMultipliers;
         /// @dev last invariant
         uint256 lastInvariant;
         /// @dev swap and flash loanfee ratio. Charge on any action which move balance state far from the ideal state
@@ -52,7 +50,7 @@ library WeightedPoolLib {
      * @param minMintAmount Minimum amount of LP tokens to mint from the deposit
      * @return mintAmount Amount of LP tokens received by depositing
      */
-    function addLiquidity(
+    function addLiquidityExactTokensIn(
         WeightedSwapStorage storage self,
         uint256[] memory amounts,
         uint256 minMintAmount
@@ -83,7 +81,7 @@ library WeightedPoolLib {
 
         self.lpToken.mint(msg.sender, mintAmount);
 
-        self.lastInvariant = WeightedMath._calculateInvariant(self.normalizedWeights, normalizedNewAmounts);
+        self.lastInvariant = _invariantAfterJoin(self.balances, self.tokenMultipliers, amounts, self.normalizedWeights);
        
     }
 
@@ -105,16 +103,12 @@ library WeightedPoolLib {
                 require(amounts[i] > 0, "amnt");
                 self.pooledTokens[i].safeTransferFrom(msg.sender, address(this), amounts[i]);
                 self.balances[i] = amounts[i];
-                uint256 invMultiplier =  WeightedMath._calculateInvariantMultiplier(self.normalizedWeights[i],  amounts[i] * self.tokenMultipliers[i]);
-
-                // set multipliers for invariant
-                self.invariantMultipliers[i] = invMultiplier;
-                invariantAfterJoin = FixedPoint.mulDown(invariantAfterJoin, invMultiplier);
         }
-            mintAmount  = invariantAfterJoin * count;
-            self.lastInvariant = invariantAfterJoin;
-
-        self.lpToken.mint(msg.sender, mintAmount);
+        
+        mintAmount  = invariantAfterJoin * count;
+        
+        self.lastInvariant =  WeightedMath._calculateInvariant(self.normalizedWeights, _xp(self.balances, self.tokenMultipliers));
+        
     }
 
     /**
@@ -254,7 +248,7 @@ library WeightedPoolLib {
         totalSupply = self.lpToken.totalSupply();
         require(lpAmount <= totalSupply);
 
-        amounts = WeightedMath._calcTokensOutGivenExactBptIn(self.balances, lpAmount, totalSupply);
+        amounts = WeightedMath._calcTokensOutGivenExactLpIn(self.balances, lpAmount, totalSupply);
 
         for (uint256 i = 0; i < amounts.length; i++) {
             require(amounts[i] >= minAmounts[i], "s");
@@ -282,7 +276,7 @@ library WeightedPoolLib {
         require(lpAmount <= self.lpToken.balanceOf(msg.sender), "balanceError");
         require(lpAmount <= totalSupply, "supplyError");
         uint256 swapFee;
-        (amountOut, swapFee) = WeightedMath._calcTokenOutGivenExactBptIn(
+        (amountOut, swapFee) = WeightedMath._calcTokenOutGivenExactLpIn(
             self.balances[index] * self.tokenMultipliers[index],
             self.normalizedWeights[index],
             lpAmount,
@@ -351,8 +345,8 @@ library WeightedPoolLib {
         WeightedSwapStorage storage self,
         uint256 outIndex,
         uint256 lpAmount
-            ) external view returns (uint256  , uint256){
-        return  WeightedMath._calcTokenOutGivenExactBptIn(
+        ) external view returns (uint256, uint256){
+            return  WeightedMath._calcTokenOutGivenExactLpIn(
             self.balances[outIndex] * self.tokenMultipliers[outIndex],
             self.normalizedWeights[outIndex],
             lpAmount,
@@ -365,17 +359,16 @@ library WeightedPoolLib {
         WeightedSwapStorage storage self,
         uint256 lpAmount
     ) external view returns (uint256[] memory amounts) {
-        amounts = WeightedMath._calcAllTokensInGivenExactBptOut(
+        
+        amounts = WeightedMath._calcAllTokensInGivenExactLpOut(
        _xp(self),
         lpAmount,
         self.lpToken.totalSupply()
         );
-
     }
 
     /**
      * Estimate amount of LP token minted or burned at deposit or withdrawal
-     * without taking fees into account
      */
     function calculateTokenAmount(
         WeightedSwapStorage storage self,
@@ -475,6 +468,24 @@ library WeightedPoolLib {
 
     // Helpers
 
+   /**
+     * @dev Returns the value of the invariant given `balances`, assuming they are increased by `amountsIn`. All
+     * amounts are expected to be upscaled.
+     */
+    function _invariantAfterJoin(
+        uint256[] memory balances,
+        uint256[] memory tokenMultipliers,
+        uint256[] memory amountsIn,
+        uint256[] memory normalizedWeights
+    ) private pure returns (uint256  invariant) {
+                uint256 length = balances.length;
+        uint256[] memory amounts = new uint256[](length);
+            for (uint256 i = 0; i < length; ++i) {
+            amounts[i] = (balances[i] + amountsIn[i]) * tokenMultipliers[i];
+        }
+        invariant =  WeightedMath._calculateInvariant(normalizedWeights, balances);
+    }
+
     function _invariantAfterExit(
        uint256[] memory balances,
         uint256[] memory tokenMultipliers,
@@ -492,11 +503,11 @@ library WeightedPoolLib {
     }
 
     /**
-     * @dev This function returns the appreciation of one BPT relative to the
+     * @dev This function returns the appreciation of one LP relative to the
      * underlying tokens. This starts at 1 when the pool is created and grows over time
      */
     function getRate(WeightedSwapStorage storage self) public view returns (uint256) {
-        // The initial BPT supply is equal to the invariant times the number of tokens.
+        // The initial LP supply is equal to the invariant times the number of tokens.
         return (_getInvariant(self) * self.nTokens) / self.lpToken.totalSupply();
     }
 
@@ -513,60 +524,6 @@ library WeightedPoolLib {
     function setInvariant(WeightedSwapStorage storage self) external {
         self.lastInvariant = WeightedMath._calculateInvariant(self.normalizedWeights, _xp(self));
     }
-
-    // function _joinExactTokensInForBPTOut(
-    //     WeightedSwapStorage storage self,
-    //     uint256[] memory amountsIn
-    // ) private returns (uint256) {
-    //     (uint256 bptAmountOut, uint256[] memory swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(
-    //         self.balances,
-    //         self.normalizedWeights,
-    //         _xp( amountsIn, self.tokenMultipliers),
-    //         self.lpToken.totalSupply(),
-    //         self.fee
-    //     );
-
-    //     // Note that swapFees is already upscaled
-    //     _processSwapFeeAmounts(self, swapFees);
-
-    //     return bptAmountOut;
-    // }
-
-    // function _joinTokenInForExactBPTOut(
-    //     WeightedSwapStorage storage self,
-    //     uint256 bptAmountOut, 
-    //     uint256 tokenIndex
-    // ) private returns ( uint256) {
-
-    //     (uint256 amountIn, uint256 swapFee) = WeightedMath._calcTokenInGivenExactBptOut(
-    //         self.balances[tokenIndex],
-    //         self.normalizedWeights[tokenIndex],
-    //         bptAmountOut,
-    //         self.lpToken.totalSupply(),
-    //         self.fee
-    //     );
-
-    //     // Note that swapFee is already upscaled
-    //     _processSwapFeeAmount(self, tokenIndex, swapFee);
-
-    //     return amountIn;
-    // }
-
-    // function _joinAllTokensInForExactBPTOut(
-    //     WeightedSwapStorage storage self,
-    //     uint256 bptAmountOut
-    //     )
-    //     private
-    //     view
-    //     returns (uint256[] memory amountsIn)
-    // {
-    //     amountsIn = WeightedMath._calcAllTokensInGivenExactBptOut(
-    //         self.balances,
-    //         bptAmountOut,
-    //         self.lpToken.totalSupply()
-    //     );
-
-    // }
 
     function _processSwapFeeAmount( WeightedSwapStorage storage self, uint256 index, uint256 amount) internal {
         if (amount > 0) {
