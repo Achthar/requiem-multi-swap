@@ -92,25 +92,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint112",
-        name: "collectedFee0",
-        type: "uint112",
-      },
-      {
-        indexed: false,
-        internalType: "uint112",
-        name: "collectedFee1",
-        type: "uint112",
-      },
-    ],
-    name: "PaidProtocolFee",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
         name: "sender",

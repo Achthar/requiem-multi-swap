@@ -16,13 +16,12 @@ contract RequiemPairFactory is IWeightedPairFactory {
     uint256 public protocolFee;
     address public feeToSetter;
     address public pairGovernance;
-    bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemPair).creationCode));
 
     mapping(bytes32 => address) private _pairSalts;
     uint256 private _pairCount;
     mapping(address => bool) private _pairs;
 
-    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
+    mapping(address => mapping(address => EnumerableSet.AddressSet)) private tokenPairs;
 
     constructor(
         address _feeToSetter,
@@ -83,8 +82,8 @@ contract RequiemPairFactory is IWeightedPairFactory {
         IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
         IWeightedPair(pair).setSwapParams(initialFee, initialAmp);
 
-        tokenPairs[IERC20(token0)][IERC20(token1)].add(pair);
-        tokenPairs[IERC20(token1)][IERC20(token0)].add(pair);
+        tokenPairs[token0][token1].add(pair);
+        tokenPairs[token1][token0].add(pair);
 
         _pairSalts[salt] = address(pair);
         _pairCount += 1;
@@ -102,7 +101,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
         uint256 _protocolFee
     ) external {
         require(msg.sender == feeToSetter, "RLP: F");
-        require(_protocolFee == 0 || (_protocolFee >= 10000 && _protocolFee <= 100000), "RLP: IPF");
+        require(_protocolFee == 0 || (_protocolFee >= 10**3 && _protocolFee <= 10**5), "RLP: IPF");
         protocolFee = _protocolFee;
         feeToSetter = _feeToSetter;
         feeTo = _feeTo;
@@ -130,10 +129,10 @@ contract RequiemPairFactory is IWeightedPairFactory {
      * @return _tokenPairs array of deployed pairs
      */
     function getPairs(address token0, address token1) external view returns (address[] memory _tokenPairs) {
-        uint256 length = tokenPairs[IERC20(token0)][IERC20(token1)].length();
+        uint256 length = tokenPairs[token0][token1].length();
         _tokenPairs = new address[](length);
         for (uint256 i = 0; i < length; i++) {
-            _tokenPairs[i] = tokenPairs[IERC20(token0)][IERC20(token1)].at(i);
+            _tokenPairs[i] = tokenPairs[token0][token1].at(i);
         }
     }
 

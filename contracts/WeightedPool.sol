@@ -148,7 +148,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         swapStorage.setInvariant();
 
         // revert if the invariant change is too large
-        require( swapStorage.lastInvariant* FixedPoint.ONE / preInvariant > WeightedMath._MAX_INVARIANT_RATIO );
+        require(swapStorage.lastInvariant >= preInvariant, "invariant");
         emit FlashLoan(address(recipient), amounts, feeAmounts);
     }
 

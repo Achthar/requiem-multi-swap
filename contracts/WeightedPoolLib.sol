@@ -226,7 +226,6 @@ library WeightedPoolLib {
         }
 
         recipient.receiveFlashLoan(self.pooledTokens, amounts, feeAmounts, userData);
-
         for (uint256 i = 0; i <  length; ++i) {
             uint256 preLoanBalance = preLoanBalances[i];
 
@@ -238,7 +237,8 @@ library WeightedPoolLib {
             self.collectedFees[i] +=  feeAmounts[i] * self.tokenMultipliers[i] * self.adminFee / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
-            require(receivedFeeAmount >= feeAmounts[i], "loan fee");
+            
+            require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
         }
     }
 
@@ -488,9 +488,9 @@ library WeightedPoolLib {
         uint256 length = balances.length;
         uint256[] memory amounts = new uint256[](length);
             for (uint256 i = 0; i < length; ++i) {
-            amounts[i] = (balances[i] + amountsIn[i]) * tokenMultipliers[i];
+            amounts[i] = balances[i] * tokenMultipliers[i] + amountsIn[i];
         }
-        invariant =  WeightedMath._calculateInvariant(normalizedWeights, balances);
+        invariant =  WeightedMath._calculateInvariant(normalizedWeights, amounts);
     }
 
     function _invariantAfterExit(

@@ -1388,13 +1388,18 @@ describe('WeightedPool-Test', () => {
 									// repay loan = true 
 									await fLoanRecipient.setRepayLoan(1)
 
-									const balanesSwap = await swapNew.getTokenBalances();
-									console.log("BALANCES", balanesSwap)
+									let balanesSwap = await swapNew.getTokenBalances();
+									let storage = await swapNew.swapStorage();
+									console.log("BALANCES", balanesSwap, storage.lastInvariant)
 
 									console.log("FLOAN trigger repay true")
 									await swapNew.flashLoan(fLoanRecipient.address,
 										[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
 										0)
+									balanesSwap = await swapNew.getTokenBalances();
+									storage = await swapNew.swapStorage();
+									console.log("BALANCES after", balanesSwap, storage.lastInvariant)
+
 									// repay loan = true 
 									await fLoanRecipient.setRepayLoan(0)
 									console.log("FLOAN trigger repay false")

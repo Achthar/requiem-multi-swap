@@ -226,7 +226,6 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "Approval(address,address,uint256)": EventFragment;
     "Burn(address,uint256,uint256,address)": EventFragment;
     "Mint(address,uint256,uint256)": EventFragment;
-    "PaidProtocolFee(uint112,uint112)": EventFragment;
     "Swap(address,uint256,uint256,uint256,uint256,address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
@@ -234,7 +233,6 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Burn"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PaidProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Swap"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
@@ -261,13 +259,6 @@ export type MintEvent = TypedEvent<
     sender: string;
     amount0: BigNumber;
     amount1: BigNumber;
-  }
->;
-
-export type PaidProtocolFeeEvent = TypedEvent<
-  [BigNumber, BigNumber] & {
-    collectedFee0: BigNumber;
-    collectedFee1: BigNumber;
   }
 >;
 
@@ -868,22 +859,6 @@ export class RequiemPair extends BaseContract {
     ): TypedEventFilter<
       [string, BigNumber, BigNumber],
       { sender: string; amount0: BigNumber; amount1: BigNumber }
-    >;
-
-    "PaidProtocolFee(uint112,uint112)"(
-      collectedFee0?: null,
-      collectedFee1?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { collectedFee0: BigNumber; collectedFee1: BigNumber }
-    >;
-
-    PaidProtocolFee(
-      collectedFee0?: null,
-      collectedFee1?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { collectedFee0: BigNumber; collectedFee1: BigNumber }
     >;
 
     "Swap(address,uint256,uint256,uint256,uint256,address)"(

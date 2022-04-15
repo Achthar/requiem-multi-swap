@@ -160,18 +160,25 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      */
     function _mintFee(ReserveData memory reserveData) private returns (bool feeOn) {
         address feeTo = IWeightedPairFactory(factory).feeTo();
+
+        // one slot
         uint112 protocolFee = uint112(IWeightedPairFactory(factory).protocolFee());
+        uint32 _tokenWeight0 = tokenWeight0;
+
         feeOn = feeTo != address(0);
+
+        // one slot
         (uint112 _collectedFee0, uint112 _collectedFee1) = getCollectedFees();
+        uint32 _tokenWeight1 = tokenWeight1;
+
         if (protocolFee > 0 && feeOn && (_collectedFee0 > 0 || _collectedFee1 > 0)) {
-            uint32 _tokenWeight0 = tokenWeight0;
             uint256 liquidity;
             liquidity = IWeightedFormula(formula).mintLiquidityFee(
                 totalSupply,
                 reserveData.vReserve0,
                 reserveData.vReserve1,
                 _tokenWeight0,
-                100 - _tokenWeight0,
+                _tokenWeight1,
                 _collectedFee0 / protocolFee,
                 _collectedFee1 / protocolFee
             );
@@ -283,7 +290,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 
     /** @notice force reserves to match balances */
-    function sync() external override {
+    function sync() external lock override {
         ReserveData memory reserveData = getReserves();
         _mintFee(reserveData);
         ReserveData memory newReserveData;
