@@ -14,25 +14,31 @@
 
 pragma solidity ^0.8.13;
 
-import "./../interfaces/ERC20/IERC20.sol";
-import "./../libraries/SafeERC20.sol";
-import "./MockERC20.sol";
-import "../interfaces/IStableSwap.sol";
-import "../interfaces/IFlashLoanRecipient.sol";
+import "../interfaces/ERC20/IERC20.sol";
+import "../libraries/SafeERC20.sol";
+import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
+import "../interfaces/flashLoan/IPoolFlashLoan.sol";
+import "../mocks/MockERC20.sol";
 
-abstract contract MockFlashLoanRecipient is IFlashLoanRecipient {
+contract MockFlashLoanRecipient is IFlashLoanRecipient {
     using SafeERC20 for IERC20;
 
     address public immutable pool;
+    // IERC20[] public  tokens;
     bool public repayLoan;
     bool public repayInExcess;
     bool public reenter;
 
     constructor(address _pool) {
         pool = _pool;
+
         repayLoan = true;
         repayInExcess = false;
         reenter = false;
+        // tokens = new IERC20[](_tokens.length);
+    //     for(uint256 i = 0; i < _tokens.length; i++){
+    //         tokens[i] = IERC20(_tokens[i]);
+    //     }
     }
 
     function setRepayLoan(bool _repayLoan) public {
@@ -49,32 +55,33 @@ abstract contract MockFlashLoanRecipient is IFlashLoanRecipient {
 
     // Repays loan unless setRepayLoan was called with 'false'
     function receiveFlashLoan(
+        IERC20[] memory tokens,
         uint256[] memory amounts,
         uint256[] memory feeAmounts,
         bytes memory userData
-    ) external  {
-        // for (uint256 i = 0; i < tokens.length; ++i) {
-        //     IERC20 token = tokens[i];
-        //     uint256 amount = amounts[i];
-        //     uint256 feeAmount = feeAmounts[i];
+    ) external override {
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            IERC20 token = tokens[i];
+            uint256 amount = amounts[i];
+            uint256 feeAmount = feeAmounts[i];
 
-        //     require(token.balanceOf(address(this)) == amount, "INVALID_FLASHLOAN_BALANCE");
+            require(token.balanceOf(address(this)) == amount, "INVALID_FLASHLOAN_BALANCE");
 
-        //     if (reenter) {
-        //         IStableSwap(msg.sender).flashLoan(IFlashLoanRecipient(address(this)), tokens, amounts, userData);
-        //     }
+            if (reenter) {
+                IPoolFlashLoan(msg.sender).flashLoan(IFlashLoanRecipient(address(this)), amounts, userData);
+            }
 
-        //     MockERC20(address(token)).mint(address(this), repayInExcess ? feeAmount + 1 : feeAmount);
+            MockERC20(address(token)).mint(address(this), repayInExcess ? feeAmount + 1 : feeAmount);
 
-        //     uint256 totalDebt = amount + feeAmount;
+            uint256 totalDebt = amount + feeAmount;
 
-        //     if (!repayLoan) {
-        //         totalDebt = totalDebt - 1;
-        //     } else if (repayInExcess) {
-        //         totalDebt = totalDebt + 1;
-        //     }
+            if (!repayLoan) {
+                totalDebt = totalDebt - 1;
+            } else if (repayInExcess) {
+                totalDebt = totalDebt + 1;
+            }
 
-        //     token.safeTransfer(pool, totalDebt);
-        // }
+            token.safeTransfer(pool, totalDebt);
+        }
     }
 }

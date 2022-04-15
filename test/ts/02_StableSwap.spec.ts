@@ -27,6 +27,7 @@ import {
 	RequiemStableSwapLib__factory,
 	RequiemStableSwap__factory,
 	StableSwapLib__factory,
+	MockFlashLoanRecipient__factory,
 	StableSwap__factory,
 	FeeDistributor__factory,
 	WETH9__factory
@@ -52,6 +53,8 @@ describe('StableSwap-Test', () => {
 	let tokenDAI: Contract
 	let tokenTUSD: Contract
 
+	let fLoanRecipient: Contract
+
 
 	let swapLibNew: Contract
 	let swapNew: Contract
@@ -61,7 +64,6 @@ describe('StableSwap-Test', () => {
 	let factory: Contract
 	let factory2: Contract
 	let feeDistributor: Contract
-	let router: Contract
 	let router2: Contract
 	let thiefRouter: Contract
 
@@ -131,19 +133,10 @@ describe('StableSwap-Test', () => {
 		formula = await new WeightedFormula__factory(wallet).deploy()
 		factory = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
 		factory2 = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
-		router = await new SwapRouter__factory(wallet).deploy(factory.address, weth.address)
-
 		router2 = await new SwapRouter__factory(wallet).deploy(factory2.address, weth.address)
 
 		thiefRouter = await new ThiefRouter__factory(wallet).deploy(factory2.address, weth.address)
 
-		await tokenA.approve(router.address, ethers.constants.MaxUint256)
-		await tokenB.approve(router.address, ethers.constants.MaxUint256)
-		await tokenC.approve(router.address, ethers.constants.MaxUint256)
-		await tokenUSDC.approve(router.address, ethers.constants.MaxUint256)
-		await tokenUSDT.approve(router.address, ethers.constants.MaxUint256)
-		await tokenDAI.approve(router.address, ethers.constants.MaxUint256)
-		await tokenTUSD.approve(router.address, ethers.constants.MaxUint256)
 
 		await tokenA.approve(router2.address, ethers.constants.MaxUint256)
 		await tokenB.approve(router2.address, ethers.constants.MaxUint256)
@@ -155,64 +148,6 @@ describe('StableSwap-Test', () => {
 
 		await tokenUSDC.approve(thiefRouter.address, ethers.constants.MaxUint256)
 
-		await new router.createPair(
-			tokenA.address,
-			tokenUSDC.address,
-			amountA,
-			amountUSDC,
-			tokenWeightA,
-			swapFee,
-			amplification,
-			wallet.address
-		)
-
-		await new router.createPair(
-			tokenB.address,
-			tokenDAI.address,
-			amountB,
-			amountDAI,
-			tokenWeightB,
-			swapFee,
-			amplification2,
-			wallet.address
-		)
-
-		await new router.createPair(
-			tokenA.address,
-			tokenB.address,
-			amountA,
-			amountB,
-			80,
-			swapFee,
-			amplification2,
-			wallet.address
-		)
-
-
-		await new router.createPair(
-			tokenC.address,
-			tokenB.address,
-			amountC,
-			amountB,
-			22,
-			swapFee,
-			amplification,
-			wallet.address
-		)
-
-
-		const pairA_USDC = await factory.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
-		pairA_USDC_Contract = await ethers.getContractAt('RequiemPair', pairA_USDC)
-
-
-		const pairDAI_B = await factory.getPair(tokenB.address, tokenDAI.address, tokenWeightB)
-		pairDAI_B_Contract = await ethers.getContractAt('RequiemPair', pairDAI_B)
-
-		const pairA_B = await factory.getPair(tokenA.address, tokenB.address, 80)
-		pairA_B_Contract = await ethers.getContractAt('RequiemPair', pairA_B)
-
-		const pairB_C = await factory2.getPair(tokenC.address, tokenB.address, 22)
-		pairB_C_Contract = await ethers.getContractAt('RequiemPair', pairB_C)
 
 
 
@@ -280,6 +215,10 @@ describe('StableSwap-Test', () => {
 		// swap libnew 
 		swapLibNew = await new StableSwapLib__factory(wallet).deploy()
 		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { StableSwapLib: swapLibNew.address })
+
+
+
+		fLoanRecipient = await new MockFlashLoanRecipient__factory(wallet).deploy(swapNew.address)
 
 		console.log("REGLAR DONE 0")
 
@@ -350,19 +289,6 @@ describe('StableSwap-Test', () => {
 			const inContract = await ethers.getContractAt('MockERC20', _tokens[0])
 			await inContract.approve(router2.address, maxUint256)
 			const outContract = await ethers.getContractAt('MockERC20', _tokens[_tokens.length - 1])
-			console.log("---------------------------- TEST ORIG")
-			tx = await router.onSwapTokensForExactTokens(
-				poolsBase.map(x => x.address),
-				_tokens,
-				_amountOut,
-				amountInMax,
-				other.address,
-				deadline
-			)
-			// record gas
-			receipt = await tx.wait();
-			gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-			gasCosts = { ...gasCosts, ['exactOutOld-' + String(poolsNew.length) + '-' + String(counter) + '-' + comment]: gasUsed }
 
 			const _userBalanceBeforeIn = await inContract.balanceOf(wallet.address)
 			const _userBalanceBeforeOut = await outContract.balanceOf(wallet.address)
@@ -403,19 +329,6 @@ describe('StableSwap-Test', () => {
 			counter += 1
 			const inContract = await ethers.getContractAt('MockERC20', _tokens[0])
 			const outContract = await ethers.getContractAt('MockERC20', _tokens[_tokens.length - 1])
-			console.log("---------------------------- TEST ORIG")
-			tx = await router2.onSwapExactTokensForTokens(
-				poolsBase.map(x => x.address),
-				_tokens,
-				_amountIn,
-				1,
-				wallet.address,
-				deadline
-			)
-			// record gas
-			receipt = await tx.wait();
-			gasUsed = BigInt(receipt.cumulativeGasUsed) * BigInt(receipt.effectiveGasPrice);
-			gasCosts = { ...gasCosts, ['exactInOld-' + String(poolsNew.length) + '-' + String(counter) + '-' + comment]: gasUsed }
 
 			const _userBalanceBeforeIn = await inContract.balanceOf(wallet.address)
 			const _userBalanceBeforeOut = await outContract.balanceOf(wallet.address)
@@ -1062,7 +975,7 @@ describe('StableSwap-Test', () => {
 							describe('StableSwap-Calculation matches swap', () => {
 								it('calculation', async () => {
 
-									pools = [pairDAI_B_Contract.address, swapNew.address, pairA_USDC_Contract.address]
+									pools = [pairDAI_B_Contract2.address, swapNew.address, pairA_USDC_Contract2.address]
 									tokens = [tokenB.address, tokenDAI.address, tokenUSDC.address, tokenA.address]
 									console.log("Pools", pools)
 									console.log("Tokens", tokens)
@@ -1073,12 +986,12 @@ describe('StableSwap-Test', () => {
 
 
 
-									const in02 = await pairA_USDC_Contract.calculateSwapGivenOut(tokenDAI.address, tokenA.address, amountOut)
+									const in02 = await pairA_USDC_Contract2.calculateSwapGivenOut(tokenDAI.address, tokenA.address, amountOut)
 
 									const in01 = await swapNew.calculateSwapGivenOut(tokenDAI.address, tokenUSDC.address, in02)
 
 
-									const inB = await pairDAI_B_Contract.calculateSwapGivenOut(tokenB.address, tokenDAI.address, in01)
+									const inB = await pairDAI_B_Contract2.calculateSwapGivenOut(tokenB.address, tokenDAI.address, in01)
 
 									await router2.onSwapTokensForExactTokens(
 										pools,
@@ -1145,6 +1058,34 @@ describe('StableSwap-Test', () => {
 									await swapNew.removeLiquidityOneToken(lpBal.div(5), 2, 0, deadline)
 									await printBals("post withdrawl balances")
 
+								})
+
+
+								it('FlashLoan', async () => {
+									await fLoanRecipient.setRepayInExcess(1)
+									// repay loan = true 
+									await fLoanRecipient.setRepayLoan(1)
+									console.log("FLOAN trigger repay true")
+									await swapNew.flashLoan(fLoanRecipient.address,
+										[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+										0)
+									// repay loan = true 
+									await fLoanRecipient.setRepayLoan(0)
+									console.log("FLOAN trigger repay false")
+									await expect(
+										swapNew.flashLoan(fLoanRecipient.address,
+											[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+											0)
+									).to.be.revertedWith("insufficient loan fee")
+
+									// repay loan = true & reentrant
+									await fLoanRecipient.setReenter(1)
+									console.log("FLOAN trigger reenter true")
+									await expect(
+										swapNew.flashLoan(fLoanRecipient.address,
+											[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+											0)
+									).to.be.revertedWith("ReentrancyGuard: reentrant call")
 								})
 							})
 						})

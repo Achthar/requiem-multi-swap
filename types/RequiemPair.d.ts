@@ -42,9 +42,9 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "nonces(address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,address)": FunctionFragment;
-    "pairFlashLoan(address,uint256,uint256,bytes)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "setSwapParams(uint32,uint32)": FunctionFragment;
+    "swap(uint256,uint256,address,bytes)": FunctionFragment;
     "symbol()": FunctionFragment;
     "sync()": FunctionFragment;
     "token0()": FunctionFragment;
@@ -115,10 +115,6 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "pairFlashLoan",
-    values: [string, BigNumberish, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "permit",
     values: [
       string,
@@ -133,6 +129,10 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setSwapParams",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "swap",
+    values: [BigNumberish, BigNumberish, string, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "sync", values?: undefined): string;
@@ -202,15 +202,12 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     functionFragment: "onSwapGivenOut",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "pairFlashLoan",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setSwapParams",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sync", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
@@ -228,21 +225,17 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "Burn(address,uint256,uint256,address)": EventFragment;
-    "FlashLoan(address,uint256,uint256,uint256,uint256)": EventFragment;
     "Mint(address,uint256,uint256)": EventFragment;
     "PaidProtocolFee(uint112,uint112)": EventFragment;
     "Swap(address,uint256,uint256,uint256,uint256,address)": EventFragment;
-    "Sync(uint112,uint112,uint112,uint112)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Burn"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PaidProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Swap"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Sync"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -260,16 +253,6 @@ export type BurnEvent = TypedEvent<
     amount0: BigNumber;
     amount1: BigNumber;
     to: string;
-  }
->;
-
-export type FlashLoanEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
-    recipient: string;
-    amount0: BigNumber;
-    amount1: BigNumber;
-    fee0: BigNumber;
-    fee1: BigNumber;
   }
 >;
 
@@ -296,15 +279,6 @@ export type SwapEvent = TypedEvent<
     amount0Out: BigNumber;
     amount1Out: BigNumber;
     to: string;
-  }
->;
-
-export type SyncEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber, BigNumber] & {
-    reserve0: BigNumber;
-    reserve1: BigNumber;
-    vReserve0: BigNumber;
-    vReserve1: BigNumber;
   }
 >;
 
@@ -473,14 +447,6 @@ export class RequiemPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    pairFlashLoan(
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     permit(
       owner: string,
       spender: string,
@@ -495,6 +461,14 @@ export class RequiemPair extends BaseContract {
     setSwapParams(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -632,14 +606,6 @@ export class RequiemPair extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  pairFlashLoan(
-    recipient: string,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
-    userData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   permit(
     owner: string,
     spender: string,
@@ -654,6 +620,14 @@ export class RequiemPair extends BaseContract {
   setSwapParams(
     _newSwapFee: BigNumberish,
     _newAmp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  swap(
+    amount0Out: BigNumberish,
+    amount1Out: BigNumberish,
+    to: string,
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -790,14 +764,6 @@ export class RequiemPair extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    pairFlashLoan(
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     permit(
       owner: string,
       spender: string,
@@ -814,6 +780,14 @@ export class RequiemPair extends BaseContract {
       _newAmp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -876,40 +850,6 @@ export class RequiemPair extends BaseContract {
     ): TypedEventFilter<
       [string, BigNumber, BigNumber, string],
       { sender: string; amount0: BigNumber; amount1: BigNumber; to: string }
-    >;
-
-    "FlashLoan(address,uint256,uint256,uint256,uint256)"(
-      recipient?: string | null,
-      amount0?: null,
-      amount1?: null,
-      fee0?: null,
-      fee1?: null
-    ): TypedEventFilter<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        recipient: string;
-        amount0: BigNumber;
-        amount1: BigNumber;
-        fee0: BigNumber;
-        fee1: BigNumber;
-      }
-    >;
-
-    FlashLoan(
-      recipient?: string | null,
-      amount0?: null,
-      amount1?: null,
-      fee0?: null,
-      fee1?: null
-    ): TypedEventFilter<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        recipient: string;
-        amount0: BigNumber;
-        amount1: BigNumber;
-        fee0: BigNumber;
-        fee1: BigNumber;
-      }
     >;
 
     "Mint(address,uint256,uint256)"(
@@ -981,36 +921,6 @@ export class RequiemPair extends BaseContract {
         amount0Out: BigNumber;
         amount1Out: BigNumber;
         to: string;
-      }
-    >;
-
-    "Sync(uint112,uint112,uint112,uint112)"(
-      reserve0?: null,
-      reserve1?: null,
-      vReserve0?: null,
-      vReserve1?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        reserve0: BigNumber;
-        reserve1: BigNumber;
-        vReserve0: BigNumber;
-        vReserve1: BigNumber;
-      }
-    >;
-
-    Sync(
-      reserve0?: null,
-      reserve1?: null,
-      vReserve0?: null,
-      vReserve1?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        reserve0: BigNumber;
-        reserve1: BigNumber;
-        vReserve0: BigNumber;
-        vReserve1: BigNumber;
       }
     >;
 
@@ -1117,14 +1027,6 @@ export class RequiemPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    pairFlashLoan(
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     permit(
       owner: string,
       spender: string,
@@ -1139,6 +1041,14 @@ export class RequiemPair extends BaseContract {
     setSwapParams(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1258,14 +1168,6 @@ export class RequiemPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    pairFlashLoan(
-      recipient: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     permit(
       owner: string,
       spender: string,
@@ -1280,6 +1182,14 @@ export class RequiemPair extends BaseContract {
     setSwapParams(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

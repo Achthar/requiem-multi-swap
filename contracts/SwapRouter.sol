@@ -38,27 +38,6 @@ contract SwapRouter is ISwapRouter {
         // only accept ETH via fallback from the WETH contract
     }
 
-    // **** SWAP ****
-    // requires the initial amount to have already been sent to the first pair
-    function _swap(
-        address tokenIn,
-        uint256[] memory amounts,
-        address[] memory path,
-        address _to
-    ) internal virtual {
-        address input = tokenIn;
-        for (uint256 i = 0; i < path.length; i++) {
-            IWeightedPair pairV2 = IWeightedPair(path[i]);
-            address token0 = pairV2.token0();
-            uint256 amountOut = amounts[i + 1];
-            (uint256 amount0Out, uint256 amount1Out, address output) = input == token0 ? (uint256(0), amountOut, pairV2.token1()) : (amountOut, uint256(0), token0);
-            address to = i < path.length - 1 ? path[i + 1] : _to;
-            // pairV2.swap(amount0Out, amount1Out, to, new bytes(0));
-            emit Exchange(address(pairV2), amountOut, output);
-            input = output;
-        }
-    }
-
     // the onSwap functions are designed to include the stable swap
     // it currenty only allows exactIn structures
     function onSwapExactTokensForTokens(
@@ -207,106 +186,6 @@ contract SwapRouter is ISwapRouter {
             return IERC20(token).balanceOf(address(this));
         }
     }
-
-    // function _swapSingleMixOut(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     address pool,
-    //     uint256 swapAmount,
-    //     uint256 limitReturnAmount
-    // ) internal returns (uint256 tokenAmountIn) {
-    //     address[] memory paths = new address[](1);
-    //     paths[0] = pool;
-    //     uint256[] memory amounts = IWeightedFormula(formula).getFactoryAmountsIn(factory, tokenIn, tokenOut, swapAmount, paths);
-    //     tokenAmountIn = amounts[0];
-    //     require(tokenAmountIn <= limitReturnAmount, "Router: EXCESSIVE_INPUT_AMOUNT");
-    //     _swapSingle(tokenIn, pool, tokenAmountIn, amounts[1]);
-    // }
-
-    function _swapSingle(
-        address tokenIn,
-        address pair,
-        uint256 targetSwapAmount,
-        uint256 targetOutAmount
-    ) internal {
-        TransferHelper.safeTransfer(tokenIn, pair, targetSwapAmount);
-        IWeightedPair pairV2 = IWeightedPair(pair);
-        address token0 = pairV2.token0();
-
-        (uint256 amount0Out, uint256 amount1Out, address output) = tokenIn == token0 ? (uint256(0), targetOutAmount, pairV2.token1()) : (targetOutAmount, uint256(0), token0);
-        // pairV2.swap(amount0Out, amount1Out, address(this), new bytes(0));
-
-        emit Exchange(pair, targetOutAmount, output);
-    }
-
-    // function _swapSingleSupportFeeOnTransferTokens(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     address pool,
-    //     uint256 swapAmount,
-    //     uint256 limitReturnAmount
-    // ) internal returns (uint256 tokenAmountOut) {
-    //     TransferHelper.safeTransfer(tokenIn, pool, swapAmount);
-
-    //     uint256 amountOutput;
-    //     {
-    //         (, uint256 reserveInput, uint256 reserveOutput, uint32 tokenWeightInput, uint32 tokenWeightOutput, uint32 swapFee) = IWeightedFormula(formula).getFactoryReserveAndWeights(
-    //             factory,
-    //             pool,
-    //             tokenIn
-    //         );
-    //         uint256 amountInput = IERC20(tokenIn).balanceOf(pool) - reserveInput;
-    //         amountOutput = IWeightedFormula(formula).getAmountOut(amountInput, reserveInput, reserveOutput, tokenWeightInput, tokenWeightOutput, swapFee);
-    //     }
-    //     uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
-    //     (uint256 amount0Out, uint256 amount1Out) = tokenIn == IWeightedPair(pool).token0() ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-    //     IWeightedPair(pool).swap(amount0Out, amount1Out, address(this), new bytes(0));
-    //     emit Exchange(pool, amountOutput, tokenOut);
-
-    //     tokenAmountOut = IERC20(tokenOut).balanceOf(address(this)) - balanceBefore;
-    //     require(tokenAmountOut >= limitReturnAmount, "Router: INSUFFICIENT_OUTPUT_AMOUNT");
-    // }
-
-    // function _validateAmountOut(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     uint256 amountOutMin,
-    //     address[] memory path
-    // ) internal view returns (uint256[] memory amounts) {
-    //     amounts = IWeightedFormula(formula).getFactoryAmountsOut(factory, tokenIn, tokenOut, amountIn, path);
-    //     require(amounts[amounts.length - 1] >= amountOutMin, "Router: INSUFFICIENT_OUTPUT_AMOUNT");
-    // }
-
-    // function _calculateAmountOut(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountIn,
-    //     address[] memory path
-    // ) internal view returns (uint256[] memory amounts) {
-    //     amounts = IWeightedFormula(formula).getFactoryAmountsOut(factory, tokenIn, tokenOut, amountIn, path);
-    // }
-
-    // function _validateAmountIn(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     uint256 amountInMax,
-    //     address[] memory path
-    // ) internal view returns (uint256[] memory amounts) {
-    //     amounts = IWeightedFormula(formula).getFactoryAmountsIn(factory, tokenIn, tokenOut, amountOut, path);
-    //     require(amounts[0] <= amountInMax, "Router: EXCESSIVE_INPUT_AMOUNT");
-    // }
-
-    // // the same as _validateAmountIn, just with no requirement checking
-    // function _calculateAmountIn(
-    //     address tokenIn,
-    //     address tokenOut,
-    //     uint256 amountOut,
-    //     address[] memory path
-    // ) internal view returns (uint256[] memory amounts) {
-    //     amounts = IWeightedFormula(formula).getFactoryAmountsIn(factory, tokenIn, tokenOut, amountOut, path);
-    // }
 
     // **** ADD LIQUIDITY ****
     function _addLiquidity(

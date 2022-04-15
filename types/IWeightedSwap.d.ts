@@ -25,7 +25,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
     "calculateRemoveLiquidityExactIn(uint256)": FunctionFragment;
     "calculateRemoveLiquidityOneToken(uint256,uint256)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
-    "flashLoan(address,uint256[],bytes)": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
     "removeLiquidityExactIn(uint256,uint256[],uint256)": FunctionFragment;
     "removeLiquidityExactOut(uint256[],uint256,uint256)": FunctionFragment;
@@ -47,10 +46,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calculateTokenAmount",
     values: [BigNumberish[], boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "flashLoan",
-    values: [string, BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenBalances",
@@ -85,7 +80,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
     functionFragment: "calculateTokenAmount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getTokenBalances",
     data: BytesLike
@@ -107,7 +101,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
     "AddLiquidity(address,uint256[],uint256,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
-    "FlashLoan(address,uint256[],uint256[])": EventFragment;
     "NewFee(uint256,uint256,uint256)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256)": EventFragment;
     "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)": EventFragment;
@@ -118,7 +111,6 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeControllerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeDistributorChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemoveLiquidityImbalance"): EventFragment;
@@ -141,14 +133,6 @@ export type FeeControllerChangedEvent = TypedEvent<
 
 export type FeeDistributorChangedEvent = TypedEvent<
   [string] & { newController: string }
->;
-
-export type FlashLoanEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[]] & {
-    recipient: string;
-    amounts: BigNumber[];
-    feeAmounts: BigNumber[];
-  }
 >;
 
 export type NewFeeEvent = TypedEvent<
@@ -263,13 +247,6 @@ export class IWeightedSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     removeLiquidityExactIn(
@@ -319,13 +296,6 @@ export class IWeightedSwap extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  flashLoan(
-    recipient: string,
-    amounts: BigNumberish[],
-    userData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   removeLiquidityExactIn(
@@ -374,13 +344,6 @@ export class IWeightedSwap extends BaseContract {
       deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -453,24 +416,6 @@ export class IWeightedSwap extends BaseContract {
     FeeDistributorChanged(
       newController?: null
     ): TypedEventFilter<[string], { newController: string }>;
-
-    "FlashLoan(address,uint256[],uint256[])"(
-      recipient?: null,
-      amounts?: null,
-      feeAmounts?: null
-    ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[]],
-      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
-    >;
-
-    FlashLoan(
-      recipient?: null,
-      amounts?: null,
-      feeAmounts?: null
-    ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[]],
-      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
-    >;
 
     "NewFee(uint256,uint256,uint256)"(
       fee?: null,
@@ -628,13 +573,6 @@ export class IWeightedSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
 
     removeLiquidityExactIn(
@@ -683,13 +621,6 @@ export class IWeightedSwap extends BaseContract {
       amounts: BigNumberish[],
       deposit: boolean,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;

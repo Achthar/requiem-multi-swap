@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import "./tokens/LPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
-import "./interfaces/IFlashLoanRecipient.sol";
+import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
 
 using SafeERC20 for IERC20 global;

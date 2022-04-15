@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 
 import "./interfaces/IWeightedPairFactory.sol";
 import "./libraries/EnumerableSet.sol";
-// import "./libraries/Ownable.sol";
 import "./WeightedPair.sol";
 
 // solhint-disable no-inline-assembly
@@ -16,7 +15,6 @@ contract RequiemPairFactory is IWeightedPairFactory {
     address public formula;
     uint256 public protocolFee;
     address public feeToSetter;
-    address public swapFeeGovernance;
     address public pairGovernance;
     bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemPair).creationCode));
 

@@ -5,7 +5,7 @@ import "./tokens/WeightedLPToken.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 import "./libraries/math/WeightedMath.sol";
-import "./interfaces/IFlashLoanRecipient.sol";
+import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
 
 using SafeERC20 for IERC20 global;
@@ -35,8 +35,10 @@ library WeightedPoolLib {
         uint256[] normalizedWeights;
         /// @dev last invariant
         uint256 lastInvariant;
-        /// @dev swap and flash loanfee ratio. Charge on any action which move balance state far from the ideal state
+        /// @dev swap and fee ratio. Charge on any action which move balance state far from the ideal state
         uint256 fee;
+        /// @dev flash loan fee ratio. Charge on any action which move balance state far from the ideal state
+        uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
         /// @dev admin fees that can be withdrawn by feeCollector
@@ -64,7 +66,7 @@ library WeightedPoolLib {
             self.normalizedWeights,
             _xp(amounts, self.tokenMultipliers),
             tokenSupply,
-            self.fee
+            self.fee * 1e8
         );
 
         // Note that swapFees is already upscaled
@@ -214,11 +216,10 @@ library WeightedPoolLib {
         uint256 length = amounts.length;
         feeAmounts = new uint256[](length);
         uint256[] memory preLoanBalances = new uint256[](length);
-
         for (uint256 i = 0; i <  length; ++i) {
             uint256 amount = amounts[i];
             preLoanBalances[i] = self.pooledTokens[i].balanceOf(address(this));
-            feeAmounts[i] = (amount * self.fee) / FEE_DENOMINATOR / 5;
+            feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
             require(preLoanBalances[i] >= amount, "pre bals");
             self.pooledTokens[i].safeTransfer(address(recipient), amount);
@@ -284,7 +285,7 @@ library WeightedPoolLib {
             self.normalizedWeights[index],
             lpAmount,
             totalSupply,
-            self.fee
+            self.fee * 1e8
         );
 
         // This is an exceptional situation in which the fee is charged on a token out instead of a token in.
@@ -321,7 +322,7 @@ library WeightedPoolLib {
             self.normalizedWeights,
             _xp(amounts, self.tokenMultipliers),
             totalSupply,
-            self.fee
+            self.fee * 1e8
         );
 
         // This is an exceptional situation in which the fee is charged on a token out instead of a token in.
@@ -387,7 +388,7 @@ library WeightedPoolLib {
                     self.normalizedWeights,
                     _xp(amounts, self.tokenMultipliers),
                     self.lpToken.totalSupply(),
-                    self.fee
+                    self.fee * 1e8
                     );
             } else {
                 (lpTokenAmount,) = WeightedMath._calcLpInGivenExactTokensOut(
@@ -395,7 +396,7 @@ library WeightedPoolLib {
                     self.normalizedWeights,
                     _xp(amounts, self.tokenMultipliers),
                     self.lpToken.totalSupply(),
-                    self.fee
+                    self.fee * 1e8
                     );
                 }
     }

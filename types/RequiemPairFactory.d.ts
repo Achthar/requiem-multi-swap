@@ -36,7 +36,6 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     "setFeeParameters(address,address,uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setSwapParams(address,uint32,uint32)": FunctionFragment;
-    "swapFeeGovernance()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -90,10 +89,6 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     functionFragment: "setSwapParams",
     values: [string, BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "swapFeeGovernance",
-    values?: undefined
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "INIT_CODE_HASH",
@@ -135,10 +130,6 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setSwapParams",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapFeeGovernance",
     data: BytesLike
   ): Result;
 
@@ -271,8 +262,6 @@ export class RequiemPairFactory extends BaseContract {
       _amp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    swapFeeGovernance(overrides?: CallOverrides): Promise<[string]>;
   };
 
   INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
@@ -344,8 +333,6 @@ export class RequiemPairFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  swapFeeGovernance(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
     INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
 
@@ -412,8 +399,6 @@ export class RequiemPairFactory extends BaseContract {
       _amp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    swapFeeGovernance(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -511,8 +496,6 @@ export class RequiemPairFactory extends BaseContract {
       _amp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    swapFeeGovernance(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -577,7 +560,5 @@ export class RequiemPairFactory extends BaseContract {
       _amp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    swapFeeGovernance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

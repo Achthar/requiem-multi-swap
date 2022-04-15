@@ -150,7 +150,7 @@ abstract contract RequiemPair_Classic is ISwap, IWeightedPair, WeightedPairERC20
         assert(data.vReserve0 >= data.reserve0 && data.vReserve1 >= data.reserve1); // never happen
         vReserve0 = uint112(data.vReserve0);
         vReserve1 = uint112(data.vReserve1);
-        emit Sync(reserve0, reserve1, vReserve0, vReserve1);
+        // emit Sync(reserve0, reserve1, vReserve0, vReserve1);
     }
 
     /**

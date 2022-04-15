@@ -9,14 +9,15 @@ import "./base/OwnerPausable.sol";
 import "./WeightedPoolLib.sol";
 import "./interfaces/IWeightedSwap.sol";
 import "./interfaces/ISwap.sol";
-import "./interfaces/IFlashLoanRecipient.sol";
+import "./interfaces/flashLoan/IPoolFlashLoan.sol";
+import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
 using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage global;
 using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
+contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
     uint256 internal constant MAX_ADMIN_FEE = 5e9; // 50%
@@ -47,6 +48,7 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
+        uint256 _flashFee,
         uint256 _adminFee,
         address _feeDistributor
     ) external onlyOwner initializer {
@@ -72,6 +74,7 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
         swapStorage.nTokens = numberOfCoins;
         swapStorage.pooledTokens = coins;
         swapStorage.fee = _fee;
+        swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         feeDistributor = _feeDistributor;
         swapStorage.collectedFees = new uint256[](numberOfCoins);
@@ -221,19 +224,21 @@ contract WeightedPool is ISwap, OwnerPausable, ReentrancyGuard, Initializable, I
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
      * @param newAdminFee new admin fee to be applied on future transactions
-     * @param newWithdrawFee new initial withdraw fee to be applied on future withdrawal transactions
+     * @param newFlashFee new flash lash loan fee 
      */
     function setFee(
         uint256 newSwapFee,
         uint256 newAdminFee,
-        uint256 newWithdrawFee
+        uint256 newFlashFee
     ) external onlyOwner {
         require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
+        require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
         swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
+        swapStorage.flashFee = newFlashFee;
 
-        emit NewFee(newSwapFee,  newAdminFee, newWithdrawFee);
+        emit NewFee(newSwapFee,  newAdminFee, newFlashFee);
     }
 
     function setFeeControllerAndDistributor(address _feeController) external onlyOwner {

@@ -313,6 +313,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "AddLiquidity(address,uint256[],uint256[],uint256,uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
+    "FlashLoan(address,uint256[],uint256[])": EventFragment;
     "NewFee(uint256,uint256,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
@@ -328,6 +329,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "AddLiquidity"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeControllerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FeeDistributorChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
@@ -356,6 +358,14 @@ export type FeeControllerChangedEvent = TypedEvent<
 
 export type FeeDistributorChangedEvent = TypedEvent<
   [string] & { newController: string }
+>;
+
+export type FlashLoanEvent = TypedEvent<
+  [string, BigNumber[], BigNumber[]] & {
+    recipient: string;
+    amounts: BigNumber[];
+    feeAmounts: BigNumber[];
+  }
 >;
 
 export type NewFeeEvent = TypedEvent<
@@ -1128,6 +1138,24 @@ export class StableSwap extends BaseContract {
     FeeDistributorChanged(
       newController?: null
     ): TypedEventFilter<[string], { newController: string }>;
+
+    "FlashLoan(address,uint256[],uint256[])"(
+      recipient?: null,
+      amounts?: null,
+      feeAmounts?: null
+    ): TypedEventFilter<
+      [string, BigNumber[], BigNumber[]],
+      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
+    >;
+
+    FlashLoan(
+      recipient?: null,
+      amounts?: null,
+      feeAmounts?: null
+    ): TypedEventFilter<
+      [string, BigNumber[], BigNumber[]],
+      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
+    >;
 
     "NewFee(uint256,uint256,uint256,uint256)"(
       fee?: null,

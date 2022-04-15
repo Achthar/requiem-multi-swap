@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 
 import "./ERC20/IERC20.sol";
 
-import "./IFlashLoanRecipient.sol";
+import "./flashLoan/IFlashLoanRecipient.sol";
 
 // solhint-disable var-name-mixedcase
 

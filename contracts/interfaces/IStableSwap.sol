@@ -4,8 +4,6 @@ pragma solidity 0.8.13;
 
 import "./ERC20/IERC20.sol";
 
-import "./IFlashLoanRecipient.sol";
-
 // solhint-disable var-name-mixedcase
 
 interface IStableSwap {
@@ -44,12 +42,6 @@ interface IStableSwap {
     ) external view returns (uint256 availableTokenAmount);
 
     function calculateCurrentWithdrawFee(address account) external view returns (uint256);
-
-    function flashLoan(
-        IFlashLoanRecipient recipient,
-        uint256[] memory amounts,
-        bytes memory userData
-    ) external;
 
     function addLiquidity(
         uint256[] calldata amounts,

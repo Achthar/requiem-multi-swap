@@ -8,15 +8,16 @@ import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
 import "./StableSwapLib.sol";
 import "./interfaces/IStableSwap.sol";
+import "./interfaces/flashLoan/IPoolFlashLoan.sol";
 import "./interfaces/ISwap.sol";
-import "./interfaces/IFlashLoanRecipient.sol";
+import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
 using StableSwapLib for StableSwapLib.SwapStorage global;
 using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract StableSwap is ISwap, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
+contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;

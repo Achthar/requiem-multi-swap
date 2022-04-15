@@ -16,9 +16,9 @@ pragma solidity ^0.8.13;
 
 // Inspired by Aave Protocol's IFlashLoanReceiver.
 
-import "./ERC20/IERC20.sol";
+import "../ERC20/IERC20.sol";
 
-interface IPairFlashLoanRecipient {
+interface IFlashLoanRecipient {
     /**
      * @dev When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.
      *
@@ -29,8 +29,9 @@ interface IPairFlashLoanRecipient {
      * `userData` is the same value passed in the `IVault.flashLoan` call.
      */
     function receiveFlashLoan(
-        uint256 amount0,
-        uint256 amount1,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        uint256[] memory feeAmounts,
         bytes memory userData
     ) external;
 }

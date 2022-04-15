@@ -154,37 +154,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "uint112",
-        name: "reserve0",
-        type: "uint112",
-      },
-      {
-        indexed: false,
-        internalType: "uint112",
-        name: "reserve1",
-        type: "uint112",
-      },
-      {
-        indexed: false,
-        internalType: "uint112",
-        name: "vReserve0",
-        type: "uint112",
-      },
-      {
-        indexed: false,
-        internalType: "uint112",
-        name: "vReserve1",
-        type: "uint112",
-      },
-    ],
-    name: "Sync",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "address",
         name: "from",

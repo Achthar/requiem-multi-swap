@@ -26,7 +26,6 @@ interface IStableSwapInterface extends ethers.utils.Interface {
     "calculateRemoveLiquidity(address,uint256)": FunctionFragment;
     "calculateRemoveLiquidityOneToken(address,uint256,uint8)": FunctionFragment;
     "calculateTokenAmount(uint256[],bool)": FunctionFragment;
-    "flashLoan(address,uint256[],bytes)": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
     "getVirtualPrice()": FunctionFragment;
     "removeLiquidity(uint256,uint256[],uint256)": FunctionFragment;
@@ -54,10 +53,6 @@ interface IStableSwapInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calculateTokenAmount",
     values: [BigNumberish[], boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "flashLoan",
-    values: [string, BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenBalances",
@@ -104,7 +99,6 @@ interface IStableSwapInterface extends ethers.utils.Interface {
     functionFragment: "calculateTokenAmount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getTokenBalances",
     data: BytesLike
@@ -308,13 +302,6 @@ export class IStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -379,13 +366,6 @@ export class IStableSwap extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  flashLoan(
-    recipient: string,
-    amounts: BigNumberish[],
-    userData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
@@ -449,13 +429,6 @@ export class IStableSwap extends BaseContract {
       deposit: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -778,13 +751,6 @@ export class IStableSwap extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVirtualPrice(overrides?: CallOverrides): Promise<BigNumber>;
@@ -848,13 +814,6 @@ export class IStableSwap extends BaseContract {
       amounts: BigNumberish[],
       deposit: boolean,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    flashLoan(
-      recipient: string,
-      amounts: BigNumberish[],
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -19,25 +19,34 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IPairFlashLoanRecipientInterface extends ethers.utils.Interface {
+interface IPoolFlashLoanInterface extends ethers.utils.Interface {
   functions: {
-    "receiveFlashLoan(address,address,uint256,uint256,bytes)": FunctionFragment;
+    "flashLoan(address,uint256[],bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "receiveFlashLoan",
-    values: [string, string, BigNumberish, BigNumberish, BytesLike]
+    functionFragment: "flashLoan",
+    values: [string, BigNumberish[], BytesLike]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "receiveFlashLoan",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "FlashLoan(address,uint256[],uint256[])": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
 }
 
-export class IPairFlashLoanRecipient extends BaseContract {
+export type FlashLoanEvent = TypedEvent<
+  [string, BigNumber[], BigNumber[]] & {
+    recipient: string;
+    amounts: BigNumber[];
+    feeAmounts: BigNumber[];
+  }
+>;
+
+export class IPoolFlashLoan extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -78,58 +87,66 @@ export class IPairFlashLoanRecipient extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IPairFlashLoanRecipientInterface;
+  interface: IPoolFlashLoanInterface;
 
   functions: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+    flashLoan(
+      recipient: string,
+      amounts: BigNumberish[],
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  receiveFlashLoan(
-    token0: string,
-    token1: string,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
+  flashLoan(
+    recipient: string,
+    amounts: BigNumberish[],
     userData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+    flashLoan(
+      recipient: string,
+      amounts: BigNumberish[],
       userData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "FlashLoan(address,uint256[],uint256[])"(
+      recipient?: null,
+      amounts?: null,
+      feeAmounts?: null
+    ): TypedEventFilter<
+      [string, BigNumber[], BigNumber[]],
+      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
+    >;
+
+    FlashLoan(
+      recipient?: null,
+      amounts?: null,
+      feeAmounts?: null
+    ): TypedEventFilter<
+      [string, BigNumber[], BigNumber[]],
+      { recipient: string; amounts: BigNumber[]; feeAmounts: BigNumber[] }
+    >;
+  };
 
   estimateGas: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+    flashLoan(
+      recipient: string,
+      amounts: BigNumberish[],
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
+    flashLoan(
+      recipient: string,
+      amounts: BigNumberish[],
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

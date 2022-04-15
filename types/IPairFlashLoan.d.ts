@@ -19,25 +19,36 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IPairFlashLoanRecipientInterface extends ethers.utils.Interface {
+interface IPairFlashLoanInterface extends ethers.utils.Interface {
   functions: {
-    "receiveFlashLoan(address,address,uint256,uint256,bytes)": FunctionFragment;
+    "flashLoan(address,uint256,uint256,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "receiveFlashLoan",
-    values: [string, string, BigNumberish, BigNumberish, BytesLike]
+    functionFragment: "flashLoan",
+    values: [string, BigNumberish, BigNumberish, BytesLike]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "receiveFlashLoan",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "FlashLoan(address,uint256,uint256,uint256,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "FlashLoan"): EventFragment;
 }
 
-export class IPairFlashLoanRecipient extends BaseContract {
+export type FlashLoanEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+    recipient: string;
+    amount0: BigNumber;
+    amount1: BigNumber;
+    fee0: BigNumber;
+    fee1: BigNumber;
+  }
+>;
+
+export class IPairFlashLoan extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -78,12 +89,11 @@ export class IPairFlashLoanRecipient extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IPairFlashLoanRecipientInterface;
+  interface: IPairFlashLoanInterface;
 
   functions: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
+    flashLoan(
+      recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
       userData: BytesLike,
@@ -91,9 +101,8 @@ export class IPairFlashLoanRecipient extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  receiveFlashLoan(
-    token0: string,
-    token1: string,
+  flashLoan(
+    recipient: string,
     amount0: BigNumberish,
     amount1: BigNumberish,
     userData: BytesLike,
@@ -101,9 +110,8 @@ export class IPairFlashLoanRecipient extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
+    flashLoan(
+      recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
       userData: BytesLike,
@@ -111,12 +119,45 @@ export class IPairFlashLoanRecipient extends BaseContract {
     ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "FlashLoan(address,uint256,uint256,uint256,uint256)"(
+      recipient?: string | null,
+      amount0?: null,
+      amount1?: null,
+      fee0?: null,
+      fee1?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        recipient: string;
+        amount0: BigNumber;
+        amount1: BigNumber;
+        fee0: BigNumber;
+        fee1: BigNumber;
+      }
+    >;
+
+    FlashLoan(
+      recipient?: string | null,
+      amount0?: null,
+      amount1?: null,
+      fee0?: null,
+      fee1?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        recipient: string;
+        amount0: BigNumber;
+        amount1: BigNumber;
+        fee0: BigNumber;
+        fee1: BigNumber;
+      }
+    >;
+  };
 
   estimateGas: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
+    flashLoan(
+      recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
       userData: BytesLike,
@@ -125,9 +166,8 @@ export class IPairFlashLoanRecipient extends BaseContract {
   };
 
   populateTransaction: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
+    flashLoan(
+      recipient: string,
       amount0: BigNumberish,
       amount1: BigNumberish,
       userData: BytesLike,

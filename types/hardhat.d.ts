@@ -33,6 +33,22 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Permit__factory>;
     getContractFactory(
+      name: "IFlashLoanRecipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IFlashLoanRecipient__factory>;
+    getContractFactory(
+      name: "IPairFlashLoan",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPairFlashLoan__factory>;
+    getContractFactory(
+      name: "IPairFlashLoanRecipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPairFlashLoanRecipient__factory>;
+    getContractFactory(
+      name: "IPoolFlashLoan",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPoolFlashLoan__factory>;
+    getContractFactory(
       name: "IBackwardFlash",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IBackwardFlash__factory>;
@@ -41,10 +57,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IEpochController__factory>;
     getContractFactory(
-      name: "IFlashLoanRecipient",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IFlashLoanRecipient__factory>;
-    getContractFactory(
       name: "IIsPair",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IIsPair__factory>;
@@ -52,10 +64,6 @@ declare module "hardhat/types/runtime" {
       name: "IOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOracle__factory>;
-    getContractFactory(
-      name: "IPairFlashLoanRecipient",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IPairFlashLoanRecipient__factory>;
     getContractFactory(
       name: "IPairGovernance",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -157,6 +165,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV2Router__factory>;
     getContractFactory(
+      name: "IUniswapV2TypeSwap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IUniswapV2TypeSwap__factory>;
+    getContractFactory(
       name: "IWeightedFormula",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWeightedFormula__factory>;
@@ -192,14 +204,6 @@ declare module "hardhat/types/runtime" {
       name: "IPriceOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPriceOracle__factory>;
-    getContractFactory(
-      name: "IFormulaProvider",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IFormulaProvider__factory>;
-    getContractFactory(
-      name: "IRequiemWeightedMath",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IRequiemWeightedMath__factory>;
     getContractFactory(
       name: "IStakePool",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -280,10 +284,6 @@ declare module "hardhat/types/runtime" {
       name: "MockERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockERC20__factory>;
-    getContractFactory(
-      name: "MockFlashLoanRecipient",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.MockFlashLoanRecipient__factory>;
     getContractFactory(
       name: "WETH9",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -413,6 +413,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV2ERC20__factory>;
     getContractFactory(
+      name: "MockFlashLoanRecipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockFlashLoanRecipient__factory>;
+    getContractFactory(
       name: "RequiemMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemMock__factory>;
@@ -539,6 +543,26 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Permit>;
     getContractAt(
+      name: "IFlashLoanRecipient",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IFlashLoanRecipient>;
+    getContractAt(
+      name: "IPairFlashLoan",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPairFlashLoan>;
+    getContractAt(
+      name: "IPairFlashLoanRecipient",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPairFlashLoanRecipient>;
+    getContractAt(
+      name: "IPoolFlashLoan",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPoolFlashLoan>;
+    getContractAt(
       name: "IBackwardFlash",
       address: string,
       signer?: ethers.Signer
@@ -549,11 +573,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IEpochController>;
     getContractAt(
-      name: "IFlashLoanRecipient",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IFlashLoanRecipient>;
-    getContractAt(
       name: "IIsPair",
       address: string,
       signer?: ethers.Signer
@@ -563,11 +582,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IOracle>;
-    getContractAt(
-      name: "IPairFlashLoanRecipient",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IPairFlashLoanRecipient>;
     getContractAt(
       name: "IPairGovernance",
       address: string,
@@ -694,6 +708,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV2Router>;
     getContractAt(
+      name: "IUniswapV2TypeSwap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IUniswapV2TypeSwap>;
+    getContractAt(
       name: "IWeightedFormula",
       address: string,
       signer?: ethers.Signer
@@ -738,16 +757,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IPriceOracle>;
-    getContractAt(
-      name: "IFormulaProvider",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IFormulaProvider>;
-    getContractAt(
-      name: "IRequiemWeightedMath",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IRequiemWeightedMath>;
     getContractAt(
       name: "IStakePool",
       address: string,
@@ -848,11 +857,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.MockERC20>;
-    getContractAt(
-      name: "MockFlashLoanRecipient",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.MockFlashLoanRecipient>;
     getContractAt(
       name: "WETH9",
       address: string,
@@ -1013,6 +1017,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV2ERC20>;
+    getContractAt(
+      name: "MockFlashLoanRecipient",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockFlashLoanRecipient>;
     getContractAt(
       name: "RequiemMock",
       address: string,

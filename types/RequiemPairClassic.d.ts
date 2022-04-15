@@ -231,7 +231,6 @@ interface RequiemPairClassicInterface extends ethers.utils.Interface {
     "Mint(address,uint256,uint256)": EventFragment;
     "PaidProtocolFee(uint112,uint112)": EventFragment;
     "Swap(address,uint256,uint256,uint256,uint256,address)": EventFragment;
-    "Sync(uint112,uint112,uint112,uint112)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
@@ -240,7 +239,6 @@ interface RequiemPairClassicInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PaidProtocolFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Swap"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Sync"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -284,15 +282,6 @@ export type SwapEvent = TypedEvent<
     amount0Out: BigNumber;
     amount1Out: BigNumber;
     to: string;
-  }
->;
-
-export type SyncEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber, BigNumber] & {
-    reserve0: BigNumber;
-    reserve1: BigNumber;
-    vReserve0: BigNumber;
-    vReserve1: BigNumber;
   }
 >;
 
@@ -947,36 +936,6 @@ export class RequiemPairClassic extends BaseContract {
         amount0Out: BigNumber;
         amount1Out: BigNumber;
         to: string;
-      }
-    >;
-
-    "Sync(uint112,uint112,uint112,uint112)"(
-      reserve0?: null,
-      reserve1?: null,
-      vReserve0?: null,
-      vReserve1?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        reserve0: BigNumber;
-        reserve1: BigNumber;
-        vReserve0: BigNumber;
-        vReserve1: BigNumber;
-      }
-    >;
-
-    Sync(
-      reserve0?: null,
-      reserve1?: null,
-      vReserve0?: null,
-      vReserve1?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber, BigNumber],
-      {
-        reserve0: BigNumber;
-        reserve1: BigNumber;
-        vReserve0: BigNumber;
-        vReserve1: BigNumber;
       }
     >;
 

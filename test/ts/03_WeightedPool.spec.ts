@@ -27,6 +27,7 @@ import {
 	WeightedPool__factory,
 	FeeDistributor__factory,
 	WeightedMathTest__factory,
+	MockFlashLoanRecipient__factory,
 	WETH9__factory
 } from "../../types";
 
@@ -64,6 +65,8 @@ describe('WeightedPool-Test', () => {
 	let router2: Contract
 	let thiefRouter: Contract
 	let weightedMath: Contract
+
+	let fLoanRecipient: Contract
 
 	let pairA_USDC_Contract: Contract
 	let pairDAI_B_Contract: Contract
@@ -525,6 +528,7 @@ describe('WeightedPool-Test', () => {
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
 			1237654, //_fee = 0.123111%
+			237654, //_fee = 0.023111%
 			5e6, //_admin_fee, 50%,
 			feeDistributor.address
 		)
@@ -1375,6 +1379,39 @@ describe('WeightedPool-Test', () => {
 									await swapNew.removeLiquidityOneToken(lpBal.div(10), 3, 0, deadline)
 									await printBals("post withdrawl balances")
 
+								})
+
+
+								it('FlashLoan', async () => {
+									fLoanRecipient = await new MockFlashLoanRecipient__factory(wallet).deploy(swapNew.address)
+									await fLoanRecipient.setRepayInExcess(1)
+									// repay loan = true 
+									await fLoanRecipient.setRepayLoan(1)
+
+									const balanesSwap = await swapNew.getTokenBalances();
+									console.log("BALANCES", balanesSwap)
+
+									console.log("FLOAN trigger repay true")
+									await swapNew.flashLoan(fLoanRecipient.address,
+										[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+										0)
+									// repay loan = true 
+									await fLoanRecipient.setRepayLoan(0)
+									console.log("FLOAN trigger repay false")
+									await expect(
+										swapNew.flashLoan(fLoanRecipient.address,
+											[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+											0)
+									).to.be.revertedWith("insufficient loan fee")
+
+									// repay loan = true & reentrant
+									await fLoanRecipient.setReenter(1)
+									console.log("FLOAN trigger reenter true")
+									await expect(
+										swapNew.flashLoan(fLoanRecipient.address,
+											[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+											0)
+									).to.be.revertedWith("ReentrancyGuard: reentrant call")
 								})
 							})
 						})

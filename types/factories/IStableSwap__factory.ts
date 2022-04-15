@@ -413,29 +413,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "contract IFlashLoanRecipient",
-        name: "recipient",
-        type: "address",
-      },
-      {
-        internalType: "uint256[]",
-        name: "amounts",
-        type: "uint256[]",
-      },
-      {
-        internalType: "bytes",
-        name: "userData",
-        type: "bytes",
-      },
-    ],
-    name: "flashLoan",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "getTokenBalances",
     outputs: [

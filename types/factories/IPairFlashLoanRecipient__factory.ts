@@ -13,6 +13,16 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "contract IERC20",
+        name: "token0",
+        type: "address",
+      },
+      {
+        internalType: "contract IERC20",
+        name: "token1",
+        type: "address",
+      },
+      {
         internalType: "uint256",
         name: "amount0",
         type: "uint256",

@@ -4,8 +4,6 @@ pragma solidity 0.8.13;
 
 import "./ERC20/IERC20.sol";
 
-import "./IFlashLoanRecipient.sol";
-
 // solhint-disable var-name-mixedcase
 
 interface IWeightedSwap {
@@ -26,9 +24,6 @@ interface IWeightedSwap {
 
     event FeeDistributorChanged(address newController);
 
-    event FlashLoan(address recipient, uint256[] amounts, uint256[] feeAmounts);
-
-
     // pool data view functions
 
     function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
@@ -39,13 +34,6 @@ interface IWeightedSwap {
     ) external view returns (uint256, uint256);
 
     function calculateRemoveLiquidityExactIn(uint256 amount) external view returns (uint256[] memory);
-
-
-    function flashLoan(
-        IFlashLoanRecipient recipient,
-        uint256[] memory amounts,
-        bytes memory userData
-    ) external;
 
     function addLiquidityExactIn(
         uint256[] calldata amounts,

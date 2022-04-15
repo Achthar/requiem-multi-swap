@@ -35,7 +35,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "getTokenBalances()": FunctionFragment;
     "getTokenMultipliers()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
-    "initialize(address[],uint8[],uint256[],uint256[],string,string,uint256,uint256,address)": FunctionFragment;
+    "initialize(address[],uint8[],uint256[],uint256[],string,string,uint256,uint256,uint256,address)": FunctionFragment;
     "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,address)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -120,6 +120,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
       BigNumberish[],
       string,
       string,
+      BigNumberish,
       BigNumberish,
       BigNumberish,
       string
@@ -509,6 +510,7 @@ export class WeightedPool extends BaseContract {
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _feeDistributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -567,7 +569,7 @@ export class WeightedPool extends BaseContract {
     setFee(
       newSwapFee: BigNumberish,
       newAdminFee: BigNumberish,
-      newWithdrawFee: BigNumberish,
+      newFlashFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -584,11 +586,12 @@ export class WeightedPool extends BaseContract {
     swapStorage(
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
         lpToken: string;
         nTokens: BigNumber;
         lastInvariant: BigNumber;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
       }
     >;
@@ -676,6 +679,7 @@ export class WeightedPool extends BaseContract {
     lpTokenName: string,
     lpTokenSymbol: string,
     _fee: BigNumberish,
+    _flashFee: BigNumberish,
     _adminFee: BigNumberish,
     _feeDistributor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -734,7 +738,7 @@ export class WeightedPool extends BaseContract {
   setFee(
     newSwapFee: BigNumberish,
     newAdminFee: BigNumberish,
-    newWithdrawFee: BigNumberish,
+    newFlashFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -751,11 +755,12 @@ export class WeightedPool extends BaseContract {
   swapStorage(
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
       lpToken: string;
       nTokens: BigNumber;
       lastInvariant: BigNumber;
       fee: BigNumber;
+      flashFee: BigNumber;
       adminFee: BigNumber;
     }
   >;
@@ -845,6 +850,7 @@ export class WeightedPool extends BaseContract {
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _feeDistributor: string,
       overrides?: CallOverrides
@@ -899,7 +905,7 @@ export class WeightedPool extends BaseContract {
     setFee(
       newSwapFee: BigNumberish,
       newAdminFee: BigNumberish,
-      newWithdrawFee: BigNumberish,
+      newFlashFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -916,11 +922,12 @@ export class WeightedPool extends BaseContract {
     swapStorage(
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
         lpToken: string;
         nTokens: BigNumber;
         lastInvariant: BigNumber;
         fee: BigNumber;
+        flashFee: BigNumber;
         adminFee: BigNumber;
       }
     >;
@@ -1229,6 +1236,7 @@ export class WeightedPool extends BaseContract {
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _feeDistributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1287,7 +1295,7 @@ export class WeightedPool extends BaseContract {
     setFee(
       newSwapFee: BigNumberish,
       newAdminFee: BigNumberish,
-      newWithdrawFee: BigNumberish,
+      newFlashFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1391,6 +1399,7 @@ export class WeightedPool extends BaseContract {
       lpTokenName: string,
       lpTokenSymbol: string,
       _fee: BigNumberish,
+      _flashFee: BigNumberish,
       _adminFee: BigNumberish,
       _feeDistributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1449,7 +1458,7 @@ export class WeightedPool extends BaseContract {
     setFee(
       newSwapFee: BigNumberish,
       newAdminFee: BigNumberish,
-      newWithdrawFee: BigNumberish,
+      newFlashFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

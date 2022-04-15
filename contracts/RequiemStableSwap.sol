@@ -9,7 +9,7 @@ import "./base/OwnerPausable.sol";
 import "./RequiemStableSwapLib.sol";
 import "./interfaces/IRequiemStableSwap.sol";
 import "./interfaces/IRequiemSwap.sol";
-import "./interfaces/IFlashLoanRecipient.sol";
+import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
 using RequiemStableSwapLib for RequiemStableSwapLib.SwapStorage global;
 using SafeERC20 for IERC20 global;

@@ -19,25 +19,22 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface IPairFlashLoanRecipientInterface extends ethers.utils.Interface {
+interface IUniswapV2TypeSwapInterface extends ethers.utils.Interface {
   functions: {
-    "receiveFlashLoan(address,address,uint256,uint256,bytes)": FunctionFragment;
+    "swap(uint256,uint256,address,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "receiveFlashLoan",
-    values: [string, string, BigNumberish, BigNumberish, BytesLike]
+    functionFragment: "swap",
+    values: [BigNumberish, BigNumberish, string, BytesLike]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "receiveFlashLoan",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
 
   events: {};
 }
 
-export class IPairFlashLoanRecipient extends BaseContract {
+export class IUniswapV2TypeSwap extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -78,59 +75,54 @@ export class IPairFlashLoanRecipient extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IPairFlashLoanRecipientInterface;
+  interface: IUniswapV2TypeSwapInterface;
 
   functions: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  receiveFlashLoan(
-    token0: string,
-    token1: string,
-    amount0: BigNumberish,
-    amount1: BigNumberish,
-    userData: BytesLike,
+  swap(
+    amount0Out: BigNumberish,
+    amount1Out: BigNumberish,
+    to: string,
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
   };
 
   filters: {};
 
   estimateGas: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    receiveFlashLoan(
-      token0: string,
-      token1: string,
-      amount0: BigNumberish,
-      amount1: BigNumberish,
-      userData: BytesLike,
+    swap(
+      amount0Out: BigNumberish,
+      amount1Out: BigNumberish,
+      to: string,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
