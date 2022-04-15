@@ -6,7 +6,7 @@ import "./interfaces/IWeightedPairERC20.sol";
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
- abstract contract WeightedPairERC20 is IWeightedPairERC20 {
+abstract contract WeightedPairERC20 is IWeightedPairERC20 {
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
 
@@ -16,6 +16,7 @@ import "./interfaces/IWeightedPairERC20.sol";
     bytes32 public override DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32 public constant override PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+
     mapping(address => uint256) public nonces;
 
     constructor() {
@@ -23,9 +24,26 @@ import "./interfaces/IWeightedPairERC20.sol";
         assembly {
             chainId := chainid()
         }
+        
         DOMAIN_SEPARATOR = keccak256(
-            abi.encode(keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak256(bytes("Requiem Pair Liquidity Provider")), keccak256(bytes("1")), chainId, address(this))
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("Requiem wPair LP")),
+                keccak256(bytes("1")),
+                chainId,
+                address(this)
+            )
         );
+    }
+
+    /** @notice Name of pair */
+    function name() external pure override virtual returns (string memory) {
+        return "Requiem wPair LP";
+    }
+
+    /** @notice Symbol of pair */
+    function symbol() external pure override virtual returns (string memory) {
+        return "REQWP";
     }
 
     function _mint(address to, uint256 value) internal {

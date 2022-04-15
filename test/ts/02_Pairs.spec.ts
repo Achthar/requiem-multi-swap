@@ -28,8 +28,8 @@ import {
 } from "../../types";
 
 
-const TOTAL_SUPPLY = toWei(10000)
-const TEST_AMOUNT = toWei(10)
+const TOTAL_SUPPLY = BigNumber.from('1000000000000000000')
+const TEST_AMOUNT = BigNumber.from(1e9)
 
 describe('RequiemPair-Test', () => {
 	let signers: SignerWithAddress[];
@@ -60,6 +60,7 @@ describe('RequiemPair-Test', () => {
 	let pairDAI_B_Contract: Contract
 	let pairA_B_Contract: Contract
 	let pairB_C_Contract: Contract
+	let pairTest_Contract: Contract
 
 	// specs for pair
 	let tokenWeightA = BigNumber.from(20)
@@ -187,6 +188,21 @@ describe('RequiemPair-Test', () => {
 			wallet.address
 		)
 
+		await new router.createPair(
+			tokenA.address,
+			tokenB.address,
+			parseUnits("1", 18),
+			parseUnits("1", 18),
+			26,
+			swapFee,
+			amplification,
+			wallet.address
+		)
+
+		 const  pairTest = await factory.getPair(tokenA.address, tokenB.address, 26)
+		 pairTest_Contract = await ethers.getContractAt('RequiemPair', pairTest)
+
+
 		const pairA_USDC = await factory.getPair(tokenA.address, tokenUSDC.address, tokenWeightA)
 		pairA_USDC_Contract = await ethers.getContractAt('RequiemPair', pairA_USDC)
 
@@ -208,7 +224,7 @@ describe('RequiemPair-Test', () => {
 		const pair = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
 		pairContract = await ethers.getContractAt('RequiemPair', pair)
 
-		const name = await pairContract.name()
+		let name = await pairContract.name()
 		const symbol = await pairContract.symbol()
 		console.log("Name, Symbol", name, symbol)
 		const amountIn = parseUnits("1", 18)
@@ -383,7 +399,7 @@ describe('RequiemPair-Test', () => {
 
 			it('rejects reentrant', async () => {
 				const callee = await new MockCallee__factory(wallet).deploy(pairA_B_Contract.address)
-			
+
 
 				await callee.setReenter(true);
 
@@ -394,7 +410,7 @@ describe('RequiemPair-Test', () => {
 
 			it('rejects repay insufficient', async () => {
 				const callee = await new MockCallee__factory(wallet).deploy(pairA_B_Contract.address)
-	
+
 				await callee.setRepayInExcess(false);
 				await callee.setReenter(false);
 				await expect(callee.callSwap(1000, 1000)).to.be.revertedWith("REQLP: K")
@@ -404,88 +420,107 @@ describe('RequiemPair-Test', () => {
 
 		})
 
-		// const name = await token.name()
-		// expect(name).to.eq('FireBird Liquidity Provider')
-		// expect(await token.symbol()).to.eq('FLP')
-		// expect(await token.decimals()).to.eq(18)
-		// expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY)
-		// expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY)
-		// expect(await token.DOMAIN_SEPARATOR()).to.eq(
-		// 	keccak256(
-		// 		defaultAbiCoder.encode(
-		// 			['bytes32', 'bytes32', 'bytes32', 'uint256', 'address'],
-		// 			[
-		// 				keccak256(
-		// 					toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
-		// 				),
-		// 				keccak256(toUtf8Bytes(name)),
-		// 				keccak256(toUtf8Bytes('1')),
-		// 				1,
-		// 				token.address
-		// 			]
-		// 		)
-		// 	)
-		// )
-		// expect(await token.PERMIT_TYPEHASH()).to.eq(
-		// 	keccak256(toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)'))
-		// )
+
+		describe('Pair creation data', () => {
+			it('raw data', async () => {
+				console.log("APPROVALS")
+				await tokenA.approve(router.address, ethers.constants.MaxUint256)
+				await tokenB.approve(router.address, ethers.constants.MaxUint256)
+				await tokenC.approve(router.address, ethers.constants.MaxUint256)
+		
+				
+
+
+				name = await pairTest_Contract.name()
+				expect(name).to.eq('Requiem wPair LP')
+				expect(await pairTest_Contract.symbol()).to.eq('RLWP')
+				expect(await pairTest_Contract.decimals()).to.eq(18)
+				expect(await pairTest_Contract.totalSupply()).to.eq(TOTAL_SUPPLY)
+				expect(await pairTest_Contract.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY)
+				expect(await pairTest_Contract.DOMAIN_SEPARATOR()).to.eq(
+					keccak256(
+						defaultAbiCoder.encode(
+							['bytes32', 'bytes32', 'bytes32', 'uint256', 'address'],
+							[
+								keccak256(
+									toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+								),
+								keccak256(toUtf8Bytes(name)),
+								keccak256(toUtf8Bytes('1')),
+								1,
+								pairTest_Contract.address
+							]
+						)
+					)
+				)
+				expect(await pairTest_Contract.PERMIT_TYPEHASH()).to.eq(
+					keccak256(toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)'))
+				)
+			})
+		})
 	})
 
-	// it('approve', async () => {
-	// 	await expect(token.approve(other.address, TEST_AMOUNT))
-	// 		.to.emit(token, 'Approval')
-	// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-	// 	expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-	// })
+	it('approve', async () => {
+		await expect(pairTest_Contract.approve(other.address, TEST_AMOUNT))
+			.to.emit(pairTest_Contract, 'Approval')
+			.withArgs(wallet.address, other.address, TEST_AMOUNT)
+		expect(await pairTest_Contract.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
+	})
 
-	// it('transfer', async () => {
-	// 	await expect(token.transfer(other.address, TEST_AMOUNT))
-	// 		.to.emit(token, 'Transfer')
-	// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-	// 	expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-	// 	expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-	// })
+	it('transfer', async () => {
+		await expect(pairTest_Contract.transfer(other.address, TEST_AMOUNT))
+			.to.emit(pairTest_Contract, 'Transfer')
+			.withArgs(wallet.address, other.address, TEST_AMOUNT)
+		expect(await pairTest_Contract.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
+		expect(await pairTest_Contract.balanceOf(other.address)).to.eq(TEST_AMOUNT)
+	})
 
-	// it('transfer:fail', async () => {
-	// 	await expect(token.transfer(other.address, TOTAL_SUPPLY.add(1))).to.be.reverted // ds-math-sub-underflow
-	// 	await expect(token.connect(other).transfer(wallet.address, 1)).to.be.reverted // ds-math-sub-underflow
-	// })
+	it('transfer:fail', async () => {
+		await expect(pairTest_Contract.transfer(other.address, TOTAL_SUPPLY.add(1))).to.be.reverted // ds-math-sub-underflow
+		await expect(pairTest_Contract.connect(other).transfer(wallet.address, 1)).to.be.reverted // ds-math-sub-underflow
+	})
 
-	// it('transferFrom', async () => {
-	// 	await token.approve(other.address, TEST_AMOUNT)
-	// 	await expect(token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
-	// 		.to.emit(token, 'Transfer')
-	// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-	// 	expect(await token.allowance(wallet.address, other.address)).to.eq(0)
-	// 	expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-	// 	expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-	// })
+	it('transferFrom', async () => {
+		await pairTest_Contract.approve(other.address, TEST_AMOUNT)
+		await expect(pairTest_Contract.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
+			.to.emit(pairTest_Contract, 'Transfer')
+			.withArgs(wallet.address, other.address, TEST_AMOUNT)
+		expect(await pairTest_Contract.allowance(wallet.address, other.address)).to.eq(0)
+		expect(await pairTest_Contract.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
+		expect(await pairTest_Contract.balanceOf(other.address)).to.eq(TEST_AMOUNT)
+	})
 
-	// it('transferFrom:max', async () => {
-	// 	await token.approve(other.address, maxUint256)
-	// 	await expect(token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
-	// 		.to.emit(token, 'Transfer')
-	// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-	// 	expect(await token.allowance(wallet.address, other.address)).to.eq(maxUint256)
-	// 	expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-	// 	expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-	// })
+	it('transferFrom:max', async () => {
+		await pairTest_Contract.approve(other.address, maxUint256)
+		await expect(pairTest_Contract.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
+			.to.emit(pairTest_Contract, 'Transfer')
+			.withArgs(wallet.address, other.address, TEST_AMOUNT)
+		expect(await pairTest_Contract.allowance(wallet.address, other.address)).to.eq(maxUint256)
+		expect(await pairTest_Contract.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
+		expect(await pairTest_Contract.balanceOf(other.address)).to.eq(TEST_AMOUNT)
+	})
 
-	// it('permit', async () => {
-	// 	const nonce = await token.nonces(wallet.address)
-	// 	const deadline = maxUint256
-	// 	const digest = await getApprovalDigest(
-	// 		token,
-	// 		{ owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
-	// 		nonce,
-	// 		deadline
-	// 	)
-	// 	const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(deployWallet.privateKey.slice(2), 'hex'))
+	it('permit', async () => {
 
-	// 	await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
-	// 		.to.emit(token, 'Approval')
-	// 		.withArgs(wallet.address, other.address, TEST_AMOUNT)
-	// 	expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-	// 	expect(await token.nonces(wallet.address)).to.eq(BigNumber.from(1))
-	// })
+		// const pairTest_Contract = await factory.getPair(tokenC.address, tokenB.address, 26)
+		// const pairTest_Contract = await ethers.getContractAt('RequiemPair', pairTest_Contract)
+		console.log("NONCES")
+		const nonce = await pairTest_Contract.nonces(wallet.address)
+		const deadline = maxUint256
+		console.log("DIGEST")
+		const digest = await getApprovalDigest(
+			pairTest_Contract,
+			{ owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
+			nonce,
+			deadline
+		)
+		console.log("D", digest)
+		const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(deployWallet.privateKey.slice(2), 'hex'))
+
+		await expect(pairTest_Contract.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
+			.to.emit(pairTest_Contract, 'Approval')
+			.withArgs(wallet.address, other.address, TEST_AMOUNT)
+		expect(await pairTest_Contract.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
+		expect(await pairTest_Contract.nonces(wallet.address)).to.eq(BigNumber.from(1))
+	})
 })

@@ -23,8 +23,9 @@ dotenv.config();
 
 import { HardhatUserConfig } from 'hardhat/types';
 import { removeConsoleLog } from 'hardhat-preprocessor';
+import { HardhatNetworkAccountsUserConfig } from 'hardhat/types/config';
 
-const accounts = {
+const accounts: HardhatNetworkAccountsUserConfig = {
   mnemonic:
     'test test test test test test test test test test test junk',
   accountsBalance: "990000000000000000000",

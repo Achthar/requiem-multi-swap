@@ -41,6 +41,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     // 1 slot
     // bytes4(keccak256(bytes("transfer(address,uint256)")));
     bytes4 private constant SELECTOR = 0xa9059cbb;
+
     uint32 private tokenWeight1;
     uint32 private swapFee;
     bool private unlocked = true;
@@ -91,16 +92,6 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         _tokenWeight1 = tokenWeight1;
         _swapFee = swapFee;
         _amp = ampBps;
-    }
-
-    /** @notice Name of pair */
-    function name() public pure override returns (string memory) {
-        return "Requiem wPair LP";
-    }
-
-    /** @notice Symbol of pair */
-    function symbol() public pure override returns (string memory) {
-        return "RLWP";
     }
 
     /**

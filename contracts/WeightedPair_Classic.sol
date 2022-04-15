@@ -91,12 +91,12 @@ abstract contract RequiemPair_Classic is ISwap, IWeightedPair, WeightedPairERC20
     }
 
     /** @notice Name of pair */
-    function name() public pure override returns (string memory) {
+    function name() public pure override(WeightedPairERC20, IWeightedPairERC20) returns (string memory) {
         return "Requiem wPair LP";
     }
 
     /** @notice Symbol of pair */
-    function symbol() public pure override returns (string memory) {
+    function symbol() public pure override(WeightedPairERC20, IWeightedPairERC20) returns (string memory) {
         return "RLWP";
     }
 

@@ -7,7 +7,7 @@ import {
 } from 'ethers/lib/utils'
 import {BigNumber, Contract, ContractFactory, Signer, Bytes} from "ethers";
 import { ParamType } from "@ethersproject/abi/src.ts/fragments";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { Artifact } from 'hardhat/types';
 
 const Decimal = require('decimal.js');
@@ -29,7 +29,7 @@ function getDomainSeparator(name: string, tokenAddress: string) {
 				keccak256(toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')),
 				keccak256(toUtf8Bytes(name)),
 				keccak256(toUtf8Bytes('1')),
-				1,
+				network.config.chainId,
 				tokenAddress
 			]
 		)
