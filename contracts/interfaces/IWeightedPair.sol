@@ -48,15 +48,6 @@ interface IWeightedPair is IWeightedPairERC20 {
 
     function setSwapParams(uint32, uint32) external;
 
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data
-    ) external;
-
-    function skim(address to) external;
-
     function sync() external;
 
     function initialize(

@@ -22,7 +22,6 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface RequiemPairFactoryInterface extends ethers.utils.Interface {
   functions: {
     "INIT_CODE_HASH()": FunctionFragment;
-    "allPairs(uint256)": FunctionFragment;
     "allPairsLength()": FunctionFragment;
     "createPair(address,address,uint32,uint32,uint32)": FunctionFragment;
     "feeTo()": FunctionFragment;
@@ -32,25 +31,17 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     "getPairs(address,address)": FunctionFragment;
     "getParameters(address)": FunctionFragment;
     "isPair(address)": FunctionFragment;
-    "owner()": FunctionFragment;
     "pairGovernance()": FunctionFragment;
     "protocolFee()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "setFeeTo(address)": FunctionFragment;
-    "setFeeToSetter(address)": FunctionFragment;
-    "setProtocolFee(uint256)": FunctionFragment;
+    "setFeeParameters(address,address,uint256)": FunctionFragment;
+    "setGovernance(address)": FunctionFragment;
     "setSwapParams(address,uint32,uint32)": FunctionFragment;
     "swapFeeGovernance()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "INIT_CODE_HASH",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allPairs",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "allPairsLength",
@@ -79,7 +70,6 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "isPair", values: [string]): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pairGovernance",
     values?: undefined
@@ -89,17 +79,12 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
+    functionFragment: "setFeeParameters",
+    values: [string, string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "setFeeTo", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "setFeeToSetter",
+    functionFragment: "setGovernance",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setProtocolFee",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapParams",
@@ -109,16 +94,11 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     functionFragment: "swapFeeGovernance",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "INIT_CODE_HASH",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "allPairs", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "allPairsLength",
     data: BytesLike
@@ -137,7 +117,6 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "isPair", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "pairGovernance",
     data: BytesLike
@@ -147,16 +126,11 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "setFeeTo", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setFeeToSetter",
+    functionFragment: "setFeeParameters",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setProtocolFee",
+    functionFragment: "setGovernance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -167,23 +141,13 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     functionFragment: "swapFeeGovernance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
 
   events: {
-    "OwnershipTransferred(address,address)": EventFragment;
     "PairCreated(address,address,address,uint32,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PairCreated"): EventFragment;
 }
-
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string] & { previousOwner: string; newOwner: string }
->;
 
 export type PairCreatedEvent = TypedEvent<
   [string, string, string, number, BigNumber] & {
@@ -241,8 +205,6 @@ export class RequiemPairFactory extends BaseContract {
   functions: {
     INIT_CODE_HASH(overrides?: CallOverrides): Promise<[string]>;
 
-    allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
-
     allPairsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     createPair(
@@ -287,28 +249,19 @@ export class RequiemPairFactory extends BaseContract {
 
     isPair(b: string, overrides?: CallOverrides): Promise<[boolean]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
     pairGovernance(overrides?: CallOverrides): Promise<[string]>;
 
     protocolFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setFeeTo(
-      _feeTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setFeeToSetter(
+    setFeeParameters(
       _feeToSetter: string,
+      _feeTo: string,
+      _protocolFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setProtocolFee(
-      _protocolFee: BigNumberish,
+    setGovernance(
+      _newGov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -320,16 +273,9 @@ export class RequiemPairFactory extends BaseContract {
     ): Promise<ContractTransaction>;
 
     swapFeeGovernance(overrides?: CallOverrides): Promise<[string]>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
 
   INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
-
-  allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -375,28 +321,19 @@ export class RequiemPairFactory extends BaseContract {
 
   isPair(b: string, overrides?: CallOverrides): Promise<boolean>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
   pairGovernance(overrides?: CallOverrides): Promise<string>;
 
   protocolFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setFeeTo(
-    _feeTo: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setFeeToSetter(
+  setFeeParameters(
     _feeToSetter: string,
+    _feeTo: string,
+    _protocolFee: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setProtocolFee(
-    _protocolFee: BigNumberish,
+  setGovernance(
+    _newGov: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -409,15 +346,8 @@ export class RequiemPairFactory extends BaseContract {
 
   swapFeeGovernance(overrides?: CallOverrides): Promise<string>;
 
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     INIT_CODE_HASH(overrides?: CallOverrides): Promise<string>;
-
-    allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -463,25 +393,18 @@ export class RequiemPairFactory extends BaseContract {
 
     isPair(b: string, overrides?: CallOverrides): Promise<boolean>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
     pairGovernance(overrides?: CallOverrides): Promise<string>;
 
     protocolFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    setFeeTo(_feeTo: string, overrides?: CallOverrides): Promise<void>;
-
-    setFeeToSetter(
+    setFeeParameters(
       _feeToSetter: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setProtocolFee(
+      _feeTo: string,
       _protocolFee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setGovernance(_newGov: string, overrides?: CallOverrides): Promise<void>;
 
     setSwapParams(
       _pair: string,
@@ -491,30 +414,9 @@ export class RequiemPairFactory extends BaseContract {
     ): Promise<void>;
 
     swapFeeGovernance(overrides?: CallOverrides): Promise<string>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
     "PairCreated(address,address,address,uint32,uint256)"(
       token0?: string | null,
       token1?: string | null,
@@ -553,8 +455,6 @@ export class RequiemPairFactory extends BaseContract {
   estimateGas: {
     INIT_CODE_HASH(overrides?: CallOverrides): Promise<BigNumber>;
 
-    allPairs(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     createPair(
@@ -589,28 +489,19 @@ export class RequiemPairFactory extends BaseContract {
 
     isPair(b: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
     pairGovernance(overrides?: CallOverrides): Promise<BigNumber>;
 
     protocolFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setFeeTo(
-      _feeTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setFeeToSetter(
+    setFeeParameters(
       _feeToSetter: string,
+      _feeTo: string,
+      _protocolFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setProtocolFee(
-      _protocolFee: BigNumberish,
+    setGovernance(
+      _newGov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -622,20 +513,10 @@ export class RequiemPairFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     swapFeeGovernance(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     INIT_CODE_HASH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    allPairs(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     allPairsLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -674,28 +555,19 @@ export class RequiemPairFactory extends BaseContract {
 
     isPair(b: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     pairGovernance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     protocolFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFeeTo(
-      _feeTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFeeToSetter(
+    setFeeParameters(
       _feeToSetter: string,
+      _feeTo: string,
+      _protocolFee: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setProtocolFee(
-      _protocolFee: BigNumberish,
+    setGovernance(
+      _newGov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -707,10 +579,5 @@ export class RequiemPairFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     swapFeeGovernance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
   };
 }

@@ -953,7 +953,7 @@ describe('WeightedPool-Test', () => {
 											maxUint256,
 											wallet.address,
 											1
-										)).to.be.revertedWith("REQLP: K")
+										)).to.be.revertedWith("insufficient in")
 										console.log("THIEF DONE")
 									})
 
@@ -970,7 +970,7 @@ describe('WeightedPool-Test', () => {
 											maxUint256,
 											wallet.address,
 											1
-										)).to.be.revertedWith("REQLP: K")
+										)).to.be.revertedWith("insufficient in")
 										console.log("THIEF DONE")
 									})
 								})

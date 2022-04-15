@@ -19,8 +19,6 @@ interface IWeightedPairFactory {
         uint32 tokenWeightA
     ) external view returns (address pair);
 
-    function allPairs(uint256) external view returns (address pair);
-
     function isPair(address) external view returns (bool);
 
     function allPairsLength() external view returns (uint256);
@@ -43,9 +41,9 @@ interface IWeightedPairFactory {
             uint32 amp
         );
 
-    function setFeeTo(address) external;
-
-    function setFeeToSetter(address) external;
-
-    function setProtocolFee(uint256) external;
+    function setFeeParameters(
+        address,
+        address,
+        uint256
+    ) external;
 }

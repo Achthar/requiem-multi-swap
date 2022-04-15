@@ -53,7 +53,7 @@ contract SwapRouter is ISwapRouter {
             uint256 amountOut = amounts[i + 1];
             (uint256 amount0Out, uint256 amount1Out, address output) = input == token0 ? (uint256(0), amountOut, pairV2.token1()) : (amountOut, uint256(0), token0);
             address to = i < path.length - 1 ? path[i + 1] : _to;
-            pairV2.swap(amount0Out, amount1Out, to, new bytes(0));
+            // pairV2.swap(amount0Out, amount1Out, to, new bytes(0));
             emit Exchange(address(pairV2), amountOut, output);
             input = output;
         }
@@ -234,7 +234,7 @@ contract SwapRouter is ISwapRouter {
         address token0 = pairV2.token0();
 
         (uint256 amount0Out, uint256 amount1Out, address output) = tokenIn == token0 ? (uint256(0), targetOutAmount, pairV2.token1()) : (targetOutAmount, uint256(0), token0);
-        pairV2.swap(amount0Out, amount1Out, address(this), new bytes(0));
+        // pairV2.swap(amount0Out, amount1Out, address(this), new bytes(0));
 
         emit Exchange(pair, targetOutAmount, output);
     }

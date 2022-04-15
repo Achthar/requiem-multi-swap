@@ -48,25 +48,6 @@ const _abi = [
     type: "event",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "allPairs",
-    outputs: [
-      {
-        internalType: "address",
-        name: "pair",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "allPairsLength",
     outputs: [
@@ -259,34 +240,18 @@ const _abi = [
         name: "",
         type: "address",
       },
-    ],
-    name: "setFeeTo",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
       {
         internalType: "address",
         name: "",
         type: "address",
       },
-    ],
-    name: "setFeeToSetter",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
       },
     ],
-    name: "setProtocolFee",
+    name: "setFeeParameters",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

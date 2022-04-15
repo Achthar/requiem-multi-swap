@@ -4,7 +4,10 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { IWeightedPair, IWeightedPairInterface } from "../IWeightedPair";
+import type {
+  RequiemPairClassic,
+  RequiemPairClassicInterface,
+} from "../RequiemPairClassic";
 
 const _abi = [
   {
@@ -229,7 +232,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -242,19 +245,19 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
-        name: "owner",
+        name: "",
         type: "address",
       },
       {
         internalType: "address",
-        name: "spender",
+        name: "",
         type: "address",
       },
     ],
@@ -297,7 +300,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "owner",
+        name: "",
         type: "address",
       },
     ],
@@ -337,6 +340,64 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    name: "calculateSwapGivenIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    name: "calculateSwapGivenOut",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "decimals",
     outputs: [
@@ -346,12 +407,25 @@ const _abi = [
         type: "uint8",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function",
   },
   {
     inputs: [],
     name: "factory",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "formula",
     outputs: [
       {
         internalType: "address",
@@ -447,17 +521,17 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "_token0",
         type: "address",
       },
       {
         internalType: "address",
-        name: "",
+        name: "_token1",
         type: "address",
       },
       {
         internalType: "uint32",
-        name: "",
+        name: "_tokenWeight0",
         type: "uint32",
       },
     ],
@@ -495,14 +569,14 @@ const _abi = [
         type: "string",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
-        name: "owner",
+        name: "",
         type: "address",
       },
     ],
@@ -515,6 +589,68 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "onSwapGivenIn",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "onSwapGivenOut",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -564,16 +700,57 @@ const _abi = [
     inputs: [
       {
         internalType: "uint32",
-        name: "",
+        name: "_newSwapFee",
         type: "uint32",
       },
       {
         internalType: "uint32",
-        name: "",
+        name: "_newAmp",
         type: "uint32",
       },
     ],
     name: "setSwapParams",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "skim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount0Out",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "amount1Out",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes",
+      },
+    ],
+    name: "swap",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -588,7 +765,7 @@ const _abi = [
         type: "string",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -692,15 +869,15 @@ const _abi = [
   },
 ];
 
-export class IWeightedPair__factory {
+export class RequiemPairClassic__factory {
   static readonly abi = _abi;
-  static createInterface(): IWeightedPairInterface {
-    return new utils.Interface(_abi) as IWeightedPairInterface;
+  static createInterface(): RequiemPairClassicInterface {
+    return new utils.Interface(_abi) as RequiemPairClassicInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IWeightedPair {
-    return new Contract(address, _abi, signerOrProvider) as IWeightedPair;
+  ): RequiemPairClassic {
+    return new Contract(address, _abi, signerOrProvider) as RequiemPairClassic;
   }
 }

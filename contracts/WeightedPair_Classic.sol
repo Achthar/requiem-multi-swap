@@ -11,23 +11,14 @@ import "./WeightedPairERC20.sol";
 import "./libraries/Math.sol";
 import "./libraries/TransferHelper.sol";
 import "./libraries/UQ112x112.sol";
-// import "./libraries/SafeERC20.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./interfaces/ERC20/IERC20Metadata.sol";
-
-import "./interfaces/IPairFlashLoanRecipient.sol";
+import "./interfaces/IRequiemCallee.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls, max-states-count
 
-// using SafeERC20 for IERC20 global;
-using UQ112x112 for uint224 global;
-
-contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
-
-    /**
-     * @dev Emitted for each individual flash loan performed by `flashLoan`.
-     */
-    event FlashLoan(IPairFlashLoanRecipient indexed recipient, uint256 amount0, uint256 amount1, uint256 fee0, uint256 fee1);
+abstract contract RequiemPair_Classic is ISwap, IWeightedPair, WeightedPairERC20 {
+    using UQ112x112 for uint224;
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
 
@@ -69,7 +60,7 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
     // ===== views =====
 
     /** @notice gets bot reserves and virtual reserves */
-    function getReserves() public view override returns (ReserveData memory reserveData) {
+    function getReserves() public view returns (ReserveData memory reserveData) {
         reserveData.reserve0 = reserve0;
         reserveData.reserve1 = reserve1;
         reserveData.vReserve0 = vReserve0;
@@ -145,6 +136,7 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
         token1 = _token1;
         tokenWeight0 = _tokenWeight0;
         tokenWeight1 = 100 - tokenWeight0;
+        swapFee = 10; // default fee is 10bps
         formula = IWeightedPairFactory(factory).formula();
     }
 
@@ -255,6 +247,22 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
+    /** @notice this low-level function should be called from a contract which performs important safety checks
+     * works best with using the calculation methods implemented in this contract
+     * @param amount0Out token0 amount out
+     * @param amount1Out token1 amount out
+     * @param to recipient
+     * @param callData info for flash swap exeution
+     */
+    function swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes calldata callData
+    ) external lock {
+        _swap(amount0Out, amount1Out, to, callData);
+    }
+
     /**
      * @notice Implementation of Requiem Swap interface - Can be used to swap tokens with this pair
      * @param tokenIn input token
@@ -287,6 +295,14 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
             : (vReserve1, vReserve0, tokenWeight1, tokenWeight0);
 
         return IWeightedFormula(formula).getAmountIn(amountOut, vReserveIn, vReserveOut, tokenWeightIn, tokenWeightOut, swapFee);
+    }
+
+    /** @notice force balances to match reserves */
+    function skim(address to) external lock {
+        address _token0 = token0; // gas savings
+        address _token1 = token1; // gas savings
+        _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)) - reserve0);
+        _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)) - reserve1);
     }
 
     /** @notice force reserves to match balances */
@@ -392,52 +408,6 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
         
     }
 
-
-      /**
-     * @notice swap function of pair - this low-level function should be called from a contract which performs important safety checks
-     * - The function assumes that the correct amount (e.g. using calculateSwapGivenIn) has been sent to this pair already
-     * - Amounts are sent to the user and sanity checks are done afterwards (e.g. to ensure that the invariant is unchanged)
-     * @param recipient token0 output amount
-     * @param amount0 token1 output amount
-     * @param amount1 reveiver address
-     * @param userData flash swap data
-     */
-    function pairFlashLoan(
-        IPairFlashLoanRecipient recipient,
-        uint256 amount0,
-        uint256 amount1,
-        bytes memory userData
-    ) external lock {
-        require(amount0 > 0 || amount1 > 0, "Insufficient loan");
-
-        uint256 fee0 = amount0 * swapFee / 50000;
-        uint256 fee1 = amount1 * swapFee / 50000;
-
-        require(reserve0 >= amount0 && reserve1 >= amount1 , "pre balances");
-
-        _safeTransfer(token0, address(recipient), amount0);
-        _safeTransfer(token0, address(recipient), amount1);
-        
-        recipient.receiveFlashLoan(amount0, amount1, userData);
-
-        // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
-        // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
-        uint256 postLoanBalance0 = IERC20(token0).balanceOf(address(this));
-        uint256 postLoanBalance1 = IERC20(token1).balanceOf(address(this));
-
-        require(postLoanBalance0 >= reserve0 && postLoanBalance1 >= reserve1, "post balances");
-
-        collectedFee0 = uint112(uint256(collectedFee0) + fee0);
-        collectedFee1 = uint112(uint256(collectedFee1) + fee1);
-
-        require(postLoanBalance0 - reserve0 >= fee0 && postLoanBalance1 - reserve1 >= fee1 , "loan fee");
-
-        reserve0 = uint112(postLoanBalance0);
-        reserve1 = uint112(postLoanBalance1);
-
-        emit FlashLoan(recipient, amount0, amount1, fee0, fee1);
-    }
-
     /**
      * @notice calculates input amount for given output and executes the respective trade
      * calling this one only makes sense if a single trade is supposd to be executed in the tx
@@ -452,76 +422,69 @@ contract RequiemPair is ISwap, IWeightedPair, WeightedPairERC20 {
         uint256 amountOut,
         address to
     ) external override lock {
-         bool token0In = tokenIn == token0;
+        (uint256 amount0Out, uint256 amount1Out) = token0 == tokenIn ? (uint256(0), amountOut) : (amountOut, uint256(0));
+        _swap(amount0Out, amount1Out, to, new bytes(0));
+    }
 
-        // required check for token validity
-        require(token0In || tokenIn == token1, "token");
+    /**
+     * @notice swap function of pair - this low-level function should be called from a contract which performs important safety checks
+     * - The function assumes that the correct amount (e.g. using calculateSwapGivenIn) has been sent to this pair already
+     * - Amounts are sent to the user and sanity checks are done afterwards (e.g. to ensure that the invariant is unchanged)
+     * @param amount0Out token0 output amount
+     * @param amount1Out token1 output amount
+     * @param to reveiver address
+     * @param data flash swap data
+     */
+    function _swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes memory data
+    ) internal returns (uint256) {
+        require(amount0Out > 0 || amount1Out > 0, "REQLP: IOA");
+        ReserveData memory reserveData = getReserves(); // gas savings
+        require(amount0Out < reserveData.reserve0 && amount1Out < reserveData.reserve1, "REQLP: IL");
 
-        // fetch uint256 reserves
-        ReserveData memory reserveData = getReserves();
-
-        //initialized data for new reserves
         ReserveData memory newReserveData;
+        {
+            // scope for _token{0,1}, avoids stack too deep errors
+            address _token0 = token0;
+            address _token1 = token1;
+            require(to != _token0 && to != _token1, "REQLP: IT");
+            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            if (data.length > 0) IRequiemCallee(to).requiemCall(msg.sender, amount0Out, amount1Out, data); // flash swap
+            newReserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
+            newReserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
 
-        // fetch the actual in balance of the input token
-        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
-        
-        if (token0In) {
-            // calculate input amount
-            uint256 amountIn = IWeightedFormula(formula).getAmountIn(
-                amountOut, 
-                reserveData.vReserve0, 
-                reserveData.vReserve1, 
-                tokenWeight0, 
-                tokenWeight1, 
-                swapFee);
-
-            // handle fee
-            uint256 amount0InFee = (amountIn * 10000 / (10000 - swapFee) + 1) - amountIn;
-            collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
-
-            // transfer token amount
-            _safeTransfer(token1, to, amountOut);
-
-            // update reserves
-            newReserveData.reserve0 = balanceIn;
-            newReserveData.reserve1 = IERC20(token1).balanceOf(address(this));
-            require(balanceIn >=  amountIn  + reserve0, "insufficient in");
-
-            emit Swap(msg.sender, amountIn, 0, 0, amountOut, to);
-
-        } else { // case token1 is inToken
-            // calculate amount in
-            uint256 amountIn = IWeightedFormula(formula).getAmountIn(
-                amountOut, 
-                reserveData.vReserve1, 
-                reserveData.vReserve0, 
-                tokenWeight1, 
-                tokenWeight0, 
-                swapFee);
-
-            // handle fee
-            uint256 amount1InFee = (amountIn * 10000/ (10000 - swapFee) + 1) - amountIn;
-            collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
-            newReserveData.reserve1 = balanceIn;
-
-            // transfer token amount
-            _safeTransfer(token0, to, amountOut);
-
-            // update reserves
-            newReserveData.reserve1 = balanceIn;
-            newReserveData.reserve0 = IERC20(token0).balanceOf(address(this));
-            
-            require(balanceIn >=  amountIn  + reserve1, "insufficient in");
-
-            emit Swap(msg.sender, 0, amountIn, amountOut, 0, to);
-
+            newReserveData.vReserve0 = reserveData.vReserve0 + newReserveData.reserve0 - reserveData.reserve0;
+            newReserveData.vReserve1 = reserveData.vReserve1 + newReserveData.reserve1 - reserveData.reserve1;
         }
+        uint256 amount0In = newReserveData.reserve0 > reserveData.reserve0 - amount0Out ? newReserveData.reserve0 - (reserveData.reserve0 - amount0Out) : 0;
+        uint256 amount1In = newReserveData.reserve1 > reserveData.reserve1 - amount1Out ? newReserveData.reserve1 - (reserveData.reserve1 - amount1Out) : 0;
 
-        // update virtual reserves
-        newReserveData.vReserve0 = reserveData.vReserve0 + newReserveData.reserve0 - reserveData.reserve0;
-        newReserveData.vReserve1 = reserveData.vReserve1 + newReserveData.reserve1 - reserveData.reserve1;
+        require(amount0In > 0 || amount1In > 0, "REQLP: IIA");
+
+        uint256 balance0Adjusted = newReserveData.vReserve0 * 10000;
+        uint256 balance1Adjusted = newReserveData.vReserve1 * 10000;
+
+        // fee handling
+        if (amount0In > 0) {
+            uint256 amount0InFee = amount0In * swapFee;
+            balance0Adjusted -= amount0InFee;
+            collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
+        }
+        if (amount1In > 0) {
+            uint256 amount1InFee = amount1In * swapFee;
+            balance1Adjusted -= amount1InFee;
+            collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
+        }
+        // invariant check
+        require(IWeightedFormula(formula).ensureConstantValue(reserveData.vReserve0 * 10000, reserveData.vReserve1 * 10000, balance0Adjusted, balance1Adjusted, tokenWeight0), "REQLP: K");
+
         _update(newReserveData);
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        return amount0Out > 0 ? amount0Out : amount1Out;
     }
 
     /**

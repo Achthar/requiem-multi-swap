@@ -13,18 +13,39 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
         internalType: "uint256",
         name: "outAmount",
         type: "uint256",
       },
       {
-        internalType: "address[]",
-        name: "swaps",
-        type: "address[]",
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "swapdata",
+        type: "bytes",
       },
     ],
     name: "swapGivenOutFlash",
-    outputs: [],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },

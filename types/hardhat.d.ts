@@ -53,6 +53,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOracle__factory>;
     getContractFactory(
+      name: "IPairFlashLoanRecipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPairFlashLoanRecipient__factory>;
+    getContractFactory(
       name: "IPairGovernance",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPairGovernance__factory>;
@@ -477,6 +481,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WeightedFormula__factory>;
     getContractFactory(
+      name: "RequiemPairClassic",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.RequiemPairClassic__factory>;
+    getContractFactory(
       name: "RequiemPair",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemPair__factory>;
@@ -555,6 +563,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IOracle>;
+    getContractAt(
+      name: "IPairFlashLoanRecipient",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPairFlashLoanRecipient>;
     getContractAt(
       name: "IPairGovernance",
       address: string,
@@ -1085,6 +1098,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.WeightedFormula>;
+    getContractAt(
+      name: "RequiemPairClassic",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.RequiemPairClassic>;
     getContractAt(
       name: "RequiemPair",
       address: string,

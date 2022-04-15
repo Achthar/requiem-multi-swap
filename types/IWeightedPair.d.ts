@@ -39,8 +39,6 @@ interface IWeightedPairInterface extends ethers.utils.Interface {
     "nonces(address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "setSwapParams(uint32,uint32)": FunctionFragment;
-    "skim(address)": FunctionFragment;
-    "swap(uint256,uint256,address,bytes)": FunctionFragment;
     "symbol()": FunctionFragment;
     "sync()": FunctionFragment;
     "token0()": FunctionFragment;
@@ -109,11 +107,6 @@ interface IWeightedPairInterface extends ethers.utils.Interface {
     functionFragment: "setSwapParams",
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "skim", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "swap",
-    values: [BigNumberish, BigNumberish, string, BytesLike]
-  ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "sync", values?: undefined): string;
   encodeFunctionData(functionFragment: "token0", values?: undefined): string;
@@ -170,8 +163,6 @@ interface IWeightedPairInterface extends ethers.utils.Interface {
     functionFragment: "setSwapParams",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "skim", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sync", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
@@ -407,19 +398,6 @@ export class IWeightedPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    skim(
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
     sync(
@@ -539,19 +517,6 @@ export class IWeightedPair extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  skim(
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  swap(
-    amount0Out: BigNumberish,
-    amount1Out: BigNumberish,
-    to: string,
-    data: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   symbol(overrides?: CallOverrides): Promise<string>;
 
   sync(
@@ -667,16 +632,6 @@ export class IWeightedPair extends BaseContract {
     setSwapParams(
       arg0: BigNumberish,
       arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    skim(to: string, overrides?: CallOverrides): Promise<void>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -933,19 +888,6 @@ export class IWeightedPair extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    skim(
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
     sync(
@@ -1044,19 +986,6 @@ export class IWeightedPair extends BaseContract {
     setSwapParams(
       arg0: BigNumberish,
       arg1: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    skim(
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    swap(
-      amount0Out: BigNumberish,
-      amount1Out: BigNumberish,
-      to: string,
-      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

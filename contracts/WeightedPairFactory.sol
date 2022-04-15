@@ -4,12 +4,12 @@ pragma solidity ^0.8.13;
 
 import "./interfaces/IWeightedPairFactory.sol";
 import "./libraries/EnumerableSet.sol";
-import "./libraries/Ownable.sol";
+// import "./libraries/Ownable.sol";
 import "./WeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
-contract RequiemPairFactory is IWeightedPairFactory, Ownable {
+contract RequiemPairFactory is IWeightedPairFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     address public feeTo;
@@ -17,15 +17,14 @@ contract RequiemPairFactory is IWeightedPairFactory, Ownable {
     uint256 public protocolFee;
     address public feeToSetter;
     address public swapFeeGovernance;
+    address public pairGovernance;
     bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(RequiemPair).creationCode));
 
     mapping(bytes32 => address) private _pairSalts;
-    address[] public allPairs;
+    uint256 private _pairCount;
     mapping(address => bool) private _pairs;
 
     mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
-
-    address public pairGovernance;
 
     constructor(
         address _feeToSetter,
@@ -43,7 +42,7 @@ contract RequiemPairFactory is IWeightedPairFactory, Ownable {
     }
 
     function allPairsLength() external view returns (uint256) {
-        return allPairs.length;
+        return _pairCount;
     }
 
     function getPair(
@@ -90,37 +89,25 @@ contract RequiemPairFactory is IWeightedPairFactory, Ownable {
         tokenPairs[IERC20(token1)][IERC20(token0)].add(pair);
 
         _pairSalts[salt] = address(pair);
-        allPairs.push(pair);
+        _pairCount += 1;
         _pairs[address(pair)] = true;
-        emit PairCreated(token0, token1, pair, tokenWeight0, allPairs.length);
-    }
-
-    /**
-     * @notice Sets receiver of fees
-     * @param _feeTo receiver
-     */
-    function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeToSetter, "RLP: F");
-        feeTo = _feeTo;
-    }
-
-    /**
-     * @notice Sets admin which can determine the address to which fees are sent
-     * @param _feeToSetter admin
-     */
-    function setFeeToSetter(address _feeToSetter) external {
-        require(msg.sender == feeToSetter, "RLP: F");
-        feeToSetter = _feeToSetter;
+        emit PairCreated(token0, token1, pair, tokenWeight0, _pairCount);
     }
 
     /**
      * @notice Sets the protocol fee
      * @param _protocolFee new protocol fee
      */
-    function setProtocolFee(uint256 _protocolFee) external {
+    function setFeeParameters(
+        address _feeToSetter,
+        address _feeTo,
+        uint256 _protocolFee
+    ) external {
         require(msg.sender == feeToSetter, "RLP: F");
         require(_protocolFee == 0 || (_protocolFee >= 10000 && _protocolFee <= 100000), "RLP: IPF");
         protocolFee = _protocolFee;
+        feeToSetter = _feeToSetter;
+        feeTo = _feeTo;
     }
 
     function getParameters(address pair)
@@ -135,7 +122,7 @@ contract RequiemPairFactory is IWeightedPairFactory, Ownable {
     {
         if (_pairs[pair]) {
             (tokenWeight0, tokenWeight1, swapFee, amp) = IWeightedPair(pair).getParameters();
-        } 
+        }
     }
 
     /**
@@ -144,11 +131,11 @@ contract RequiemPairFactory is IWeightedPairFactory, Ownable {
      * @param token1 second token
      * @return _tokenPairs array of deployed pairs
      */
-    function getPairs(IERC20 token0, IERC20 token1) external view returns (address[] memory _tokenPairs) {
-        uint256 length = tokenPairs[token0][token1].length();
+    function getPairs(address token0, address token1) external view returns (address[] memory _tokenPairs) {
+        uint256 length = tokenPairs[IERC20(token0)][IERC20(token1)].length();
         _tokenPairs = new address[](length);
         for (uint256 i = 0; i < length; i++) {
-            _tokenPairs[i] = tokenPairs[token0][token1].at(i);
+            _tokenPairs[i] = tokenPairs[IERC20(token0)][IERC20(token1)].at(i);
         }
     }
 
@@ -163,10 +150,15 @@ contract RequiemPairFactory is IWeightedPairFactory, Ownable {
         uint32 _newSwapFee,
         uint32 _amp
     ) external {
-        require(msg.sender == pairGovernance || msg.sender == owner(), "unauthorized");
+        require(msg.sender == pairGovernance, "unauthorized");
         // 0.01% - 5% fee range for swapFee and amplification parameter has to be >1
         require(_newSwapFee >= 0 && _newSwapFee <= 500 && _amp >= 10000, "RLP: ISF");
         IWeightedPair(_pair).setSwapParams(_newSwapFee, _amp);
         IWeightedPair(_pair).sync();
+    }
+
+    function setGovernance(address _newGov) external {
+        require(msg.sender == pairGovernance, "unauthorized");
+        pairGovernance = _newGov;
     }
 }
