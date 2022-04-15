@@ -944,40 +944,6 @@ describe('WeightedPool-Test', () => {
 
 
 								})
-
-								describe('Weighted PAIR-Resists sent too little', () => {
-									it('PAIR Throws errors low dec to high', async () => {
-										tokens = [tokenUSDC.address, tokenA.address]
-										console.log("THIEFPAIR")
-										let __amountOut = BigNumber.from('1234567893211123132')
-										await expect(thiefRouter.onSwapTokensForExactTokens(
-											[pairA_USDC_Contract2.address],
-											tokens,
-											__amountOut,
-											maxUint256,
-											wallet.address,
-											1
-										)).to.be.revertedWith("insufficient in")
-										console.log("THIEF DONE")
-									})
-
-									it('PAIR Throws errors high dec to low', async () => {
-
-										await tokenA.approve(thiefRouter.address, ethers.constants.MaxUint256)
-										tokens = [tokenA.address, tokenUSDC.address]
-										console.log("THIEFPAIR")
-										let __amountOut = BigNumber.from('1234567832')
-										await expect(thiefRouter.onSwapTokensForExactTokens(
-											[pairA_USDC_Contract2.address],
-											tokens,
-											__amountOut,
-											maxUint256,
-											wallet.address,
-											1
-										)).to.be.revertedWith("insufficient in")
-										console.log("THIEF DONE")
-									})
-								})
 							})
 
 

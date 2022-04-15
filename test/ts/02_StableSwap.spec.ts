@@ -61,19 +61,15 @@ describe('StableSwap-Test', () => {
 
 	let weth: Contract
 	let formula: Contract
-	let factory: Contract
 	let factory2: Contract
 	let feeDistributor: Contract
 	let router2: Contract
 	let thiefRouter: Contract
 
-	let pairA_USDC_Contract: Contract
-	let pairDAI_B_Contract: Contract
+
 	let pairA_USDC_Contract2: Contract
 	let pairDAI_B_Contract2: Contract
-	let pairA_B_Contract: Contract
 	let pairA_B_Contract2: Contract
-	let pairB_C_Contract: Contract
 	let pairB_C_Contract2: Contract
 
 	// specs for pair
@@ -131,7 +127,6 @@ describe('StableSwap-Test', () => {
 
 		weth = await new WETH9__factory(wallet).deploy()
 		formula = await new WeightedFormula__factory(wallet).deploy()
-		factory = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
 		factory2 = await new RequiemPairFactory__factory(wallet).deploy(wallet.address, formula.address, wallet.address)
 		router2 = await new SwapRouter__factory(wallet).deploy(factory2.address, weth.address)
 
