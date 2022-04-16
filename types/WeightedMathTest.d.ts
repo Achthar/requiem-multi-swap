@@ -20,16 +20,202 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface WeightedMathTestInterface extends ethers.utils.Interface {
   functions: {
+    "_MAX_INVARIANT_RATIO()": FunctionFragment;
+    "_MAX_IN_RATIO()": FunctionFragment;
+    "_MAX_OUT_RATIO()": FunctionFragment;
+    "_MAX_WEIGHTED_TOKENS()": FunctionFragment;
+    "_MIN_INVARIANT_RATIO()": FunctionFragment;
+    "_MIN_WEIGHT()": FunctionFragment;
+    "_calcAllTokensInGivenExactLpOut(uint256[],uint256,uint256)": FunctionFragment;
+    "_calcDueTokenProtocolSwapFeeAmount(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "_calcInGivenOut(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "_calcLpInGivenExactTokensOut(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
+    "_calcLpOutGivenExactTokensIn(uint256[],uint256[],uint256[],uint256,uint256)": FunctionFragment;
+    "_calcOutGivenIn(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "_calcTokenInGivenExactLpOut(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "_calcTokenOutGivenExactLpIn(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "_calcTokensOutGivenExactLpIn(uint256[],uint256,uint256)": FunctionFragment;
     "_calculateInvariant(uint256[],uint256[])": FunctionFragment;
+    "_calculateInvariantMultiplier(uint256,uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "_MAX_INVARIANT_RATIO",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_MAX_IN_RATIO",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_MAX_OUT_RATIO",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_MAX_WEIGHTED_TOKENS",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_MIN_INVARIANT_RATIO",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_MIN_WEIGHT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcAllTokensInGivenExactLpOut",
+    values: [BigNumberish[], BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcDueTokenProtocolSwapFeeAmount",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcInGivenOut",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcLpInGivenExactTokensOut",
+    values: [
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcLpOutGivenExactTokensIn",
+    values: [
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish[],
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcOutGivenIn",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcTokenInGivenExactLpOut",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcTokenOutGivenExactLpIn",
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_calcTokensOutGivenExactLpIn",
+    values: [BigNumberish[], BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "_calculateInvariant",
     values: [BigNumberish[], BigNumberish[]]
   ): string;
+  encodeFunctionData(
+    functionFragment: "_calculateInvariantMultiplier",
+    values: [BigNumberish, BigNumberish]
+  ): string;
 
   decodeFunctionResult(
+    functionFragment: "_MAX_INVARIANT_RATIO",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_MAX_IN_RATIO",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_MAX_OUT_RATIO",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_MAX_WEIGHTED_TOKENS",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_MIN_INVARIANT_RATIO",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_MIN_WEIGHT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcAllTokensInGivenExactLpOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcDueTokenProtocolSwapFeeAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcInGivenOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcLpInGivenExactTokensOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcLpOutGivenExactTokensIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcOutGivenIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcTokenInGivenExactLpOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcTokenOutGivenExactLpIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calcTokensOutGivenExactLpIn",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "_calculateInvariant",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "_calculateInvariantMultiplier",
     data: BytesLike
   ): Result;
 
@@ -80,12 +266,204 @@ export class WeightedMathTest extends BaseContract {
   interface: WeightedMathTestInterface;
 
   functions: {
+    _MAX_INVARIANT_RATIO(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _MAX_IN_RATIO(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _MAX_OUT_RATIO(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _MAX_WEIGHTED_TOKENS(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _MIN_INVARIANT_RATIO(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _MIN_WEIGHT(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _calcAllTokensInGivenExactLpOut(
+      balances: BigNumberish[],
+      lpAmountOut: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]]>;
+
+    _calcDueTokenProtocolSwapFeeAmount(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      previousInvariant: BigNumberish,
+      currentInvariant: BigNumberish,
+      protocolSwapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    _calcInGivenOut(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    _calcOutGivenIn(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    _calcTokenInGivenExactLpOut(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountOut: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { amountIn: BigNumber; swapFee: BigNumber }
+    >;
+
+    _calcTokenOutGivenExactLpIn(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountIn: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { amountOut: BigNumber; swapFee: BigNumber }
+    >;
+
+    _calcTokensOutGivenExactLpIn(
+      balances: BigNumberish[],
+      lpAmountIn: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]]>;
+
     _calculateInvariant(
       normalizedWeights: BigNumberish[],
       balances: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { invariant: BigNumber }>;
+
+    _calculateInvariantMultiplier(
+      normalizedWeight: BigNumberish,
+      balanceToken: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { invMultiplier: BigNumber }>;
   };
+
+  _MAX_INVARIANT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _MAX_IN_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _MAX_OUT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _MAX_WEIGHTED_TOKENS(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _MIN_INVARIANT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _MIN_WEIGHT(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _calcAllTokensInGivenExactLpOut(
+    balances: BigNumberish[],
+    lpAmountOut: BigNumberish,
+    totalBPT: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  _calcDueTokenProtocolSwapFeeAmount(
+    balance: BigNumberish,
+    normalizedWeight: BigNumberish,
+    previousInvariant: BigNumberish,
+    currentInvariant: BigNumberish,
+    protocolSwapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  _calcInGivenOut(
+    balanceIn: BigNumberish,
+    weightIn: BigNumberish,
+    balanceOut: BigNumberish,
+    weightOut: BigNumberish,
+    amountOut: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  _calcLpInGivenExactTokensOut(
+    balances: BigNumberish[],
+    normalizedWeights: BigNumberish[],
+    amountsOut: BigNumberish[],
+    lpTotalSupply: BigNumberish,
+    swapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber[]]>;
+
+  _calcLpOutGivenExactTokensIn(
+    balances: BigNumberish[],
+    normalizedWeights: BigNumberish[],
+    amountsIn: BigNumberish[],
+    lpTotalSupply: BigNumberish,
+    swapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber[]]>;
+
+  _calcOutGivenIn(
+    balanceIn: BigNumberish,
+    weightIn: BigNumberish,
+    balanceOut: BigNumberish,
+    weightOut: BigNumberish,
+    amountIn: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  _calcTokenInGivenExactLpOut(
+    balance: BigNumberish,
+    normalizedWeight: BigNumberish,
+    lpAmountOut: BigNumberish,
+    lpTotalSupply: BigNumberish,
+    swapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber] & { amountIn: BigNumber; swapFee: BigNumber }
+  >;
+
+  _calcTokenOutGivenExactLpIn(
+    balance: BigNumberish,
+    normalizedWeight: BigNumberish,
+    lpAmountIn: BigNumberish,
+    lpTotalSupply: BigNumberish,
+    swapFeePercentage: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, BigNumber] & { amountOut: BigNumber; swapFee: BigNumber }
+  >;
+
+  _calcTokensOutGivenExactLpIn(
+    balances: BigNumberish[],
+    lpAmountIn: BigNumberish,
+    totalBPT: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
 
   _calculateInvariant(
     normalizedWeights: BigNumberish[],
@@ -93,10 +471,115 @@ export class WeightedMathTest extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  _calculateInvariantMultiplier(
+    normalizedWeight: BigNumberish,
+    balanceToken: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   callStatic: {
+    _MAX_INVARIANT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MAX_IN_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MAX_OUT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MAX_WEIGHTED_TOKENS(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MIN_INVARIANT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MIN_WEIGHT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _calcAllTokensInGivenExactLpOut(
+      balances: BigNumberish[],
+      lpAmountOut: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    _calcDueTokenProtocolSwapFeeAmount(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      previousInvariant: BigNumberish,
+      currentInvariant: BigNumberish,
+      protocolSwapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcInGivenOut(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    _calcOutGivenIn(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcTokenInGivenExactLpOut(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountOut: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { amountIn: BigNumber; swapFee: BigNumber }
+    >;
+
+    _calcTokenOutGivenExactLpIn(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountIn: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, BigNumber] & { amountOut: BigNumber; swapFee: BigNumber }
+    >;
+
+    _calcTokensOutGivenExactLpIn(
+      balances: BigNumberish[],
+      lpAmountIn: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
     _calculateInvariant(
       normalizedWeights: BigNumberish[],
       balances: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calculateInvariantMultiplier(
+      normalizedWeight: BigNumberish,
+      balanceToken: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -104,17 +587,213 @@ export class WeightedMathTest extends BaseContract {
   filters: {};
 
   estimateGas: {
+    _MAX_INVARIANT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MAX_IN_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MAX_OUT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MAX_WEIGHTED_TOKENS(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MIN_INVARIANT_RATIO(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _MIN_WEIGHT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _calcAllTokensInGivenExactLpOut(
+      balances: BigNumberish[],
+      lpAmountOut: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcDueTokenProtocolSwapFeeAmount(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      previousInvariant: BigNumberish,
+      currentInvariant: BigNumberish,
+      protocolSwapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcInGivenOut(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcOutGivenIn(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcTokenInGivenExactLpOut(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountOut: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcTokenOutGivenExactLpIn(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountIn: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    _calcTokensOutGivenExactLpIn(
+      balances: BigNumberish[],
+      lpAmountIn: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     _calculateInvariant(
       normalizedWeights: BigNumberish[],
       balances: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    _calculateInvariantMultiplier(
+      normalizedWeight: BigNumberish,
+      balanceToken: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    _MAX_INVARIANT_RATIO(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _MAX_IN_RATIO(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _MAX_OUT_RATIO(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _MAX_WEIGHTED_TOKENS(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _MIN_INVARIANT_RATIO(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _MIN_WEIGHT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _calcAllTokensInGivenExactLpOut(
+      balances: BigNumberish[],
+      lpAmountOut: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcDueTokenProtocolSwapFeeAmount(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      previousInvariant: BigNumberish,
+      currentInvariant: BigNumberish,
+      protocolSwapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcInGivenOut(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountOut: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcLpInGivenExactTokensOut(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsOut: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcLpOutGivenExactTokensIn(
+      balances: BigNumberish[],
+      normalizedWeights: BigNumberish[],
+      amountsIn: BigNumberish[],
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcOutGivenIn(
+      balanceIn: BigNumberish,
+      weightIn: BigNumberish,
+      balanceOut: BigNumberish,
+      weightOut: BigNumberish,
+      amountIn: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcTokenInGivenExactLpOut(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountOut: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcTokenOutGivenExactLpIn(
+      balance: BigNumberish,
+      normalizedWeight: BigNumberish,
+      lpAmountIn: BigNumberish,
+      lpTotalSupply: BigNumberish,
+      swapFeePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calcTokensOutGivenExactLpIn(
+      balances: BigNumberish[],
+      lpAmountIn: BigNumberish,
+      totalBPT: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     _calculateInvariant(
       normalizedWeights: BigNumberish[],
       balances: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    _calculateInvariantMultiplier(
+      normalizedWeight: BigNumberish,
+      balanceToken: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

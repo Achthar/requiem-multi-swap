@@ -307,4 +307,8 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     function getCollectedFees() external view returns (uint256[] memory) {
         return swapStorage.collectedFees;
     }
+
+    function getPooledTokens() external view returns (IERC20[] memory) {
+        return swapStorage.pooledTokens;
+    }
 }

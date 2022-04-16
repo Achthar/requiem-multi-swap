@@ -13,6 +13,14 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "BalancedPool",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BalancedPool__factory>;
+    getContractFactory(
+      name: "BalancedPoolLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BalancedPoolLib__factory>;
+    getContractFactory(
       name: "OwnerPausable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.OwnerPausable__factory>;
@@ -413,6 +421,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV2ERC20__factory>;
     getContractFactory(
+      name: "LogExpMathTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LogExpMathTest__factory>;
+    getContractFactory(
       name: "MockCallee",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockCallee__factory>;
@@ -521,6 +533,16 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Zap__factory>;
 
+    getContractAt(
+      name: "BalancedPool",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BalancedPool>;
+    getContractAt(
+      name: "BalancedPoolLib",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BalancedPoolLib>;
     getContractAt(
       name: "OwnerPausable",
       address: string,
@@ -1021,6 +1043,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV2ERC20>;
+    getContractAt(
+      name: "LogExpMathTest",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LogExpMathTest>;
     getContractAt(
       name: "MockCallee",
       address: string,

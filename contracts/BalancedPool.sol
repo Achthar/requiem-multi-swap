@@ -6,18 +6,18 @@ import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
-import "./WeightedPoolLib.sol";
+import "./BalancedPoolLib.sol";
 import "./interfaces/IWeightedSwap.sol";
 import "./interfaces/ISwap.sol";
 import "./interfaces/flashLoan/IPoolFlashLoan.sol";
 import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
-using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage global;
+using BalancedPoolLib for BalancedPoolLib.BalancedSwapStorage global;
 using SafeERC20 for IERC20 global;
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
+contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
     uint256 internal constant MAX_ADMIN_FEE = 5e9; // 50%
@@ -25,7 +25,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
-    WeightedPoolLib.WeightedSwapStorage public swapStorage;
+    BalancedPoolLib.BalancedSwapStorage public swapStorage;
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
@@ -265,15 +265,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.collectedFees;
     }
 
-    function getTokenMultipliers() external view returns (uint256[] memory multipliers) {
-        multipliers = swapStorage.tokenMultipliers;
-    }
-
-    function getPooledTokens() external view returns (IERC20[] memory) {
-        return swapStorage.pooledTokens;
-    }
-
-    function getStaticDataTokens() external view returns (IERC20[] memory) {
-        return swapStorage.pooledTokens;
+    function getTokenMultipliers() external view returns (uint256[] memory) {
+        return swapStorage.tokenMultipliers;
     }
 }

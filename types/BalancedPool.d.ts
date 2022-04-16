@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface WeightedPoolInterface extends ethers.utils.Interface {
+interface BalancedPoolInterface extends ethers.utils.Interface {
   functions: {
     "POOL_TOKEN_COMMON_DECIMALS()": FunctionFragment;
     "addLiquidityExactIn(uint256[],uint256,uint256)": FunctionFragment;
@@ -32,8 +32,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "feeDistributor()": FunctionFragment;
     "flashLoan(address,uint256[],bytes)": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
-    "getPooledTokens()": FunctionFragment;
-    "getStaticDataTokens()": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
     "getTokenMultipliers()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
@@ -98,14 +96,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getCollectedFees",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPooledTokens",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getStaticDataTokens",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -227,14 +217,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCollectedFees",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPooledTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getStaticDataTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -406,7 +388,7 @@ export type TokenExchangeEvent = TypedEvent<
 
 export type UnpausedEvent = TypedEvent<[string] & { account: string }>;
 
-export class WeightedPool extends BaseContract {
+export class BalancedPool extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -447,7 +429,7 @@ export class WeightedPool extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: WeightedPoolInterface;
+  interface: BalancedPoolInterface;
 
   functions: {
     POOL_TOKEN_COMMON_DECIMALS(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -505,15 +487,9 @@ export class WeightedPool extends BaseContract {
 
     getCollectedFees(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
-    getPooledTokens(overrides?: CallOverrides): Promise<[string[]]>;
-
-    getStaticDataTokens(overrides?: CallOverrides): Promise<[string[]]>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
-    getTokenMultipliers(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { multipliers: BigNumber[] }>;
+    getTokenMultipliers(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     getTokenWeights(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
@@ -675,10 +651,6 @@ export class WeightedPool extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getCollectedFees(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-  getPooledTokens(overrides?: CallOverrides): Promise<string[]>;
-
-  getStaticDataTokens(overrides?: CallOverrides): Promise<string[]>;
 
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -846,10 +818,6 @@ export class WeightedPool extends BaseContract {
     ): Promise<void>;
 
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber[]>;
-
-    getPooledTokens(overrides?: CallOverrides): Promise<string[]>;
-
-    getStaticDataTokens(overrides?: CallOverrides): Promise<string[]>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -1233,10 +1201,6 @@ export class WeightedPool extends BaseContract {
 
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getPooledTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getStaticDataTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenMultipliers(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1393,12 +1357,6 @@ export class WeightedPool extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getPooledTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getStaticDataTokens(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
