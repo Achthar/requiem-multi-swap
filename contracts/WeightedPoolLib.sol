@@ -184,7 +184,7 @@ library WeightedPoolLib {
             outAmount * self.tokenMultipliers[outIndex] * FEE_DENOMINATOR
         );
         // adjust for fee and scale down - rounding up
-        inAmount = inAmount / (FEE_DENOMINATOR -self.fee) /  self.tokenMultipliers[inIndex] + 1;
+        inAmount = inAmount / (FEE_DENOMINATOR - self.fee) /  self.tokenMultipliers[inIndex] + 1;
         
         // collect admin fee
         self.collectedFees[inIndex] += inAmount * self.tokenMultipliers[inIndex] * self.fee * self.adminFee / FEE_DENOMINATOR / FEE_DENOMINATOR;

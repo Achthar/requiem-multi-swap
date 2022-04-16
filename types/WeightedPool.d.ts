@@ -46,8 +46,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "removeLiquidityOneToken(uint256,uint8,uint256,uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setFee(uint256,uint256,uint256)": FunctionFragment;
-    "setFeeControllerAndDistributor(address)": FunctionFragment;
-    "setFeeDistributor(address)": FunctionFragment;
+    "setFeeControllerAndDistributor(address,address)": FunctionFragment;
     "swapStorage()": FunctionFragment;
     "tokenIndexes(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -159,11 +158,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFeeControllerAndDistributor",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFeeDistributor",
-    values: [string]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "swapStorage",
@@ -267,10 +262,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "setFee", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setFeeControllerAndDistributor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFeeDistributor",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -575,10 +566,6 @@ export class WeightedPool extends BaseContract {
 
     setFeeControllerAndDistributor(
       _feeController: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setFeeDistributor(
       _feeDistributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -744,10 +731,6 @@ export class WeightedPool extends BaseContract {
 
   setFeeControllerAndDistributor(
     _feeController: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setFeeDistributor(
     _feeDistributor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -911,10 +894,6 @@ export class WeightedPool extends BaseContract {
 
     setFeeControllerAndDistributor(
       _feeController: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFeeDistributor(
       _feeDistributor: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1301,10 +1280,6 @@ export class WeightedPool extends BaseContract {
 
     setFeeControllerAndDistributor(
       _feeController: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setFeeDistributor(
       _feeDistributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1464,10 +1439,6 @@ export class WeightedPool extends BaseContract {
 
     setFeeControllerAndDistributor(
       _feeController: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFeeDistributor(
       _feeDistributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
