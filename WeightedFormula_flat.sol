@@ -973,6 +973,29 @@ contract WeightedFormula is IWeightedFormula {
         }
     }
 
+
+     function getFactoryPairData(
+        address factory,
+        address pair
+    )
+        public
+        view
+        returns (
+            address token0,
+            address token1,
+            uint32 tokenWeight0,
+            uint32 tokenWeight1,
+            uint32 swapFee,
+            uint32 amp,
+            IWeightedPair.ReserveData memory reserveData
+        )
+    {
+        token0 =  IWeightedPair(pair).token0();
+        token1 =  IWeightedPair(pair).token1();
+        reserveData = IWeightedPair(pair).getReserves();
+        (tokenWeight0, tokenWeight1, swapFee, amp) = getFactoryStaticData(factory, pair);
+    }
+
     /**
      * @notice given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset,
      *

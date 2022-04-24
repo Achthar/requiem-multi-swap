@@ -511,9 +511,7 @@ export class WeightedPool extends BaseContract {
 
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
-    getTokenMultipliers(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { multipliers: BigNumber[] }>;
+    getTokenMultipliers(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     getTokenWeights(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 

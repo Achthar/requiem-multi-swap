@@ -31,6 +31,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     "feeController()": FunctionFragment;
     "feeDistributor()": FunctionFragment;
     "flashLoan(address,uint256[],bytes)": FunctionFragment;
+    "getA()": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
     "getPooledTokens()": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
@@ -99,6 +100,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     functionFragment: "flashLoan",
     values: [string, BigNumberish[], BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "getA", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getCollectedFees",
     values?: undefined
@@ -237,6 +239,7 @@ interface StableSwapInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "flashLoan", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getA", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getCollectedFees",
     data: BytesLike
@@ -545,6 +548,8 @@ export class StableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getA(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getCollectedFees(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     getPooledTokens(overrides?: CallOverrides): Promise<[string[]]>;
@@ -753,6 +758,8 @@ export class StableSwap extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getA(overrides?: CallOverrides): Promise<BigNumber>;
+
   getCollectedFees(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   getPooledTokens(overrides?: CallOverrides): Promise<string[]>;
@@ -960,6 +967,8 @@ export class StableSwap extends BaseContract {
       userData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getA(overrides?: CallOverrides): Promise<BigNumber>;
 
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -1462,6 +1471,8 @@ export class StableSwap extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getA(overrides?: CallOverrides): Promise<BigNumber>;
+
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPooledTokens(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1644,6 +1655,8 @@ export class StableSwap extends BaseContract {
       userData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    getA(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

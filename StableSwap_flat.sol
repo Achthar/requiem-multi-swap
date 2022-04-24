@@ -2036,6 +2036,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
+    mapping(address =>bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -2062,14 +2063,15 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         require(_coins.length == _decimals.length, "arrayError");
         require(_feeDistributor != address(0), "addressError");
         uint256 numberOfCoins = _coins.length;
-        uint256[] memory rates = new uint256[](numberOfCoins);
-        IERC20[] memory coins = new IERC20[](numberOfCoins);
+        swapStorage.tokenMultipliers = new uint256[](numberOfCoins);
+        swapStorage.pooledTokens = new IERC20[](numberOfCoins);
         for (uint256 i = 0; i < numberOfCoins; i++) {
             require(_coins[i] != address(0), "addressError");
             require(_decimals[i] <= StableSwapLib.POOL_TOKEN_COMMON_DECIMALS, "paramError");
-            rates[i] = 10**(StableSwapLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
-            coins[i] = IERC20(_coins[i]);
-            tokenIndexes[address(coins[i])] = uint8(i);
+            swapStorage.tokenMultipliers[i] = 10**(StableSwapLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
+            swapStorage.pooledTokens[i] = IERC20(_coins[i]);
+            tokenIndexes[_coins[i]] = uint8(i);
+            isToken[_coins[i]] = true;
         }
 
         require(_A < MAX_A, "paramError");
@@ -2079,8 +2081,6 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
 
         swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
-        swapStorage.tokenMultipliers = rates;
-        swapStorage.pooledTokens = coins;
         swapStorage.initialA = _A * StableSwapLib.A_PRECISION;
         swapStorage.futureA = _A * StableSwapLib.A_PRECISION;
         swapStorage.fee = _fee;
@@ -2109,6 +2109,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 amountIn,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256) {
+        require(isToken[tokenIn] && isToken[tokenOut], "invalid tokens");
         return swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
     }
 
@@ -2120,6 +2121,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
+        require(isToken[tokenIn] && isToken[tokenOut], "invalid tokens");
         return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
@@ -2309,5 +2311,13 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
 
     function getCollectedFees() external view returns (uint256[] memory) {
         return swapStorage.collectedFees;
+    }
+
+    function getPooledTokens() external view returns (IERC20[] memory) {
+        return swapStorage.pooledTokens;
+    }
+
+    function getA() external view returns (uint256) {
+        return swapStorage.getA();
     }
 }

@@ -63,7 +63,7 @@ contract MockCallee is IRequiemCallee {
     ) public override {
         string memory message = abi.decode(data, (string));
         if (reenter) {
-            IUniswapV2TypeSwap(pool).swap(amount0, amount1, address(msg.sender), new bytes(0));
+            IUniswapV2TypeSwap(pool).swap(amount0, amount1, msg.sender, new bytes(0));
             require(false, message);
         }
 

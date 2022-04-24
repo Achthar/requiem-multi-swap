@@ -289,7 +289,7 @@ library WeightedMath {
         uint256 invariantRatioWithoutFees = 0;
         for (uint256 i = 0; i < balances.length; i++) {
             balanceRatiosWithoutFee[i] = (balances[i] - amountsOut[i]).divUp(balances[i]);
-            invariantRatioWithoutFees = invariantRatioWithoutFees + (balanceRatiosWithoutFee[i].mulUp(normalizedWeights[i]));
+            invariantRatioWithoutFees += balanceRatiosWithoutFee[i].mulUp(normalizedWeights[i]);
         }
 
         (uint256 invariantRatio, uint256[] memory swapFees) = _computeExitExactTokensOutInvariantRatio(

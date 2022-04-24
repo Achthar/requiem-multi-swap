@@ -28,7 +28,11 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     WeightedPoolLib.WeightedSwapStorage public swapStorage;
     address public feeDistributor;
     address public feeController;
+
+    // indexes for tokens in array
     mapping(address => uint8) public tokenIndexes;
+
+    // used for validation as tokenIndexes defaults to zero if mapping does not exist
     mapping(address => bool) internal isToken;
 
 
@@ -253,6 +257,9 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         swapStorage.sync(feeDistributor);
     }
 
+
+    //// VIEWS FOR ARRAYS IN SWAPSTORAGE
+
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;
     }
@@ -265,8 +272,8 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.collectedFees;
     }
 
-    function getTokenMultipliers() external view returns (uint256[] memory multipliers) {
-        multipliers = swapStorage.tokenMultipliers;
+    function getTokenMultipliers() external view returns (uint256[] memory) {
+        return swapStorage.tokenMultipliers;
     }
 
     function getPooledTokens() external view returns (IERC20[] memory) {

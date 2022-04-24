@@ -27,6 +27,7 @@ interface WeightedFormulaInterface extends ethers.utils.Interface {
     "getAmountsOut(address,address,uint256,address[])": FunctionFragment;
     "getFactoryAmountsIn(address,address,address,uint256,address[])": FunctionFragment;
     "getFactoryAmountsOut(address,address,address,uint256,address[])": FunctionFragment;
+    "getFactoryPairData(address,address)": FunctionFragment;
     "getFactoryParameters(address,address,address)": FunctionFragment;
     "getFactoryStaticData(address,address)": FunctionFragment;
     "getOtherToken(address,address)": FunctionFragment;
@@ -87,6 +88,10 @@ interface WeightedFormulaInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "getFactoryAmountsOut",
     values: [string, string, string, BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFactoryPairData",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getFactoryParameters",
@@ -167,6 +172,10 @@ interface WeightedFormulaInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getFactoryAmountsOut",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFactoryPairData",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -317,6 +326,40 @@ export class WeightedFormula extends BaseContract {
       path: string[],
       overrides?: CallOverrides
     ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    getFactoryPairData(
+      factory: string,
+      pair: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        string,
+        string,
+        number,
+        number,
+        number,
+        number,
+        [BigNumber, BigNumber, BigNumber, BigNumber] & {
+          reserve0: BigNumber;
+          reserve1: BigNumber;
+          vReserve0: BigNumber;
+          vReserve1: BigNumber;
+        }
+      ] & {
+        token0: string;
+        token1: string;
+        tokenWeight0: number;
+        tokenWeight1: number;
+        swapFee: number;
+        amp: number;
+        reserveData: [BigNumber, BigNumber, BigNumber, BigNumber] & {
+          reserve0: BigNumber;
+          reserve1: BigNumber;
+          vReserve0: BigNumber;
+          vReserve1: BigNumber;
+        };
+      }
+    >;
 
     getFactoryParameters(
       factory: string,
@@ -496,6 +539,40 @@ export class WeightedFormula extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
+  getFactoryPairData(
+    factory: string,
+    pair: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      string,
+      string,
+      number,
+      number,
+      number,
+      number,
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      }
+    ] & {
+      token0: string;
+      token1: string;
+      tokenWeight0: number;
+      tokenWeight1: number;
+      swapFee: number;
+      amp: number;
+      reserveData: [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        reserve0: BigNumber;
+        reserve1: BigNumber;
+        vReserve0: BigNumber;
+        vReserve1: BigNumber;
+      };
+    }
+  >;
+
   getFactoryParameters(
     factory: string,
     pair: string,
@@ -673,6 +750,40 @@ export class WeightedFormula extends BaseContract {
       path: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
+
+    getFactoryPairData(
+      factory: string,
+      pair: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        string,
+        string,
+        number,
+        number,
+        number,
+        number,
+        [BigNumber, BigNumber, BigNumber, BigNumber] & {
+          reserve0: BigNumber;
+          reserve1: BigNumber;
+          vReserve0: BigNumber;
+          vReserve1: BigNumber;
+        }
+      ] & {
+        token0: string;
+        token1: string;
+        tokenWeight0: number;
+        tokenWeight1: number;
+        swapFee: number;
+        amp: number;
+        reserveData: [BigNumber, BigNumber, BigNumber, BigNumber] & {
+          reserve0: BigNumber;
+          reserve1: BigNumber;
+          vReserve0: BigNumber;
+          vReserve1: BigNumber;
+        };
+      }
+    >;
 
     getFactoryParameters(
       factory: string,
@@ -855,6 +966,12 @@ export class WeightedFormula extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getFactoryPairData(
+      factory: string,
+      pair: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getFactoryParameters(
       factory: string,
       pair: string,
@@ -992,6 +1109,12 @@ export class WeightedFormula extends BaseContract {
       tokenOut: string,
       amountIn: BigNumberish,
       path: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFactoryPairData(
+      factory: string,
+      pair: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
