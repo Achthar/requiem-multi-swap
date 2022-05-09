@@ -65,6 +65,7 @@ export type { BaseSplitCodeFactory } from "./BaseSplitCodeFactory";
 export type { IAuthentication } from "./IAuthentication";
 export type { RequiemPairErrors } from "./RequiemPairErrors";
 export type { SignaturesValidator } from "./SignaturesValidator";
+export type { DSMath } from "./DSMath";
 export type { PoolPriceOracle } from "./PoolPriceOracle";
 export type { Ownable } from "./Ownable";
 export type { Pausable } from "./Pausable";
@@ -193,6 +194,7 @@ export { BaseSplitCodeFactory__factory } from "./factories/BaseSplitCodeFactory_
 export { IAuthentication__factory } from "./factories/IAuthentication__factory";
 export { RequiemPairErrors__factory } from "./factories/RequiemPairErrors__factory";
 export { SignaturesValidator__factory } from "./factories/SignaturesValidator__factory";
+export { DSMath__factory } from "./factories/DSMath__factory";
 export { PoolPriceOracle__factory } from "./factories/PoolPriceOracle__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { Pausable__factory } from "./factories/Pausable__factory";

@@ -277,6 +277,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SignaturesValidator__factory>;
     getContractFactory(
+      name: "DSMath",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DSMath__factory>;
+    getContractFactory(
       name: "PoolPriceOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PoolPriceOracle__factory>;
@@ -863,6 +867,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SignaturesValidator>;
+    getContractAt(
+      name: "DSMath",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DSMath>;
     getContractAt(
       name: "PoolPriceOracle",
       address: string,

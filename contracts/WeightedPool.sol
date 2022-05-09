@@ -20,8 +20,8 @@ using SafeERC20 for IERC20 global;
 contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
 
     /// constants
-    uint256 internal constant MAX_ADMIN_FEE = 5e9; // 50%
-    uint256 internal constant MAX_TRANSACTION_FEE = 1e8; // 1%
+    uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
+    uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
@@ -258,7 +258,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     }
 
 
-    //// VIEWS FOR ARRAYS IN SWAPSTORAGE
+    /// VIEWS FOR ARRAYS IN SWAPSTORAGE
 
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;
