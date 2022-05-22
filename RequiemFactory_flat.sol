@@ -13,7 +13,7 @@ interface IUniswapV2Callee {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -121,7 +121,7 @@ library UQ112x112 {
 
 
 
-pragma solidity >=0.8.13;
+pragma solidity >=0.8.14;
 
 // solhint-disable avoid-low-level-calls, reason-string
 
@@ -195,7 +195,7 @@ library Math {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // solhint-disable
 library RequiemErrors {
@@ -417,7 +417,7 @@ library Errors {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -741,7 +741,7 @@ interface IRequiemFormula {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 interface IRequiemSwap {
     // this funtion requires the correctly calculated amounts as input
@@ -789,7 +789,7 @@ interface IRequiemSwap {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // solhint-disable func-name-mixedcase
 
@@ -819,7 +819,7 @@ interface IRequiemERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -922,7 +922,7 @@ contract RequiemERC20 is IRequiemERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 // solhint-disable func-name-mixedcase
@@ -1015,7 +1015,7 @@ interface IRequiemFactory {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -1467,7 +1467,7 @@ contract RequiemPair is IRequiemSwap, IRequiemPair, RequiemERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 

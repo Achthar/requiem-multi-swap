@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // solhint-disable
 library RequiemErrors {
@@ -237,7 +237,7 @@ library Errors {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -324,7 +324,7 @@ interface IERC20 {
 // The `safeTransfer` and `safeTransferFrom` functions assume that `token` is a contract (an account with code), and
 // work differently from the OpenZeppelin version if it is not.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -404,7 +404,7 @@ library SafeERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // Inspired by Aave Protocol's IFlashLoanReceiver.
 
@@ -431,7 +431,7 @@ interface IFlashLoanRecipient {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 
@@ -553,7 +553,7 @@ interface IRequiemStableSwap {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 

@@ -3,7 +3,7 @@
 // Based on the Address library from OpenZeppelin Contracts, altered by removing the `isContract` checks on
 // `functionCall` and `functionDelegateCall` in order to save gas, as the recipients are known to be contracts.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 import "./helpers/RequiemErrors.sol";
 

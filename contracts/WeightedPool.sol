@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 import "./libraries/ReentrancyGuard.sol";
 import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -12,13 +12,11 @@ import "./interfaces/ISwap.sol";
 import "./interfaces/flashLoan/IPoolFlashLoan.sol";
 import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
-using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage global;
-using SafeERC20 for IERC20 global;
-
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
-
+    using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage;
+    using SafeERC20 for IERC20;
     /// constants
     uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
     uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
@@ -34,7 +32,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
 
     // used for validation as tokenIndexes defaults to zero if mapping does not exist
     mapping(address => bool) internal isToken;
-
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -66,7 +63,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
 
-        {       
+        {
             // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
             uint256 normalizedSum = 0;
             for (uint8 i = 0; i < swapStorage.nTokens; i++) {
@@ -75,11 +72,11 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
                 swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
                 swapStorage.pooledTokens[i] = IERC20(_coins[i]);
                 tokenIndexes[_coins[i]] = uint8(i);
-                require( _normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
+                require(_normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
                 normalizedSum += _normalizedWeights[i];
                 isToken[_coins[i]] = true;
             }
-            
+
             require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
         }
         swapStorage.normalizedWeights = _normalizedWeights;
@@ -99,9 +96,9 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     /// PUBLIC FUNCTIONS
 
     /**
-    * @notice add liquidity for specified pool token amounts input
-    * @param amounts amounts of pooled token ordered the same way as in the pool
-    * 
+     * @notice add liquidity for specified pool token amounts input
+     * @param amounts amounts of pooled token ordered the same way as in the pool
+     *
      */
     function addLiquidityExactIn(
         uint256[] memory amounts,
@@ -138,7 +135,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
-     /**  @notice Flash loan using weighted pool balances  */
+    /**  @notice Flash loan using weighted pool balances  */
     function flashLoan(
         IFlashLoanRecipient recipient,
         uint256[] memory amounts,
@@ -165,7 +162,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         (amounts, totalSupply) = swapStorage.removeLiquidityExactIn(lpAmount, minAmounts);
         emit RemoveLiquidity(msg.sender, amounts, totalSupply - lpAmount);
     }
-
 
     function removeLiquidityExactOut(
         uint256[] memory amounts,
@@ -215,11 +211,8 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.calculateRemoveLiquidityExactIn(amount);
     }
 
-    function calculateRemoveLiquidityOneToken(
-        uint256 amount,
-        uint256 index
-    ) external view override returns (uint256 amountOut, uint256 fee) {
-        (amountOut, fee) =  swapStorage.calculateRemoveLiquidityOneTokenExactIn( index, amount);
+    function calculateRemoveLiquidityOneToken(uint256 amount, uint256 index) external view override returns (uint256 amountOut, uint256 fee) {
+        (amountOut, fee) = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount);
     }
 
     /**
@@ -228,7 +221,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
      * @param newAdminFee new admin fee to be applied on future transactions
-     * @param newFlashFee new flash lash loan fee 
+     * @param newFlashFee new flash lash loan fee
      */
     function setFee(
         uint256 newSwapFee,
@@ -242,7 +235,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         swapStorage.fee = newSwapFee;
         swapStorage.flashFee = newFlashFee;
 
-        emit NewFee(newSwapFee,  newAdminFee, newFlashFee);
+        emit NewFee(newSwapFee, newAdminFee, newFlashFee);
     }
 
     function setFeeControllerAndDistributor(address _feeController, address _feeDistributor) external onlyOwner {
@@ -256,7 +249,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     function withdrawAdminFee() external onlyFeeControllerOrOwner {
         swapStorage.sync(feeDistributor);
     }
-
 
     /// VIEWS FOR ARRAYS IN SWAPSTORAGE
 

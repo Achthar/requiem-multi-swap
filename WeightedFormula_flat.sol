@@ -3,7 +3,7 @@
 
 
 
-pragma solidity >=0.8.13;
+pragma solidity >=0.8.14;
 
 interface IWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint256);
@@ -55,7 +55,7 @@ interface IWeightedPairFactory {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // solhint-disable func-name-mixedcase
 
@@ -106,7 +106,7 @@ interface IWeightedPairERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 // solhint-disable func-name-mixedcase
@@ -163,7 +163,7 @@ interface IWeightedPair is IWeightedPairERC20 {
 // File: contracts/interfaces/IWeightedFormula.sol
 
 
-pragma solidity >=0.8.13;
+pragma solidity >=0.8.14;
 
 /*
     Bancor Formula interface
@@ -304,7 +304,7 @@ interface IWeightedFormula {
 
 
 
-pragma solidity >=0.8.13;
+pragma solidity >=0.8.14;
 
 
 

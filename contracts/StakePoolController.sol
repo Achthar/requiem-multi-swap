@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma abicoder v2;
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 import "./interfaces/stakePool/IStakePoolCreator.sol";
 import "./interfaces/stakePool/IStakePoolController.sol";

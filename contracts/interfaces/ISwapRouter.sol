@@ -2,7 +2,7 @@
 
 import "./IWeightedPairManager.sol";
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // solhint-disable func-name-mixedcase
 

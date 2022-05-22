@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -28,7 +28,7 @@ abstract contract Context {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -104,7 +104,7 @@ abstract contract Ownable is Context {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -187,7 +187,7 @@ interface IERC20 {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 // solhint-disable var-name-mixedcase
@@ -253,7 +253,7 @@ interface IWeightedSwap {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -281,7 +281,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -640,7 +640,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -689,7 +689,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 

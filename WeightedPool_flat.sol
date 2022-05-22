@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 interface ISwap {
     /**
@@ -50,7 +50,7 @@ interface ISwap {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow checks.
@@ -97,7 +97,7 @@ library Math {
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /* solhint-disable */
 
@@ -612,7 +612,7 @@ library LogExpMath {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /* solhint-disable private-vars-leading-underscore */
@@ -749,7 +749,7 @@ library FixedPoint {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -1188,7 +1188,7 @@ library WeightedMath {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -1213,7 +1213,7 @@ abstract contract Context {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -1304,7 +1304,7 @@ abstract contract Pausable is Context {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -1380,7 +1380,7 @@ abstract contract Ownable is Context {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 
@@ -1398,7 +1398,7 @@ abstract contract OwnerPausable is Ownable, Pausable {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -1493,7 +1493,7 @@ interface IERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // Inspired by Aave Protocol's IFlashLoanReceiver.
 
@@ -1520,7 +1520,7 @@ interface IFlashLoanRecipient {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 interface IPoolFlashLoan {
@@ -1537,7 +1537,7 @@ interface IPoolFlashLoan {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 // solhint-disable var-name-mixedcase
@@ -1603,7 +1603,7 @@ interface IWeightedSwap {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -1631,7 +1631,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -1990,7 +1990,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -2039,7 +2039,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -2065,7 +2065,7 @@ contract WeightedLPToken is ERC20Burnable {
 // The `safeTransfer` and `safeTransferFrom` functions assume that `token` is a contract (an account with code), and
 // work differently from the OpenZeppelin version if it is not.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -2131,7 +2131,7 @@ library SafeERC20 {
 // File: contracts/WeightedPoolLib.sol
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -2744,7 +2744,7 @@ abstract contract Initializable {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -2809,7 +2809,7 @@ abstract contract ReentrancyGuard {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 

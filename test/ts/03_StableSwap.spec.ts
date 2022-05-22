@@ -15,7 +15,6 @@ import { getApprovalDigest, deployContractWithLibraries } from './shared/common'
 import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import SwapArtifact from "../../artifacts/contracts/RequiemStableSwap.sol/RequiemStableSwap.json";
 import NewSwapArtifact from "../../artifacts/contracts/StableSwap.sol/StableSwap.json";
 import {
 	RequiemPairFactory__factory,
@@ -24,8 +23,6 @@ import {
 	SwapRouter__factory,
 	ThiefRouter__factory,
 	RequiemPair,
-	RequiemStableSwapLib__factory,
-	RequiemStableSwap__factory,
 	StableSwapLib__factory,
 	MockFlashLoanRecipient__factory,
 	StableSwap__factory,

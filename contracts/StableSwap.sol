@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
+
 import "./libraries/ReentrancyGuard.sol";
 import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -12,12 +13,11 @@ import "./interfaces/flashLoan/IPoolFlashLoan.sol";
 import "./interfaces/ISwap.sol";
 import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
-using StableSwapLib for StableSwapLib.SwapStorage global;
-using SafeERC20 for IERC20 global;
-
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
+    using StableSwapLib for StableSwapLib.SwapStorage;
+    using SafeERC20 for IERC20;
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;
@@ -31,7 +31,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
-    mapping(address =>bool) internal isToken;
+    mapping(address => bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -120,7 +120,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
-     /**  @notice Flash loan using stable swap balances  */
+    /**  @notice Flash loan using stable swap balances  */
     function flashLoan(
         IFlashLoanRecipient recipient,
         uint256[] memory amounts,
@@ -212,7 +212,6 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.updateUserWithdrawFee(recipient, transferAmount);
     }
 
-
     /**
      * @notice Sets the admin fee
      * @dev adminFee cannot be higher than 100% of the swap fee
@@ -236,7 +235,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.flashFee = newFlashFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
 
-        emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);
+        emit NewFee(newSwapFee, newFlashFee, newAdminFee, newWithdrawFee);
     }
 
     /**
@@ -300,7 +299,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.balances;
     }
 
-    function getTokenMultipliers() external view  returns (uint256[] memory) {
+    function getTokenMultipliers() external view returns (uint256[] memory) {
         return swapStorage.tokenMultipliers;
     }
 

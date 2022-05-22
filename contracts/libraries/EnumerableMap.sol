@@ -9,7 +9,7 @@
 // Additionally, the base private functions that work on bytes32 were removed and replaced with a native implementation
 // for IERC20 keys, to reduce bytecode size and runtime costs.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 import "../interfaces/ERC20/IERC20.sol";
 

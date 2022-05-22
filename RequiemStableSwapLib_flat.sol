@@ -3,7 +3,7 @@
 
 
 
-pragma solidity >=0.8.13;
+pragma solidity >=0.8.14;
 
 // solhint-disable no-inline-assembly, reason-string
 
@@ -149,7 +149,7 @@ library FullMath {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // solhint-disable
 library RequiemErrors {
@@ -371,7 +371,7 @@ library Errors {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -396,7 +396,7 @@ abstract contract Context {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -472,7 +472,7 @@ abstract contract Ownable is Context {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -559,7 +559,7 @@ interface IERC20 {
 // The `safeTransfer` and `safeTransferFrom` functions assume that `token` is a contract (an account with code), and
 // work differently from the OpenZeppelin version if it is not.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -639,7 +639,7 @@ library SafeERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 // Inspired by Aave Protocol's IFlashLoanReceiver.
 
@@ -666,7 +666,7 @@ interface IFlashLoanRecipient {
 
 
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.14;
 
 
 
@@ -788,7 +788,7 @@ interface IRequiemStableSwap {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 /**
@@ -816,7 +816,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -1175,7 +1175,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -1224,7 +1224,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
 
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
@@ -1258,7 +1258,7 @@ contract LPToken is Ownable, ERC20Burnable {
 // File: contracts/RequiemStableSwapLib.sol
 
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.14;
 
 
 
