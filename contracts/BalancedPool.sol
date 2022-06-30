@@ -1,33 +1,36 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 import "./libraries/ReentrancyGuard.sol";
 import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
 import "./libraries/SafeERC20.sol";
 import "./base/OwnerPausable.sol";
 import "./BalancedPoolLib.sol";
-import "./interfaces/IWeightedSwap.sol";
+import "./interfaces/balancedPool/IBalancedSwap.sol";
 import "./interfaces/ISwap.sol";
 import "./interfaces/flashLoan/IPoolFlashLoan.sol";
 import "./interfaces/flashLoan/IFlashLoanRecipient.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap {
+contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IBalancedSwap {
     using BalancedPoolLib for BalancedPoolLib.BalancedSwapStorage;
     using SafeERC20 for IERC20;
-
     /// constants
-    uint256 internal constant MAX_ADMIN_FEE = 5e9; // 50%
-    uint256 internal constant MAX_TRANSACTION_FEE = 1e8; // 1%
+    uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
+    uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
     BalancedPoolLib.BalancedSwapStorage public swapStorage;
     address public feeDistributor;
     address public feeController;
+
+    // indexes for tokens in array
     mapping(address => uint8) public tokenIndexes;
+
+    // used for validation as tokenIndexes defaults to zero if mapping does not exist
     mapping(address => bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
@@ -69,7 +72,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
                 swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
                 swapStorage.pooledTokens[i] = IERC20(_coins[i]);
                 tokenIndexes[_coins[i]] = uint8(i);
-                require(_normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
+                require(_normalizedWeights[i] >= BalancedMath._MIN_WEIGHT, "MIN_WEIGHT");
                 normalizedSum += _normalizedWeights[i];
                 isToken[_coins[i]] = true;
             }
@@ -78,7 +81,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         }
         swapStorage.normalizedWeights = _normalizedWeights;
 
-        swapStorage.lpToken = new WeightedLPToken(lpTokenName, lpTokenSymbol);
+        swapStorage.lpToken = new BalancedLPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](swapStorage.nTokens);
         swapStorage.fee = _fee;
         swapStorage.flashFee = _flashFee;
@@ -139,14 +142,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         bytes memory userData
     ) external override nonReentrant whenNotPaused {
         uint256[] memory feeAmounts = swapStorage.flashLoan(recipient, amounts, userData);
-        // fetch invariant before loan
-        uint256 preInvariant = swapStorage.lastInvariant;
-
-        // calculate new one with new balances
-        swapStorage.setInvariant();
-
-        // revert if the invariant change is too large
-        require(swapStorage.lastInvariant >= preInvariant, "invariant");
         emit FlashLoan(address(recipient), amounts, feeAmounts);
     }
 
@@ -247,6 +242,8 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         swapStorage.sync(feeDistributor);
     }
 
+    /// VIEWS FOR ARRAYS IN SWAPSTORAGE
+
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;
     }
@@ -261,5 +258,9 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
 
     function getTokenMultipliers() external view returns (uint256[] memory) {
         return swapStorage.tokenMultipliers;
+    }
+
+    function getPooledTokens() external view returns (IERC20[] memory) {
+        return swapStorage.pooledTokens;
     }
 }

@@ -4,7 +4,7 @@ import "./interfaces/IPairGovernance.sol";
 import "./interfaces/IWeightedPair.sol";
 import "./interfaces/IWeightedPairFactory.sol";
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 abstract contract WeightedPairGovernance is IPairGovernance {
 

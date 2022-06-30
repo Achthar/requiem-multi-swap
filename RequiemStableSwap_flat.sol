@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 interface IRequiemSwap {
     // this funtion requires the correctly calculated amounts as input
@@ -51,7 +51,7 @@ interface IRequiemSwap {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 // solhint-disable no-inline-assembly, reason-string
 
@@ -185,7 +185,7 @@ library FullMath {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -210,7 +210,7 @@ abstract contract Context {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -301,7 +301,7 @@ abstract contract Pausable is Context {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -377,7 +377,7 @@ abstract contract Ownable is Context {
 
 
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.15;
 
 
 
@@ -395,7 +395,7 @@ abstract contract OwnerPausable is Ownable, Pausable {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -490,7 +490,7 @@ interface IERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // Inspired by Aave Protocol's IFlashLoanReceiver.
 
@@ -517,7 +517,7 @@ interface IFlashLoanRecipient {
 
 
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.15;
 
 
 
@@ -639,7 +639,7 @@ interface IRequiemStableSwap {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -667,7 +667,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -1026,7 +1026,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -1075,7 +1075,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -1114,7 +1114,7 @@ contract LPToken is Ownable, ERC20Burnable {
 // The `safeTransfer` and `safeTransferFrom` functions assume that `token` is a contract (an account with code), and
 // work differently from the OpenZeppelin version if it is not.
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -1180,7 +1180,7 @@ library SafeERC20 {
 // File: contracts/RequiemStableSwapLib.sol
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -2105,7 +2105,7 @@ abstract contract Initializable {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -2170,7 +2170,7 @@ abstract contract ReentrancyGuard {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 

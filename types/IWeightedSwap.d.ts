@@ -98,12 +98,12 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "AddLiquidity(address,uint256[],uint256,uint256)": EventFragment;
+    "AddLiquidity(address,uint256[],uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
     "NewFee(uint256,uint256,uint256)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256)": EventFragment;
-    "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)": EventFragment;
+    "RemoveLiquidityImbalance(address,uint256[],uint256)": EventFragment;
     "RemoveLiquidityOne(address,uint256,uint256,uint256)": EventFragment;
     "TokenExchange(address,address,uint256,address,uint256)": EventFragment;
   };
@@ -119,10 +119,9 @@ interface IWeightedSwapInterface extends ethers.utils.Interface {
 }
 
 export type AddLiquidityEvent = TypedEvent<
-  [string, BigNumber[], BigNumber, BigNumber] & {
+  [string, BigNumber[], BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    invariant: BigNumber;
     tokenSupply: BigNumber;
   }
 >;
@@ -152,10 +151,9 @@ export type RemoveLiquidityEvent = TypedEvent<
 >;
 
 export type RemoveLiquidityImbalanceEvent = TypedEvent<
-  [string, BigNumber[], BigNumber, BigNumber] & {
+  [string, BigNumber[], BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    invariant: BigNumber;
     tokenSupply: BigNumber;
   }
 >;
@@ -371,34 +369,22 @@ export class IWeightedSwap extends BaseContract {
   };
 
   filters: {
-    "AddLiquidity(address,uint256[],uint256,uint256)"(
+    "AddLiquidity(address,uint256[],uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     AddLiquidity(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     "FeeControllerChanged(address)"(
@@ -453,34 +439,22 @@ export class IWeightedSwap extends BaseContract {
       { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
-    "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)"(
+    "RemoveLiquidityImbalance(address,uint256[],uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     RemoveLiquidityImbalance(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     "RemoveLiquidityOne(address,uint256,uint256,uint256)"(

@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -98,7 +98,7 @@ interface IERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -115,7 +115,7 @@ interface IWETH is IERC20 {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 // solhint-disable avoid-low-level-calls, reason-string
 
@@ -149,7 +149,7 @@ library TransferHelper {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 interface ISwap {
     /**
@@ -196,7 +196,7 @@ interface ISwap {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -345,7 +345,7 @@ interface IWeightedPairManager {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -422,7 +422,7 @@ interface ISwapRouter is IWeightedPairManager {
 // File: contracts/interfaces/IWeightedFormula.sol
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 /*
     Bancor Formula interface
@@ -563,7 +563,7 @@ interface IWeightedFormula {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -614,7 +614,7 @@ interface IWeightedPairERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 // solhint-disable func-name-mixedcase
@@ -672,7 +672,7 @@ interface IWeightedPair is IWeightedPairERC20 {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 interface IWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint256);
@@ -724,7 +724,7 @@ interface IWeightedPairFactory {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 
 

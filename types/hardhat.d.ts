@@ -29,6 +29,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FeeDistributor__factory>;
     getContractFactory(
+      name: "IBalancedSwap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBalancedSwap__factory>;
+    getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
@@ -341,14 +345,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemRouter__factory>;
     getContractFactory(
-      name: "RequiemStableSwap",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemStableSwap__factory>;
-    getContractFactory(
-      name: "RequiemStableSwapLib",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemStableSwapLib__factory>;
-    getContractFactory(
       name: "RequiemWeightedPair",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemWeightedPair__factory>;
@@ -360,10 +356,6 @@ declare module "hardhat/types/runtime" {
       name: "RequiemZap",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.RequiemZap__factory>;
-    getContractFactory(
-      name: "RequiemBackFlash",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemBackFlash__factory>;
     getContractFactory(
       name: "StableSwap",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -493,6 +485,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TimeLock__factory>;
     getContractFactory(
+      name: "BalancedLPToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BalancedLPToken__factory>;
+    getContractFactory(
       name: "LPToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.LPToken__factory>;
@@ -557,6 +553,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.FeeDistributor>;
+    getContractAt(
+      name: "IBalancedSwap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBalancedSwap>;
     getContractAt(
       name: "IERC20",
       address: string,
@@ -948,16 +949,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.RequiemRouter>;
     getContractAt(
-      name: "RequiemStableSwap",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemStableSwap>;
-    getContractAt(
-      name: "RequiemStableSwapLib",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemStableSwapLib>;
-    getContractAt(
       name: "RequiemWeightedPair",
       address: string,
       signer?: ethers.Signer
@@ -972,11 +963,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.RequiemZap>;
-    getContractAt(
-      name: "RequiemBackFlash",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemBackFlash>;
     getContractAt(
       name: "StableSwap",
       address: string,
@@ -1137,6 +1123,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.TimeLock>;
+    getContractAt(
+      name: "BalancedLPToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BalancedLPToken>;
     getContractAt(
       name: "LPToken",
       address: string,

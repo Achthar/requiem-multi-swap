@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 import "./libraries/ReentrancyGuard.sol";
 import "./libraries/Initializable.sol";
 import "./interfaces/ERC20/IERC20.sol";
@@ -106,7 +106,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
         mintAmount = swapStorage.addLiquidityExactTokensIn(amounts, minMintAmount);
-        emit AddLiquidity(msg.sender, amounts, swapStorage.lastInvariant, mintAmount);
+        emit AddLiquidity(msg.sender, amounts, mintAmount);
     }
 
     // expects amount alrady to be sent to this address
@@ -142,14 +142,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         bytes memory userData
     ) external override nonReentrant whenNotPaused {
         uint256[] memory feeAmounts = swapStorage.flashLoan(recipient, amounts, userData);
-        // fetch invariant before loan
-        uint256 preInvariant = swapStorage.lastInvariant;
-
-        // calculate new one with new balances
-        swapStorage.setInvariant();
-
-        // revert if the invariant change is too large
-        require(swapStorage.lastInvariant >= preInvariant, "invariant");
         emit FlashLoan(address(recipient), amounts, feeAmounts);
     }
 
@@ -170,7 +162,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256 burnAmount) {
         uint256 totalSupply;
         (burnAmount, totalSupply) = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn);
-        emit RemoveLiquidityImbalance(msg.sender, amounts, swapStorage.lastInvariant, totalSupply - burnAmount);
+        emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply - burnAmount);
     }
 
     function removeLiquidityOneToken(
@@ -269,10 +261,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     }
 
     function getPooledTokens() external view returns (IERC20[] memory) {
-        return swapStorage.pooledTokens;
-    }
-
-    function getStaticDataTokens() external view returns (IERC20[] memory) {
         return swapStorage.pooledTokens;
     }
 }

@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -147,7 +147,7 @@ interface IRequiemQPairManager {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -242,7 +242,7 @@ interface IERC20 {
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -259,7 +259,7 @@ interface IWETH is IERC20 {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 // solhint-disable avoid-low-level-calls, reason-string
 
@@ -293,7 +293,7 @@ library TransferHelper {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 interface IRequiemSwap {
     // this funtion requires the correctly calculated amounts as input
@@ -341,7 +341,7 @@ interface IRequiemSwap {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -371,7 +371,7 @@ interface IRequiemPairERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 // solhint-disable func-name-mixedcase
@@ -436,7 +436,7 @@ interface IRequiemWeightedPair is IRequiemPairERC20 {
 // File: contracts/interfaces/IRequiemFormula.sol
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 /*
     Bancor Formula interface
@@ -528,7 +528,7 @@ interface IRequiemFormula {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 interface IRequiemWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint32 swapFee, uint256);
@@ -581,7 +581,7 @@ interface IRequiemWeightedPairFactory {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 
 

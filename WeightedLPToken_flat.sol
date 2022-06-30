@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -24,87 +24,11 @@ abstract contract Context {
         return msg.data;
     }
 }
-// File: contracts/libraries/Ownable.sol
-
-
-
-pragma solidity ^0.8.14;
-
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor() {
-        _transferOwnership(_msgSender());
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view virtual returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        _transferOwnership(address(0));
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Internal function without access restriction.
-     */
-    function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
-        _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
-    }
-}
 // File: contracts/interfaces/ERC20/IERC20.sol
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -187,7 +111,7 @@ interface IERC20 {
 
 
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.15;
 
 
 // solhint-disable var-name-mixedcase
@@ -253,7 +177,7 @@ interface IWeightedSwap {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -281,7 +205,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -640,7 +564,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -689,19 +613,19 @@ abstract contract ERC20Burnable is Context, ERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
-
-contract WeightedLPToken is Ownable, ERC20Burnable {
+contract WeightedLPToken is ERC20Burnable {
     IWeightedSwap public swap;
 
     constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
         swap = IWeightedSwap(msg.sender);
     }
 
-    function mint(address _to, uint256 _amount) external onlyOwner {
+    function mint(address _to, uint256 _amount) external {
+        require(msg.sender == address(swap), "unauthorized");
         require(_amount > 0, "zeroMintAmount");
         _mint(_to, _amount);
     }

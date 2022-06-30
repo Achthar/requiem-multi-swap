@@ -25,12 +25,6 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "invariant",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
         name: "tokenSupply",
         type: "uint256",
       },
@@ -128,12 +122,6 @@ const _abi = [
         internalType: "uint256[]",
         name: "tokenAmounts",
         type: "uint256[]",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "invariant",
-        type: "uint256",
       },
       {
         indexed: false,

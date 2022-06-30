@@ -33,7 +33,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "flashLoan(address,uint256[],bytes)": FunctionFragment;
     "getCollectedFees()": FunctionFragment;
     "getPooledTokens()": FunctionFragment;
-    "getStaticDataTokens()": FunctionFragment;
     "getTokenBalances()": FunctionFragment;
     "getTokenMultipliers()": FunctionFragment;
     "getTokenWeights()": FunctionFragment;
@@ -102,10 +101,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPooledTokens",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getStaticDataTokens",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -234,10 +229,6 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getStaticDataTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getTokenBalances",
     data: BytesLike
   ): Result;
@@ -301,7 +292,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "AddLiquidity(address,uint256[],uint256,uint256)": EventFragment;
+    "AddLiquidity(address,uint256[],uint256)": EventFragment;
     "FeeControllerChanged(address)": EventFragment;
     "FeeDistributorChanged(address)": EventFragment;
     "FlashLoan(address,uint256[],uint256[])": EventFragment;
@@ -309,7 +300,7 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
     "RemoveLiquidity(address,uint256[],uint256)": EventFragment;
-    "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)": EventFragment;
+    "RemoveLiquidityImbalance(address,uint256[],uint256)": EventFragment;
     "RemoveLiquidityOne(address,uint256,uint256,uint256)": EventFragment;
     "TokenExchange(address,address,uint256,address,uint256)": EventFragment;
     "Unpaused(address)": EventFragment;
@@ -330,10 +321,9 @@ interface WeightedPoolInterface extends ethers.utils.Interface {
 }
 
 export type AddLiquidityEvent = TypedEvent<
-  [string, BigNumber[], BigNumber, BigNumber] & {
+  [string, BigNumber[], BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    invariant: BigNumber;
     tokenSupply: BigNumber;
   }
 >;
@@ -377,10 +367,9 @@ export type RemoveLiquidityEvent = TypedEvent<
 >;
 
 export type RemoveLiquidityImbalanceEvent = TypedEvent<
-  [string, BigNumber[], BigNumber, BigNumber] & {
+  [string, BigNumber[], BigNumber] & {
     provider: string;
     tokenAmounts: BigNumber[];
-    invariant: BigNumber;
     tokenSupply: BigNumber;
   }
 >;
@@ -507,8 +496,6 @@ export class WeightedPool extends BaseContract {
 
     getPooledTokens(overrides?: CallOverrides): Promise<[string[]]>;
 
-    getStaticDataTokens(overrides?: CallOverrides): Promise<[string[]]>;
-
     getTokenBalances(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     getTokenMultipliers(overrides?: CallOverrides): Promise<[BigNumber[]]>;
@@ -595,10 +582,9 @@ export class WeightedPool extends BaseContract {
     swapStorage(
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         lpToken: string;
         nTokens: BigNumber;
-        lastInvariant: BigNumber;
         fee: BigNumber;
         flashFee: BigNumber;
         adminFee: BigNumber;
@@ -675,8 +661,6 @@ export class WeightedPool extends BaseContract {
   getCollectedFees(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   getPooledTokens(overrides?: CallOverrides): Promise<string[]>;
-
-  getStaticDataTokens(overrides?: CallOverrides): Promise<string[]>;
 
   getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -764,10 +748,9 @@ export class WeightedPool extends BaseContract {
   swapStorage(
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
       lpToken: string;
       nTokens: BigNumber;
-      lastInvariant: BigNumber;
       fee: BigNumber;
       flashFee: BigNumber;
       adminFee: BigNumber;
@@ -846,8 +829,6 @@ export class WeightedPool extends BaseContract {
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber[]>;
 
     getPooledTokens(overrides?: CallOverrides): Promise<string[]>;
-
-    getStaticDataTokens(overrides?: CallOverrides): Promise<string[]>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber[]>;
 
@@ -931,10 +912,9 @@ export class WeightedPool extends BaseContract {
     swapStorage(
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         lpToken: string;
         nTokens: BigNumber;
-        lastInvariant: BigNumber;
         fee: BigNumber;
         flashFee: BigNumber;
         adminFee: BigNumber;
@@ -954,34 +934,22 @@ export class WeightedPool extends BaseContract {
   };
 
   filters: {
-    "AddLiquidity(address,uint256[],uint256,uint256)"(
+    "AddLiquidity(address,uint256[],uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     AddLiquidity(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     "FeeControllerChanged(address)"(
@@ -1076,34 +1044,22 @@ export class WeightedPool extends BaseContract {
       { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
-    "RemoveLiquidityImbalance(address,uint256[],uint256,uint256)"(
+    "RemoveLiquidityImbalance(address,uint256[],uint256)"(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     RemoveLiquidityImbalance(
       provider?: string | null,
       tokenAmounts?: null,
-      invariant?: null,
       tokenSupply?: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber, BigNumber],
-      {
-        provider: string;
-        tokenAmounts: BigNumber[];
-        invariant: BigNumber;
-        tokenSupply: BigNumber;
-      }
+      [string, BigNumber[], BigNumber],
+      { provider: string; tokenAmounts: BigNumber[]; tokenSupply: BigNumber }
     >;
 
     "RemoveLiquidityOne(address,uint256,uint256,uint256)"(
@@ -1232,8 +1188,6 @@ export class WeightedPool extends BaseContract {
     getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPooledTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getStaticDataTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1393,10 +1347,6 @@ export class WeightedPool extends BaseContract {
     getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPooledTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getStaticDataTokens(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getTokenBalances(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

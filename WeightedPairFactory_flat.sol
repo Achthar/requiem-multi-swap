@@ -3,7 +3,7 @@
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 interface IUniswapV2TypeSwap {
     /**
@@ -22,7 +22,7 @@ interface IUniswapV2TypeSwap {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -105,7 +105,7 @@ interface IERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 /**
@@ -133,7 +133,7 @@ interface IERC20Metadata is IERC20 {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 // a library for handling binary fixed point numbers (https://en.wikipedia.org/wiki/Q_(number_format))
 
@@ -158,7 +158,7 @@ library UQ112x112 {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 // solhint-disable avoid-low-level-calls, reason-string
 
@@ -192,7 +192,7 @@ library TransferHelper {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 // a library for performing various math operations
 
@@ -224,7 +224,7 @@ library Math {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 interface IRequiemCallee {
     function requiemCall(address sender, uint amount0, uint amount1, bytes calldata data) external;
@@ -232,7 +232,7 @@ interface IRequiemCallee {
 // File: contracts/interfaces/IWeightedFormula.sol
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 /*
     Bancor Formula interface
@@ -373,7 +373,7 @@ interface IWeightedFormula {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 interface ISwap {
     /**
@@ -420,7 +420,7 @@ interface ISwap {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -471,7 +471,7 @@ interface IWeightedPairERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
@@ -590,7 +590,7 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 // solhint-disable func-name-mixedcase
@@ -653,7 +653,7 @@ interface IWeightedPair is IWeightedPairERC20 {
 // size and runtime costs.
 // The `unchecked_at` function was also added, which allows for more gas efficient data reads in some scenarios.
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
@@ -911,7 +911,7 @@ library EnumerableSet {
 
 
 
-pragma solidity >=0.8.14;
+pragma solidity >=0.8.15;
 
 interface IWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint256);
@@ -963,7 +963,7 @@ interface IWeightedPairFactory {
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 
@@ -1510,7 +1510,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
 
 
 
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.15;
 
 
 

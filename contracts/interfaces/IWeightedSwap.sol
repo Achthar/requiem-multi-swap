@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.15;
 
 import "./ERC20/IERC20.sol";
 
@@ -8,7 +8,7 @@ import "./ERC20/IERC20.sol";
 
 interface IWeightedSwap {
     /// EVENTS
-    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
+    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event TokenExchange(address indexed buyer, address soldId, uint256 tokensSold, address boughtId, uint256 tokensBought);
 
@@ -16,7 +16,7 @@ interface IWeightedSwap {
 
     event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
 
-    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
+    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event NewFee(uint256 fee, uint256 adminFee, uint256 withdrawFee);
 
@@ -28,10 +28,7 @@ interface IWeightedSwap {
 
     function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
 
-    function calculateRemoveLiquidityOneToken(
-        uint256 tokenAmount,
-        uint256 tokenIndex
-    ) external view returns (uint256, uint256);
+    function calculateRemoveLiquidityOneToken(uint256 tokenAmount, uint256 tokenIndex) external view returns (uint256, uint256);
 
     function calculateRemoveLiquidityExactIn(uint256 amount) external view returns (uint256[] memory);
 
