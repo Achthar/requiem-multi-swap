@@ -13,14 +13,6 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
-      name: "BalancedPool",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BalancedPool__factory>;
-    getContractFactory(
-      name: "BalancedPoolLib",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BalancedPoolLib__factory>;
-    getContractFactory(
       name: "OwnerPausable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.OwnerPausable__factory>;
@@ -28,10 +20,6 @@ declare module "hardhat/types/runtime" {
       name: "FeeDistributor",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FeeDistributor__factory>;
-    getContractFactory(
-      name: "IBalancedSwap",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IBalancedSwap__factory>;
     getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -76,14 +64,6 @@ declare module "hardhat/types/runtime" {
       name: "IOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOracle__factory>;
-    getContractFactory(
-      name: "IPairGovernance",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IPairGovernance__factory>;
-    getContractFactory(
-      name: "IRequiemCallee",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IRequiemCallee__factory>;
     getContractFactory(
       name: "IRequiemFormula",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -149,10 +129,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ISignaturesValidator__factory>;
     getContractFactory(
-      name: "IStableSwap",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IStableSwap__factory>;
-    getContractFactory(
       name: "IStableSwapFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStableSwapFactory__factory>;
@@ -176,6 +152,38 @@ declare module "hardhat/types/runtime" {
       name: "IUniswapV2Router",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV2Router__factory>;
+    getContractFactory(
+      name: "IWeightedPairManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWeightedPairManager__factory>;
+    getContractFactory(
+      name: "IWETH",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWETH__factory>;
+    getContractFactory(
+      name: "IPoolPriceOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPoolPriceOracle__factory>;
+    getContractFactory(
+      name: "IPriceOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPriceOracle__factory>;
+    getContractFactory(
+      name: "IBalancedSwap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBalancedSwap__factory>;
+    getContractFactory(
+      name: "IPairGovernance",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPairGovernance__factory>;
+    getContractFactory(
+      name: "IRequiemCallee",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRequiemCallee__factory>;
+    getContractFactory(
+      name: "ISwapRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ISwapRouter__factory>;
     getContractFactory(
       name: "IUniswapV2TypeSwap",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -201,21 +209,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWeightedPairManager__factory>;
     getContractFactory(
+      name: "IStableSwap",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IStableSwap__factory>;
+    getContractFactory(
       name: "IWeightedSwap",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWeightedSwap__factory>;
-    getContractFactory(
-      name: "IWETH",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IWETH__factory>;
-    getContractFactory(
-      name: "IPoolPriceOracle",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IPoolPriceOracle__factory>;
-    getContractFactory(
-      name: "IPriceOracle",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IPriceOracle__factory>;
     getContractFactory(
       name: "IStakePool",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -313,49 +313,45 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WROSE__factory>;
     getContractFactory(
-      name: "ProtocolFeeRemover",
+      name: "BalancedLPToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ProtocolFeeRemover__factory>;
+    ): Promise<Contracts.BalancedLPToken__factory>;
     getContractFactory(
-      name: "RequiemFormula",
+      name: "BalancedPool",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemFormula__factory>;
+    ): Promise<Contracts.BalancedPool__factory>;
     getContractFactory(
-      name: "RequiemFormulaTest",
+      name: "BalancedPoolLib",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemFormulaTest__factory>;
+    ): Promise<Contracts.BalancedPoolLib__factory>;
     getContractFactory(
-      name: "RequiemPairERC20",
+      name: "SwapRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemPairERC20__factory>;
+    ): Promise<Contracts.SwapRouter__factory>;
     getContractFactory(
-      name: "RequiemPoolERC20",
+      name: "WeightedFormula",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemPoolERC20__factory>;
+    ): Promise<Contracts.WeightedFormula__factory>;
     getContractFactory(
-      name: "RequiemQPairManager",
+      name: "RequiemPair",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemQPairManager__factory>;
+    ): Promise<Contracts.RequiemPair__factory>;
     getContractFactory(
-      name: "RequiemQRouter",
+      name: "WeightedPairERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemQRouter__factory>;
+    ): Promise<Contracts.WeightedPairERC20__factory>;
     getContractFactory(
-      name: "RequiemRouter",
+      name: "RequiemPairFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemRouter__factory>;
+    ): Promise<Contracts.RequiemPairFactory__factory>;
     getContractFactory(
-      name: "RequiemWeightedPair",
+      name: "WeightedPairGovernance",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemWeightedPair__factory>;
+    ): Promise<Contracts.WeightedPairGovernance__factory>;
     getContractFactory(
-      name: "RequiemWeightedPairFactory",
+      name: "LPToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemWeightedPairFactory__factory>;
-    getContractFactory(
-      name: "RequiemZap",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemZap__factory>;
+    ): Promise<Contracts.LPToken__factory>;
     getContractFactory(
       name: "StableSwap",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -364,6 +360,22 @@ declare module "hardhat/types/runtime" {
       name: "StableSwapLib",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StableSwapLib__factory>;
+    getContractFactory(
+      name: "WeightedLPToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedLPToken__factory>;
+    getContractFactory(
+      name: "WeightedPool",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedPool__factory>;
+    getContractFactory(
+      name: "WeightedPoolLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WeightedPoolLib__factory>;
+    getContractFactory(
+      name: "ProtocolFeeRemover",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ProtocolFeeRemover__factory>;
     getContractFactory(
       name: "StakePool",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -389,9 +401,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StakePoolRewardFund__factory>;
     getContractFactory(
-      name: "SwapRouter",
+      name: "TimeLock",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SwapRouter__factory>;
+    ): Promise<Contracts.TimeLock__factory>;
     getContractFactory(
       name: "DeflatingERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -481,68 +493,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WETH9__factory>;
     getContractFactory(
-      name: "TimeLock",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.TimeLock__factory>;
-    getContractFactory(
-      name: "BalancedLPToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BalancedLPToken__factory>;
-    getContractFactory(
-      name: "LPToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.LPToken__factory>;
-    getContractFactory(
-      name: "WeightedLPToken",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedLPToken__factory>;
-    getContractFactory(
-      name: "WeightedFormula",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedFormula__factory>;
-    getContractFactory(
-      name: "RequiemPairClassic",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemPairClassic__factory>;
-    getContractFactory(
-      name: "RequiemPair",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemPair__factory>;
-    getContractFactory(
-      name: "WeightedPairERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedPairERC20__factory>;
-    getContractFactory(
-      name: "RequiemPairFactory",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.RequiemPairFactory__factory>;
-    getContractFactory(
-      name: "WeightedPairGovernance",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedPairGovernance__factory>;
-    getContractFactory(
-      name: "WeightedPool",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedPool__factory>;
-    getContractFactory(
-      name: "WeightedPoolLib",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.WeightedPoolLib__factory>;
-    getContractFactory(
       name: "Zap",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Zap__factory>;
 
-    getContractAt(
-      name: "BalancedPool",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BalancedPool>;
-    getContractAt(
-      name: "BalancedPoolLib",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BalancedPoolLib>;
     getContractAt(
       name: "OwnerPausable",
       address: string,
@@ -553,11 +507,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.FeeDistributor>;
-    getContractAt(
-      name: "IBalancedSwap",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IBalancedSwap>;
     getContractAt(
       name: "IERC20",
       address: string,
@@ -613,16 +562,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IOracle>;
-    getContractAt(
-      name: "IPairGovernance",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IPairGovernance>;
-    getContractAt(
-      name: "IRequiemCallee",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IRequiemCallee>;
     getContractAt(
       name: "IRequiemFormula",
       address: string,
@@ -704,11 +643,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ISignaturesValidator>;
     getContractAt(
-      name: "IStableSwap",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IStableSwap>;
-    getContractAt(
       name: "IStableSwapFactory",
       address: string,
       signer?: ethers.Signer
@@ -738,6 +672,46 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IUniswapV2Router>;
+    getContractAt(
+      name: "IWeightedPairManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWeightedPairManager>;
+    getContractAt(
+      name: "IWETH",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWETH>;
+    getContractAt(
+      name: "IPoolPriceOracle",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPoolPriceOracle>;
+    getContractAt(
+      name: "IPriceOracle",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPriceOracle>;
+    getContractAt(
+      name: "IBalancedSwap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBalancedSwap>;
+    getContractAt(
+      name: "IPairGovernance",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPairGovernance>;
+    getContractAt(
+      name: "IRequiemCallee",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRequiemCallee>;
+    getContractAt(
+      name: "ISwapRouter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ISwapRouter>;
     getContractAt(
       name: "IUniswapV2TypeSwap",
       address: string,
@@ -769,25 +743,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IWeightedPairManager>;
     getContractAt(
+      name: "IStableSwap",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IStableSwap>;
+    getContractAt(
       name: "IWeightedSwap",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IWeightedSwap>;
-    getContractAt(
-      name: "IWETH",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IWETH>;
-    getContractAt(
-      name: "IPoolPriceOracle",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IPoolPriceOracle>;
-    getContractAt(
-      name: "IPriceOracle",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IPriceOracle>;
     getContractAt(
       name: "IStakePool",
       address: string,
@@ -909,60 +873,55 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.WROSE>;
     getContractAt(
-      name: "ProtocolFeeRemover",
+      name: "BalancedLPToken",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.ProtocolFeeRemover>;
+    ): Promise<Contracts.BalancedLPToken>;
     getContractAt(
-      name: "RequiemFormula",
+      name: "BalancedPool",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemFormula>;
+    ): Promise<Contracts.BalancedPool>;
     getContractAt(
-      name: "RequiemFormulaTest",
+      name: "BalancedPoolLib",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemFormulaTest>;
+    ): Promise<Contracts.BalancedPoolLib>;
     getContractAt(
-      name: "RequiemPairERC20",
+      name: "SwapRouter",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemPairERC20>;
+    ): Promise<Contracts.SwapRouter>;
     getContractAt(
-      name: "RequiemPoolERC20",
+      name: "WeightedFormula",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemPoolERC20>;
+    ): Promise<Contracts.WeightedFormula>;
     getContractAt(
-      name: "RequiemQPairManager",
+      name: "RequiemPair",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemQPairManager>;
+    ): Promise<Contracts.RequiemPair>;
     getContractAt(
-      name: "RequiemQRouter",
+      name: "WeightedPairERC20",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemQRouter>;
+    ): Promise<Contracts.WeightedPairERC20>;
     getContractAt(
-      name: "RequiemRouter",
+      name: "RequiemPairFactory",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemRouter>;
+    ): Promise<Contracts.RequiemPairFactory>;
     getContractAt(
-      name: "RequiemWeightedPair",
+      name: "WeightedPairGovernance",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemWeightedPair>;
+    ): Promise<Contracts.WeightedPairGovernance>;
     getContractAt(
-      name: "RequiemWeightedPairFactory",
+      name: "LPToken",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.RequiemWeightedPairFactory>;
-    getContractAt(
-      name: "RequiemZap",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemZap>;
+    ): Promise<Contracts.LPToken>;
     getContractAt(
       name: "StableSwap",
       address: string,
@@ -973,6 +932,26 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.StableSwapLib>;
+    getContractAt(
+      name: "WeightedLPToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedLPToken>;
+    getContractAt(
+      name: "WeightedPool",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedPool>;
+    getContractAt(
+      name: "WeightedPoolLib",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WeightedPoolLib>;
+    getContractAt(
+      name: "ProtocolFeeRemover",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ProtocolFeeRemover>;
     getContractAt(
       name: "StakePool",
       address: string,
@@ -1004,10 +983,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.StakePoolRewardFund>;
     getContractAt(
-      name: "SwapRouter",
+      name: "TimeLock",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.SwapRouter>;
+    ): Promise<Contracts.TimeLock>;
     getContractAt(
       name: "DeflatingERC20",
       address: string,
@@ -1118,66 +1097,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.WETH9>;
-    getContractAt(
-      name: "TimeLock",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.TimeLock>;
-    getContractAt(
-      name: "BalancedLPToken",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BalancedLPToken>;
-    getContractAt(
-      name: "LPToken",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.LPToken>;
-    getContractAt(
-      name: "WeightedLPToken",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.WeightedLPToken>;
-    getContractAt(
-      name: "WeightedFormula",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.WeightedFormula>;
-    getContractAt(
-      name: "RequiemPairClassic",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemPairClassic>;
-    getContractAt(
-      name: "RequiemPair",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemPair>;
-    getContractAt(
-      name: "WeightedPairERC20",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.WeightedPairERC20>;
-    getContractAt(
-      name: "RequiemPairFactory",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.RequiemPairFactory>;
-    getContractAt(
-      name: "WeightedPairGovernance",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.WeightedPairGovernance>;
-    getContractAt(
-      name: "WeightedPool",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.WeightedPool>;
-    getContractAt(
-      name: "WeightedPoolLib",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.WeightedPoolLib>;
     getContractAt(
       name: "Zap",
       address: string,

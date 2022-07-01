@@ -2,14 +2,14 @@
 
 pragma solidity >=0.8.15;
 
-import "./../interfaces/IWeightedPairFactory.sol";
-import "./../interfaces/IWeightedPair.sol";
-import "./../interfaces/IWeightedFormula.sol";
-import "./../interfaces/IWeightedPairManager.sol";
+import "./../interfaces/poolPair/IWeightedPairFactory.sol";
+import "./../interfaces/poolPair/IWeightedPair.sol";
+import "./../interfaces/poolPair/IWeightedFormula.sol";
+import "./../interfaces/poolPair/IWeightedPairManager.sol";
 import "./../interfaces/ISwap.sol";
 import "./../libraries/TransferHelper.sol";
 import "./../interfaces/ERC20/IERC20.sol";
-import "./../interfaces/ISwapRouter.sol";
+import "./../interfaces/poolPair/ISwapRouter.sol";
 import "./../interfaces/IWETH.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string

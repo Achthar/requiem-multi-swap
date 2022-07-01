@@ -4,7 +4,7 @@ import {
     TestERC20__factory,
 
     // Swap,
-    RequiemPairERC20,
+    WeightedPairERC20,
     RequiemPairFactory,
     RequiemPairFactory__factory,
     RequiemPair,
@@ -73,13 +73,13 @@ export async function factoryFixture(signer: SignerWithAddress): Promise<Factory
 }
 
 interface PairFixture extends FactoryFixture {
-    token0: RequiemPairERC20
+    token0: WeightedPairERC20
     tokenWeight0: number
-    token1: RequiemPairERC20
+    token1: WeightedPairERC20
     tokenWeight1: number
     pair: RequiemPair
-    tokenA: RequiemPairERC20
-    tokenB: RequiemPairERC20
+    tokenA: WeightedPairERC20
+    tokenB: WeightedPairERC20
 }
 
 export async function pairFixture(signer: SignerWithAddress): Promise<PairFixture> {
@@ -132,10 +132,10 @@ export async function pairDifferentWeightFixture(signer: SignerWithAddress, toke
 
 export interface V2Fixture {
     formula: Contract
-    token0: RequiemPairERC20
-    token1: RequiemPairERC20
-    tokenA: RequiemPairERC20
-    tokenB: RequiemPairERC20
+    token0: WeightedPairERC20
+    token1: WeightedPairERC20
+    tokenA: WeightedPairERC20
+    tokenB: WeightedPairERC20
     tokenWeight0: number,
     WETH: WETH9
     WETHPartner: Contract

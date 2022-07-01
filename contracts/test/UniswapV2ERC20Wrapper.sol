@@ -2,7 +2,7 @@
 
 pragma solidity >=0.5.16;
 
-import "../WeightedPairERC20.sol";
+import "../poolPair/WeightedPairERC20.sol";
 
 contract RequiemPairERC20Wrapper is WeightedPairERC20 {
     constructor(uint256 _totalSupply) {

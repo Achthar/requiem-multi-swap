@@ -7,10 +7,10 @@ import "./libraries/SafeERC20.sol";
 import "./libraries/SafeMath.sol";
 import "./interfaces/IWETH.sol";
 import "./interfaces/IUniswapV2Router.sol";
-import "./interfaces/ISwapRouter.sol";
-import "./interfaces/IWeightedPairFactory.sol";
-import "./interfaces/IWeightedPair.sol";
-import "./interfaces/IWeightedFormula.sol";
+import "./interfaces/poolPair/ISwapRouter.sol";
+import "./interfaces/poolPair/IWeightedPairFactory.sol";
+import "./interfaces/poolPair/IWeightedPair.sol";
+import "./interfaces/poolPair/IWeightedFormula.sol";
 import "./libraries/TransferHelper.sol";
 import "./libraries/Babylonian.sol";
 

@@ -17,9 +17,9 @@ pragma solidity ^0.8.15;
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
-import "../interfaces/IRequiemCallee.sol";
-import "../interfaces/IWeightedPair.sol";
-import "../interfaces/IUniswapV2TypeSwap.sol";
+import "../interfaces/poolPair/IRequiemCallee.sol";
+import "../interfaces/poolPair/IWeightedPair.sol";
+import "../interfaces/poolPair/IUniswapV2TypeSwap.sol";
 import "../mocks/MockERC20.sol";
 
 contract MockCallee is IRequiemCallee {

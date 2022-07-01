@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.15;
 
-import "./interfaces/IRequiemWeightedPair.sol";
+import "./interfaces/poolPair/IWeightedPair.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/ERC20/IERC20.sol";
 
@@ -51,7 +51,7 @@ contract ProtocolFeeRemover {
         // save gas
         require(_receiver != address(0), "ProtocolFeeRemover: Invalid Receiver address");
         for (uint256 i = 0; i < pairs.length; i++) {
-            IRequiemWeightedPair pair = IRequiemWeightedPair(pairs[i]);
+            IWeightedPair pair = IWeightedPair(pairs[i]);
             uint256 liquidity = pair.balanceOf(address(this));
             if (liquidity > 0) {
                 pair.transfer(address(pair), liquidity);

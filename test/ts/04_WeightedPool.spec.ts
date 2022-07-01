@@ -15,7 +15,7 @@ import { getApprovalDigest, deployContractWithLibraries } from './shared/common'
 import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import NewSwapArtifact from "../../artifacts/contracts/WeightedPool.sol/WeightedPool.json";
+import NewSwapArtifact from "../../artifacts/contracts/poolWeighted/WeightedPool.sol/WeightedPool.json";
 import {
 	RequiemPairFactory__factory,
 	WeightedFormula__factory,
