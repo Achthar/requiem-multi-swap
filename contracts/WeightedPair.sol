@@ -510,6 +510,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         swapFee = _newSwapFee;
         vReserve0 = (vReserve0 * _newAmp) / BPS;
         vReserve1 = (vReserve1 * _newAmp) / BPS;
+        assert(vReserve0 >= reserve0 && vReserve1 >= reserve0);
         ampBps = _newAmp;
         formula = _formula;
     }
