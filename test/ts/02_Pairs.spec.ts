@@ -48,7 +48,6 @@ describe('RequiemPair-Test', () => {
 	let weth: Contract
 	let formula: Contract
 	let factory: Contract
-	let pairManager: Contract
 	let router: Contract
 
 
@@ -116,7 +115,7 @@ describe('RequiemPair-Test', () => {
 		await tokenA.approve(router.address, ethers.constants.MaxUint256)
 		await tokenB.approve(router.address, ethers.constants.MaxUint256)
 
-		await new router.createPair(
+		await router.createPair(
 			tokenA.address,
 			tokenB.address,
 			amountA,
@@ -280,7 +279,7 @@ describe('RequiemPair-Test', () => {
 		expect(balAPre.sub(balAPost)).to.equal(priceIn)
 
 
-		await factory.setSwapParams(pair, newSwapFee, newAmplification)
+		await factory.setSwapParams(pair, formula.address, newSwapFee, newAmplification)
 
 		await router.onSwapExactTokensForTokens(
 			[pair],
@@ -357,6 +356,65 @@ describe('RequiemPair-Test', () => {
 					amount, // uint256 amountBDesired,
 					BigNumber.from(1324321432), // uint256 amountAMin,
 					amount, // uint256 amountBMin,
+					[0, maxUint256], // uint256[2] memory vReserveRatioBounds
+					wallet.address, // address to,
+					deadline// uint256 deadline
+				)
+
+			})
+
+
+			it('remove liquidity', async () => {
+				const lps = await pairA_B_Contract.balanceOf(wallet.address)
+				await pairA_B_Contract.approve(router.address, maxUint256)
+				await router.removeLiquidity(
+					pairA_B_Contract.address, // address pair,
+					tokenA.address, // address tokenA,
+					tokenB.address, // address tokenB,
+					lps.div(5), // uint256 liquidity,
+					0, // uint256 amountAMin,
+					0, // uint256 amountBMin,
+					wallet.address, // address to,
+					deadline// uint256 deadline
+				)
+			})
+
+		})
+
+		describe('LP fees', () => {
+			it('add liquidity fee', async () => {
+				const amountA = BigNumber.from(1324321432)
+				await factory.setFeeParameters(
+					wallet.address, // address _feeToSetter,
+					wallet.address, // address _feeTo,
+					20000 // uint256 _protocolFee
+				)
+
+				await factory.setSwapParams(
+					pairA_B_Contract.address, // address _pair,
+					formula.address,
+					11, // uint32 _newSwapFee,
+					100000 // uint32 _amp
+				)
+
+				const reserves = await formula.getFactoryParameters(
+					factory.address, // address factory,
+					pairA_B_Contract.address, // address pair,
+					tokenA.address// address tokenA
+				)
+				const amount = await formula.quote(
+					amountA, // uint256 amountA,
+					reserves.reserveA, // uint256 reserveA,
+					reserves.reserveB// uint256 reserveB
+				)
+				await router.addLiquidity(
+					pairA_B_Contract.address, // address pair,
+					tokenA.address, // address tokenA,
+					tokenB.address, // address tokenB,
+					amountA, // uint256 amountADesired,
+					amount, // uint256 amountBDesired,
+					amountA, // uint256 amountAMin,
+					0, // uint256 amountBMin,
 					[0, maxUint256], // uint256[2] memory vReserveRatioBounds
 					wallet.address, // address to,
 					deadline// uint256 deadline

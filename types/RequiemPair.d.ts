@@ -43,7 +43,7 @@ interface RequiemPairInterface extends ethers.utils.Interface {
     "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "setSwapParams(uint32,uint32)": FunctionFragment;
+    "setSwapParams(address,uint32,uint32)": FunctionFragment;
     "swap(uint256,uint256,address,bytes)": FunctionFragment;
     "symbol()": FunctionFragment;
     "sync()": FunctionFragment;
@@ -128,7 +128,7 @@ interface RequiemPairInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapParams",
-    values: [BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "swap",
@@ -450,6 +450,7 @@ export class RequiemPair extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setSwapParams(
+      _formula: string,
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -609,6 +610,7 @@ export class RequiemPair extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setSwapParams(
+    _formula: string,
     _newSwapFee: BigNumberish,
     _newAmp: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -767,6 +769,7 @@ export class RequiemPair extends BaseContract {
     ): Promise<void>;
 
     setSwapParams(
+      _formula: string,
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: CallOverrides
@@ -1014,6 +1017,7 @@ export class RequiemPair extends BaseContract {
     ): Promise<BigNumber>;
 
     setSwapParams(
+      _formula: string,
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1155,6 +1159,7 @@ export class RequiemPair extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setSwapParams(
+      _formula: string,
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

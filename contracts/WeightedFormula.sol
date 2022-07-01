@@ -670,11 +670,7 @@ contract WeightedFormula is IWeightedFormula {
         }
     }
 
-
-     function getFactoryPairData(
-        address factory,
-        address pair
-    )
+    function getFactoryPairData(address factory, address pair)
         public
         view
         returns (
@@ -687,8 +683,8 @@ contract WeightedFormula is IWeightedFormula {
             IWeightedPair.ReserveData memory reserveData
         )
     {
-        token0 =  IWeightedPair(pair).token0();
-        token1 =  IWeightedPair(pair).token1();
+        token0 = IWeightedPair(pair).token0();
+        token1 = IWeightedPair(pair).token1();
         reserveData = IWeightedPair(pair).getReserves();
         (tokenWeight0, tokenWeight1, swapFee, amp) = getFactoryStaticData(factory, pair);
     }
@@ -988,11 +984,11 @@ contract WeightedFormula is IWeightedFormula {
     ) external view override returns (uint256 amount) {
         if (collectedFee0 > 0) {
             (uint256 r0, uint256 p0) = power(uint256(collectedFee0) + reserve0, reserve0, tokenWeight0, 100);
-            amount = amount + ((totalLiquidity * r0) >> p0) - totalLiquidity;
+            amount += ((totalLiquidity * r0) >> p0) - totalLiquidity;
         }
         if (collectedFee1 > 0) {
             (uint256 r1, uint256 p1) = power(uint256(collectedFee1) + reserve1, reserve1, tokenWeight1, 100);
-            amount = amount + ((totalLiquidity * r1) >> p1) - totalLiquidity;
+            amount += ((totalLiquidity * r1) >> p1) - totalLiquidity;
         }
     }
 }

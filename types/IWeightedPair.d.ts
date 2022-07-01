@@ -38,7 +38,7 @@ interface IWeightedPairInterface extends ethers.utils.Interface {
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "setSwapParams(uint32,uint32)": FunctionFragment;
+    "setSwapParams(address,uint32,uint32)": FunctionFragment;
     "symbol()": FunctionFragment;
     "sync()": FunctionFragment;
     "token0()": FunctionFragment;
@@ -105,7 +105,7 @@ interface IWeightedPairInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapParams",
-    values: [BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "sync", values?: undefined): string;
@@ -373,8 +373,9 @@ export class IWeightedPair extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setSwapParams(
-      arg0: BigNumberish,
+      arg0: string,
       arg1: BigNumberish,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -492,8 +493,9 @@ export class IWeightedPair extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setSwapParams(
-    arg0: BigNumberish,
+    arg0: string,
     arg1: BigNumberish,
+    arg2: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -610,8 +612,9 @@ export class IWeightedPair extends BaseContract {
     ): Promise<void>;
 
     setSwapParams(
-      arg0: BigNumberish,
+      arg0: string,
       arg1: BigNumberish,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -817,8 +820,9 @@ export class IWeightedPair extends BaseContract {
     ): Promise<BigNumber>;
 
     setSwapParams(
-      arg0: BigNumberish,
+      arg0: string,
       arg1: BigNumberish,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -918,8 +922,9 @@ export class IWeightedPair extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setSwapParams(
-      arg0: BigNumberish,
+      arg0: string,
       arg1: BigNumberish,
+      arg2: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

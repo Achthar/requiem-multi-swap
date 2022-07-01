@@ -513,6 +513,11 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
         internalType: "uint32",
         name: "",
         type: "uint32",

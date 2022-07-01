@@ -34,7 +34,7 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
     "protocolFee()": FunctionFragment;
     "setFeeParameters(address,address,uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
-    "setSwapParams(address,uint32,uint32)": FunctionFragment;
+    "setSwapParams(address,address,uint32,uint32)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -82,7 +82,7 @@ interface RequiemPairFactoryInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapParams",
-    values: [string, BigNumberish, BigNumberish]
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -247,6 +247,7 @@ export class RequiemPairFactory extends BaseContract {
 
     setSwapParams(
       _pair: string,
+      _formula: string,
       _newSwapFee: BigNumberish,
       _amp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -315,6 +316,7 @@ export class RequiemPairFactory extends BaseContract {
 
   setSwapParams(
     _pair: string,
+    _formula: string,
     _newSwapFee: BigNumberish,
     _amp: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -380,6 +382,7 @@ export class RequiemPairFactory extends BaseContract {
 
     setSwapParams(
       _pair: string,
+      _formula: string,
       _newSwapFee: BigNumberish,
       _amp: BigNumberish,
       overrides?: CallOverrides
@@ -475,6 +478,7 @@ export class RequiemPairFactory extends BaseContract {
 
     setSwapParams(
       _pair: string,
+      _formula: string,
       _newSwapFee: BigNumberish,
       _amp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -537,6 +541,7 @@ export class RequiemPairFactory extends BaseContract {
 
     setSwapParams(
       _pair: string,
+      _formula: string,
       _newSwapFee: BigNumberish,
       _amp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

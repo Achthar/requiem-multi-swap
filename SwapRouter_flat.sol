@@ -657,7 +657,11 @@ interface IWeightedPair is IWeightedPairERC20 {
 
     function burn(address to) external returns (uint256 amount0, uint256 amount1);
 
-    function setSwapParams(uint32, uint32) external;
+    function setSwapParams(
+        address,
+        uint32,
+        uint32
+    ) external;
 
     function sync() external;
 

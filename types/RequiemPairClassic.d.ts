@@ -43,7 +43,7 @@ interface RequiemPairClassicInterface extends ethers.utils.Interface {
     "onSwapGivenIn(address,address,uint256,address)": FunctionFragment;
     "onSwapGivenOut(address,address,uint256,address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "setSwapParams(uint32,uint32)": FunctionFragment;
+    "setSwapParams(address,uint32,uint32)": FunctionFragment;
     "skim(address)": FunctionFragment;
     "swap(uint256,uint256,address,bytes)": FunctionFragment;
     "symbol()": FunctionFragment;
@@ -129,7 +129,7 @@ interface RequiemPairClassicInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setSwapParams",
-    values: [BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "skim", values: [string]): string;
   encodeFunctionData(
@@ -452,7 +452,14 @@ export class RequiemPairClassic extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setSwapParams(
+    "setSwapParams(address,uint32,uint32)"(
+      arg0: string,
+      arg1: BigNumberish,
+      arg2: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setSwapParams(uint32,uint32)"(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -616,7 +623,14 @@ export class RequiemPairClassic extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setSwapParams(
+  "setSwapParams(address,uint32,uint32)"(
+    arg0: string,
+    arg1: BigNumberish,
+    arg2: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setSwapParams(uint32,uint32)"(
     _newSwapFee: BigNumberish,
     _newAmp: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -779,7 +793,14 @@ export class RequiemPairClassic extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setSwapParams(
+    "setSwapParams(address,uint32,uint32)"(
+      arg0: string,
+      arg1: BigNumberish,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setSwapParams(uint32,uint32)"(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: CallOverrides
@@ -1028,7 +1049,14 @@ export class RequiemPairClassic extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setSwapParams(
+    "setSwapParams(address,uint32,uint32)"(
+      arg0: string,
+      arg1: BigNumberish,
+      arg2: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setSwapParams(uint32,uint32)"(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1174,7 +1202,14 @@ export class RequiemPairClassic extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setSwapParams(
+    "setSwapParams(address,uint32,uint32)"(
+      arg0: string,
+      arg1: BigNumberish,
+      arg2: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setSwapParams(uint32,uint32)"(
       _newSwapFee: BigNumberish,
       _newAmp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

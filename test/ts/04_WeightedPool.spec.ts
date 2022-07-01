@@ -359,7 +359,7 @@ describe('WeightedPool-Test', () => {
 			console.log("Diff", balancesPoolActual.map((x, index) => x.sub(balancesVitual[index])))
 			const numBals = balancesPoolActual.map((x, index) => Number(ethers.utils.formatEther(x.mul(multi[index]))))
 			console.log("bals", numBals)
-			console.log("invariant", sstorage.lastInvariant.toString())
+			// console.log("invariant", sstorage.lastInvariant.toString())
 			console.log("manual", multiply(numBals.map((x, i) => Math.pow(x, exps[i]))))
 			console.log("-----------------------------------------------")
 			const inv = await weightedMath._calculateInvariant(
@@ -387,7 +387,7 @@ describe('WeightedPool-Test', () => {
 			console.log("BDiff", balancesPoolActual.map((x, index) => x.sub(balancesVitual[index])))
 			const numBals = balancesPoolActual.map((x, index) => Number(ethers.utils.formatEther(x.mul(multi[index]))))
 			console.log("bals", numBals)
-			console.log("invariant", sstorage.lastInvariant.toString())
+			// console.log("invariant", sstorage.lastInvariant.toString())
 			console.log("manual", multiply(numBals.map((x, i) => Math.pow(x, exps[i]))))
 			console.log("-----------------------------------------------")
 			const inv = await weightedMath._calculateInvariant(
