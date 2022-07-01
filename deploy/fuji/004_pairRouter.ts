@@ -1,15 +1,18 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers, waffle } from 'hardhat';
 import { DeployFunction } from "hardhat-deploy/types";
-import { parseUnits } from 'ethers/lib/utils';
-import { expandDecimals } from "../../test/ts/shared/utilities";
-import { BigNumber } from "ethers";
-import { toNormalizedWeights } from "../resources/normalizedWeights"
-import { MONTH } from '../resources/time';
-import { fp } from "../resources/numbers"
-import { constants } from 'ethers';
-import { Console } from 'console';
+
 // import { deploy, deployedAt } from "./contract";
+
+
+function delay(delayInms: number) {
+	return new Promise(resolve => {
+		setTimeout(() => {
+			resolve(2);
+		}, delayInms);
+	});
+}
+
 
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -26,25 +29,40 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 	console.log("--- deploy formulas ---")
 
+
+	const formula = await deploy("RequiemFormula", {
+		contract: "RequiemFormula",
+		skipIfAlreadyDeployed: true,
+		from: deployer,
+		args: [],
+		log: true,
+	});
+
+	await delay(5000)
+	console.log("Formula", formula.address)
+	const factory = await deploy("RequiemPairFactory", {
+		contract: "RequiemPairFactory",
+		skipIfAlreadyDeployed: true,
+		from: deployer,
+		args: [deployer, formula.address],
+		log: true,
+	});
+
+	await delay(5000)
+
+
 	const weth = '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
-	const factoryAddress = '0xacd3602152763C3AAFA705D8a90C36661ecD7d46'
 
-	const pairManager = await deploy("RequiemQPairManager", {
-		contract: "RequiemQPairManager",
+	console.log("Factory", factory.address)
+	const router = await deploy("SwapRouter", {
+		contract: "SwapRouter",
 		skipIfAlreadyDeployed: true,
 		from: deployer,
-		args: [factoryAddress, weth],
+		args: [factory.address, weth],
 		log: true,
 	});
 
-	const router = await deploy("RequiemQRouter", {
-		contract: "RequiemQRouter",
-		skipIfAlreadyDeployed: true,
-		from: deployer,
-		args: [factoryAddress, weth],
-		log: true,
-	});
-
+	console.log("Router", router.address)
 
 };
 export default func;
