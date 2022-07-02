@@ -10,15 +10,15 @@
 //     TestErc20Factory,
 //     OriginUniswapV2FactoryFactory,
 //     OriginUniswapV2PairFactory,
-//     FireBirdZapFactory,
-//     FireBirdZap,
+//     RequiemZapFactory,
+//     RequiemZap,
 //     UniswapV2Router02Factory,
 // } from "../../typechain";
 // import { keccak256 } from "ethers/lib/utils";
 
 // const overrides = {};
 
-// describe("FireBirdZap", () => {
+// describe("RequiemZap", () => {
 //     let token0: Contract;
 //     let token1: Contract;
 //     let token2: Contract;
@@ -30,7 +30,7 @@
 //     let pairUni: Contract;
 //     let pairUniETH: Contract;
 //     let WETHPair: Contract;
-//     let zap: FireBirdZap;
+//     let zap: RequiemZap;
 //     let signers: SignerWithAddress[];
 //     let BNBAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -68,7 +68,7 @@
 //         const uniRouter = await new UniswapV2Router02Factory(wallet).deploy(originFactory.address, WETH.address);
 
 //         //Deploy zapper
-//         zap = await new FireBirdZapFactory(wallet).deploy(uniRouter.address,router.address);
+//         zap = await new RequiemZapFactory(wallet).deploy(uniRouter.address,router.address);
 //         await zap.setMaxResidual(10000);
 //     });
 
@@ -188,7 +188,7 @@
 
 //             it("zap in not path", async () => {
 //                 await WETHPartner.approve(zap.address, MaxUint256);
-//                 await expect(zap.zapInToken(WETHPartner.address, [toWei(1), 0, 0], pair.address, false)).to.be.revertedWith("FireBirdZap: !path TokenBNB");
+//                 await expect(zap.zapInToken(WETHPartner.address, [toWei(1), 0, 0], pair.address, false)).to.be.revertedWith("RequiemZap: !path TokenBNB");
 //             });
 
 //             it("zap in uni pair", async () => {
@@ -244,7 +244,7 @@
 //             });
 
 //             it("zap out not path", async () => {
-//                 await expect(zap.zapOut(pair.address, toWei(1), WETHPartner.address, 0)).to.be.revertedWith("FireBirdZap: !path swap");
+//                 await expect(zap.zapOut(pair.address, toWei(1), WETHPartner.address, 0)).to.be.revertedWith("RequiemZap: !path swap");
 //             });
 
 //             it("zap out uni pair to token", async () => {
@@ -397,7 +397,7 @@
 //                         ...overrides,
 //                         value: toWei(0.8),
 //                     })
-//                 ).to.be.revertedWith("FireBirdZap: !path BNBToken");
+//                 ).to.be.revertedWith("RequiemZap: !path BNBToken");
 //             });
 
 //             it("zap in uni eth", async () => {
@@ -507,7 +507,7 @@
 //             });
 
 //             it("zap out not path", async () => {
-//                 await expect(zap.zapOut(WETHPair.address, toWei(1), token0.address, 0)).to.be.revertedWith("FireBirdZap: !path swap");
+//                 await expect(zap.zapOut(WETHPair.address, toWei(1), token0.address, 0)).to.be.revertedWith("RequiemZap: !path swap");
 //             });
 
 //             it("zap out uni ETH pair", async () => {

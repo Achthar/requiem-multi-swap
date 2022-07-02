@@ -81,8 +81,8 @@ library BalancedMath {
         // outGivenIn                                                                                //
         // aO = amountOut                                                                            //
         // bO = balanceOut                                                                           //
-        // bI = balanceIn              /      /            bI             \    (wI / wO) \           //
-        // aI = amountIn    aO = bO * |  1 - | --------------------------  | ^            |          //
+        // bI = balanceIn              /      /            bI             \              \           //
+        // aI = amountIn    aO = bO * |  1 - | --------------------------  |              |          //
         // wI = weightIn               \      \       ( bI + aI )         /              /           //
         // wO = weightOut                                                                            //
         **********************************************************************************************/

@@ -146,12 +146,51 @@ describe('RequiemPair-Test', () => {
 		pairTest_Contract = await ethers.getContractAt('RequiemPair', pairTest)
 
 
+
+
+		await factory.setFeeParameters(wallet.address, wallet.address, 50000)
+
+
+		await router.onSwapTokensForExactTokens(
+			[pairTest_Contract.address], // address[] memory pools,
+			[tokenA.address, tokenB.address],// address[] memory tokens,
+			2144321432, // uint256 amountOut,
+			ethers.constants.MaxUint256, // uint256 amountInMax,
+			wallet.address,// address to,
+			deadline// uint256 deadline
+		)
+
+
+		await router.onSwapTokensForExactTokens(
+			[pairTest_Contract.address], // address[] memory pools,
+			[tokenB.address, tokenA.address],// address[] memory tokens,
+			2144321432, // uint256 amountOut,
+			ethers.constants.MaxUint256, // uint256 amountInMax,
+			wallet.address,// address to,
+			deadline// uint256 deadline
+		)
+
+
+		await new router.addLiquidity(
+			pairTest_Contract.address,
+			tokenA.address,
+			tokenB.address,
+			parseUnits("1", 18),
+			parseUnits("1", 18),
+			0,
+			0,
+			[0, ethers.constants.MaxUint256],
+			wallet.address,
+			deadline
+		)
+
+
 	})
 
 
 	it('pair data', async () => {
 		console.log(pairTest_Contract.address)
-        expect(1).to.equal(1)
+		expect(1).to.equal(1)
 
 	})
 
