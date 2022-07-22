@@ -1,23 +1,4 @@
 
-// File: contracts/interfaces/IUniswapV2TypeSwap.sol
-
-
-
-pragma solidity ^0.8.15;
-
-interface IUniswapV2TypeSwap {
-    /**
-    * @notice The classic UniswapV2 interface. Due to its widely used integrations, it is always usefult to have,
-    * even though regular implementations lack efficiency when using in standard swap routing
-    * The core utility in the requirem framework is the flash swap feature
-     */
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes memory data
-    ) external returns (uint256);
-}
 // File: contracts/interfaces/ERC20/IERC20.sol
 
 
@@ -220,7 +201,26 @@ library Math {
     }
 }
 
-// File: contracts/interfaces/IRequiemCallee.sol
+// File: contracts/interfaces/poolPair/IUniswapV2TypeSwap.sol
+
+
+
+pragma solidity ^0.8.15;
+
+interface IUniswapV2TypeSwap {
+    /**
+    * @notice The classic UniswapV2 interface. Due to its widely used integrations, it is always usefult to have,
+    * even though regular implementations lack efficiency when using in standard swap routing
+    * The core utility in the requirem framework is the flash swap feature
+     */
+    function swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes memory data
+    ) external returns (uint256);
+}
+// File: contracts/interfaces/poolPair/IRequiemCallee.sol
 
 
 
@@ -229,7 +229,7 @@ pragma solidity >=0.8.15;
 interface IRequiemCallee {
     function requiemCall(address sender, uint amount0, uint amount1, bytes calldata data) external;
 }
-// File: contracts/interfaces/IWeightedFormula.sol
+// File: contracts/interfaces/poolPair/IWeightedFormula.sol
 
 
 pragma solidity >=0.8.15;
@@ -416,7 +416,7 @@ interface ISwap {
     ) external view returns (uint256);
 }
 
-// File: contracts/interfaces/IWeightedPairERC20.sol
+// File: contracts/interfaces/poolPair/IWeightedPairERC20.sol
 
 
 
@@ -467,7 +467,7 @@ interface IWeightedPairERC20 {
     ) external;
 }
 
-// File: contracts/WeightedPairERC20.sol
+// File: contracts/poolPair/WeightedPairERC20.sol
 
 
 
@@ -586,7 +586,7 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
     }
 }
 
-// File: contracts/interfaces/IWeightedPair.sol
+// File: contracts/interfaces/poolPair/IWeightedPair.sol
 
 
 
@@ -911,7 +911,7 @@ library EnumerableSet {
     }
 }
 
-// File: contracts/interfaces/IWeightedPairFactory.sol
+// File: contracts/interfaces/poolPair/IWeightedPairFactory.sol
 
 
 
@@ -963,7 +963,7 @@ interface IWeightedPairFactory {
     ) external;
 }
 
-// File: contracts/WeightedPair.sol
+// File: contracts/poolPair/WeightedPair.sol
 
 
 
@@ -1482,7 +1482,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 }
 
-// File: contracts/WeightedPairFactory.sol
+// File: contracts/poolPair/WeightedPairFactory.sol
 
 
 

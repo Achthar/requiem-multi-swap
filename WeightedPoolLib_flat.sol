@@ -1355,7 +1355,7 @@ library SafeERC20 {
     }
 }
 
-// File: contracts/interfaces/IWeightedSwap.sol
+// File: contracts/interfaces/poolWeighted/IWeightedSwap.sol
 
 
 
@@ -1366,7 +1366,7 @@ pragma solidity 0.8.15;
 
 interface IWeightedSwap {
     /// EVENTS
-    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
+    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event TokenExchange(address indexed buyer, address soldId, uint256 tokensSold, address boughtId, uint256 tokensBought);
 
@@ -1374,7 +1374,7 @@ interface IWeightedSwap {
 
     event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
 
-    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
+    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event NewFee(uint256 fee, uint256 adminFee, uint256 withdrawFee);
 
@@ -1386,10 +1386,7 @@ interface IWeightedSwap {
 
     function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
 
-    function calculateRemoveLiquidityOneToken(
-        uint256 tokenAmount,
-        uint256 tokenIndex
-    ) external view returns (uint256, uint256);
+    function calculateRemoveLiquidityOneToken(uint256 tokenAmount, uint256 tokenIndex) external view returns (uint256, uint256);
 
     function calculateRemoveLiquidityExactIn(uint256 amount) external view returns (uint256[] memory);
 
@@ -1857,7 +1854,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
     }
 }
 
-// File: contracts/tokens/WeightedLPToken.sol
+// File: contracts/poolWeighted/WeightedLPToken.sol
 
 
 
@@ -1879,7 +1876,7 @@ contract WeightedLPToken is ERC20Burnable {
     }
 }
 
-// File: contracts/WeightedPoolLib.sol
+// File: contracts/poolWeighted/WeightedPoolLib.sol
 
 
 pragma solidity ^0.8.15;
@@ -1911,8 +1908,6 @@ library WeightedPoolLib {
         uint256[] balances;
         /// @dev weights for the tokens
         uint256[] normalizedWeights;
-        /// @dev last invariant
-        uint256 lastInvariant;
         /// @dev swap and fee ratio. Charge on any action which move balance state far from the ideal state
         uint256 fee;
         /// @dev flash loan fee ratio. Charge on any action which move balance state far from the ideal state
@@ -1957,7 +1952,6 @@ library WeightedPoolLib {
         require(mintAmount >= minMintAmount, "s");
 
         self.lpToken.mint(msg.sender, mintAmount);
-
     }
 
     /**
@@ -2084,7 +2078,6 @@ library WeightedPoolLib {
         uint256 length = amounts.length;
         feeAmounts = new uint256[](length);
         uint256[] memory preLoanBalances = new uint256[](length);
-        uint256 preInvariant = _getInvariant(self);
         for (uint256 i = 0; i < length; ++i) {
             uint256 amount = amounts[i];
             preLoanBalances[i] = self.pooledTokens[i].balanceOf(address(this));
@@ -2109,8 +2102,6 @@ library WeightedPoolLib {
 
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
         }
-        self.lastInvariant = _getInvariant(self);
-        require(self.lastInvariant >= preInvariant, "invariant");
     }
 
     function removeLiquidityExactIn(
@@ -2256,8 +2247,8 @@ library WeightedPoolLib {
     function sync(WeightedSwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             IERC20 token = self.pooledTokens[i];
-            uint256 fee = self.collectedFees[i] / self.tokenMultipliers[i] - 1;
-            if (fee != 0) {
+            uint256 fee = self.collectedFees[i] / self.tokenMultipliers[i];
+            if (fee > 0) {
                 token.safeTransfer(receiver, fee);
                 self.collectedFees[i] = 0;
                 self.balances[i] = token.balanceOf(address(this));
@@ -2284,13 +2275,6 @@ library WeightedPoolLib {
     }
 
     // Helpers
-
-    /**
-     * @dev Returns the current value of the invariant.
-     */
-    function _getInvariant(WeightedSwapStorage storage self) internal view returns (uint256) {
-        return WeightedMath._calculateInvariant(self.normalizedWeights, _xp(self));
-    }
 
     function _processSwapFeeAmount(
         WeightedSwapStorage storage self,

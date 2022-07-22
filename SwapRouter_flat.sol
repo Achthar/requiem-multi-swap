@@ -192,7 +192,7 @@ interface ISwap {
     ) external view returns (uint256);
 }
 
-// File: contracts/interfaces/IWeightedPairManager.sol
+// File: contracts/interfaces/poolPair/IWeightedPairManager.sol
 
 
 
@@ -340,7 +340,7 @@ interface IWeightedPairManager {
     ) external returns (uint256 amountETH);
 }
 
-// File: contracts/interfaces/ISwapRouter.sol
+// File: contracts/interfaces/poolPair/ISwapRouter.sol
 
 
 
@@ -419,7 +419,7 @@ interface ISwapRouter is IWeightedPairManager {
     ) external returns (uint256[] memory amounts);
 }
 
-// File: contracts/interfaces/IWeightedFormula.sol
+// File: contracts/interfaces/poolPair/IWeightedFormula.sol
 
 
 pragma solidity >=0.8.15;
@@ -559,7 +559,7 @@ interface IWeightedFormula {
     ) external view returns (uint256 amount);
 }
 
-// File: contracts/interfaces/IWeightedPairERC20.sol
+// File: contracts/interfaces/poolPair/IWeightedPairERC20.sol
 
 
 
@@ -610,7 +610,7 @@ interface IWeightedPairERC20 {
     ) external;
 }
 
-// File: contracts/interfaces/IWeightedPair.sol
+// File: contracts/interfaces/poolPair/IWeightedPair.sol
 
 
 
@@ -672,7 +672,7 @@ interface IWeightedPair is IWeightedPairERC20 {
     ) external;
 }
 
-// File: contracts/interfaces/IWeightedPairFactory.sol
+// File: contracts/interfaces/poolPair/IWeightedPairFactory.sol
 
 
 
@@ -724,7 +724,7 @@ interface IWeightedPairFactory {
     ) external;
 }
 
-// File: contracts/SwapRouter.sol
+// File: contracts/poolPair/SwapRouter.sol
 
 
 

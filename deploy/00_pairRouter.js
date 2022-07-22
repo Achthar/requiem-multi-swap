@@ -26,12 +26,15 @@ async function main() {
 
     const Router = await ethers.getContractFactory("SwapRouter")
 
-    const weth = '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
+    const weth = {
+        43113: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c',
+        42261: '0x792296e2a15e6ceb5f5039decae7a1f25b00b0b0'
+    }
 
 
-    const router = await Router.deploy(factory.address, weth)
+    const router = await Router.deploy(factory.address, weth[chainId])
 
-    console.log("ROuter", router.address)
+    console.log("Router", router.address)
 }
 
 main()

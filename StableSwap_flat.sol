@@ -339,7 +339,63 @@ interface IERC20 {
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
-// File: contracts/interfaces/IStableSwap.sol
+// File: contracts/interfaces/flashLoan/IFlashLoanRecipient.sol
+
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+pragma solidity ^0.8.15;
+
+// Inspired by Aave Protocol's IFlashLoanReceiver.
+
+
+interface IFlashLoanRecipient {
+    /**
+     * @dev When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.
+     *
+     * At the time of the call, the Vault will have transferred `amounts` for `tokens` to the recipient. Before this
+     * call returns, the recipient must have transferred `amounts` plus `feeAmounts` for each token back to the
+     * Vault, or else the entire flash loan will revert.
+     *
+     * `userData` is the same value passed in the `IVault.flashLoan` call.
+     */
+    function receiveFlashLoan(
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        uint256[] memory feeAmounts,
+        bytes memory userData
+    ) external;
+}
+
+// File: contracts/interfaces/flashLoan/IPoolFlashLoan.sol
+
+
+
+pragma solidity 0.8.15;
+
+
+interface IPoolFlashLoan {
+    event FlashLoan(address recipient, uint256[] amounts, uint256[] feeAmounts);
+
+    function flashLoan(
+        IFlashLoanRecipient recipient,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external;
+}
+
+// File: contracts/interfaces/poolStable/IStableSwap.sol
 
 
 
@@ -413,146 +469,6 @@ interface IStableSwap {
     function updateUserWithdrawFee(address recipient, uint256 transferAmount) external;
 
     function getTokenBalances() external view returns (uint256[] memory);
-}
-
-// File: contracts/interfaces/flashLoan/IFlashLoanRecipient.sol
-
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-pragma solidity ^0.8.15;
-
-// Inspired by Aave Protocol's IFlashLoanReceiver.
-
-
-interface IFlashLoanRecipient {
-    /**
-     * @dev When `flashLoan` is called on the Vault, it invokes the `receiveFlashLoan` hook on the recipient.
-     *
-     * At the time of the call, the Vault will have transferred `amounts` for `tokens` to the recipient. Before this
-     * call returns, the recipient must have transferred `amounts` plus `feeAmounts` for each token back to the
-     * Vault, or else the entire flash loan will revert.
-     *
-     * `userData` is the same value passed in the `IVault.flashLoan` call.
-     */
-    function receiveFlashLoan(
-        IERC20[] memory tokens,
-        uint256[] memory amounts,
-        uint256[] memory feeAmounts,
-        bytes memory userData
-    ) external;
-}
-
-// File: contracts/interfaces/flashLoan/IPoolFlashLoan.sol
-
-
-
-pragma solidity 0.8.15;
-
-
-interface IPoolFlashLoan {
-    event FlashLoan(address recipient, uint256[] amounts, uint256[] feeAmounts);
-
-    function flashLoan(
-        IFlashLoanRecipient recipient,
-        uint256[] memory amounts,
-        bytes memory userData
-    ) external;
-}
-
-// File: contracts/interfaces/IRequiemStableSwap.sol
-
-
-
-pragma solidity 0.8.15;
-
-
-
-// solhint-disable var-name-mixedcase
-
-interface IRequiemStableSwap {
-    /// EVENTS
-    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 invariant, uint256 tokenSupply);
-
-    event TokenExchange(address indexed buyer, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
-
-    event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 tokenSupply);
-
-    event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
-
-    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 invariant, uint256 tokenSupply);
-
-    event RampA(uint256 oldA, uint256 newA, uint256 initialTime, uint256 futureTime);
-
-    event StopRampA(uint256 A, uint256 timestamp);
-
-    event NewFee(uint256 fee, uint256 flashFee, uint256 adminFee, uint256 withdrawFee);
-
-    event CollectProtocolFee(address token, uint256 amount);
-
-    event FeeControllerChanged(address newController);
-
-    event FeeDistributorChanged(address newController);
-
-    // pool data view functions
-    function getVirtualPrice() external view returns (uint256);
-
-    function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
-
-    function calculateRemoveLiquidity(address account, uint256 amount) external view returns (uint256[] memory);
-
-    function calculateRemoveLiquidityOneToken(
-        address account,
-        uint256 tokenAmount,
-        uint8 tokenIndex
-    ) external view returns (uint256 availableTokenAmount);
-
-    function calculateCurrentWithdrawFee(address account) external view returns (uint256);
-
-    function flashLoan(
-        IFlashLoanRecipient recipient,
-        IERC20[] memory tokens,
-        uint256[] memory amounts,
-        bytes memory userData
-    ) external;
-
-    function addLiquidity(
-        uint256[] calldata amounts,
-        uint256 minToMint,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function removeLiquidity(
-        uint256 amount,
-        uint256[] calldata minAmounts,
-        uint256 deadline
-    ) external returns (uint256[] memory);
-
-    function removeLiquidityOneToken(
-        uint256 tokenAmount,
-        uint8 tokenIndex,
-        uint256 minAmount,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function removeLiquidityImbalance(
-        uint256[] calldata amounts,
-        uint256 maxBurnAmount,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function updateUserWithdrawFee(address recipient, uint256 transferAmount) external;
 }
 
 // File: contracts/interfaces/ERC20/IERC20Metadata.sol
@@ -991,7 +907,7 @@ abstract contract ERC20Burnable is Context, ERC20 {
     }
 }
 
-// File: contracts/tokens/LPToken.sol
+// File: contracts/poolStable/LPToken.sol
 
 
 
@@ -1001,10 +917,10 @@ pragma solidity ^0.8.15;
 
 
 contract LPToken is Ownable, ERC20Burnable {
-    IRequiemStableSwap public swap;
+    IStableSwap public swap;
 
     constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
-        swap = IRequiemStableSwap(msg.sender);
+        swap = IStableSwap(msg.sender);
     }
 
     function mint(address _to, uint256 _amount) external onlyOwner {
@@ -1097,7 +1013,7 @@ library SafeERC20 {
     }
 }
 
-// File: contracts/StableSwapLib.sol
+// File: contracts/poolStable/StableSwapLib.sol
 
 
 pragma solidity ^0.8.15;
@@ -1106,15 +1022,13 @@ pragma solidity ^0.8.15;
 
 
 
-
-using SafeERC20 for IERC20 global;
-
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 /**
  * StableSwap main algorithm
  */
 library StableSwapLib {
+    using SafeERC20 for IERC20;
 
     event AddLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
 
@@ -1141,7 +1055,6 @@ library StableSwapLib {
     /// @dev max iteration of converge calccuate
     uint256 internal constant MAX_ITERATION = 256;
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
-
 
     struct SwapStorage {
         IERC20[] pooledTokens;
@@ -1217,7 +1130,7 @@ library StableSwapLib {
                 fees[i] = (_fee * diff) / FEE_DENOMINATOR;
                 self.balances[i] = newBalances[i];
                 // collect admin fee on a normalized basis
-                self.collectedFees[i] +=  (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
+                self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
                 newBalances[i] -= fees[i];
             }
             D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
@@ -1253,18 +1166,18 @@ library StableSwapLib {
         dy = (normalizedBalances[j] - y) / self.tokenMultipliers[j]; // denormalize
         uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR; // charge fee on actual out amount
 
-        dy -=  dy_fee;
-       
-        uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
+        dy -= dy_fee;
+
+        uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
 
         // we check whether the balance has increased by the suggested inAmount
-        require(self.balances[i] + inAmount <= balanceIn,  "insufficient in");
+        require(self.balances[i] + inAmount <= balanceIn, "insufficient in");
 
         // update balances
         self.balances[i] = balanceIn;
-        self.balances[j] -= dy ;
+        self.balances[j] -= dy;
         self.collectedFees[j] += (dy_fee * self.tokenMultipliers[j] * self.adminFee) / FEE_DENOMINATOR;
-       
+
         self.pooledTokens[j].safeTransfer(to, dy);
         emit TokenExchange(to, i, inAmount, j, dy);
 
@@ -1291,9 +1204,9 @@ library StableSwapLib {
         uint256 newOutBalance = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
         uint256 inAmountVirtual = divUp(_getY(self, j, i, newOutBalance, normalizedBalances) - normalizedBalances[i], self.tokenMultipliers[i]);
         // add fee to in Amounts
-        inAmountVirtual += inAmountVirtual * self.fee / FEE_DENOMINATOR;
+        inAmountVirtual += (inAmountVirtual * self.fee) / FEE_DENOMINATOR;
 
-        uint256 balanceIn =  self.pooledTokens[i].balanceOf(address(this));
+        uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
         uint256 inAmountActual = balanceIn - self.balances[i];
 
         // check the whether sufficient amounts have been sent in
@@ -1304,7 +1217,7 @@ library StableSwapLib {
         self.balances[j] -= outAmount;
 
         // collect admin fee
-        self.collectedFees[i] += (inAmountActual * self.fee * self.tokenMultipliers[i] * self.adminFee) /  FEE_DENOMINATOR / FEE_DENOMINATOR;
+        self.collectedFees[i] += (inAmountActual * self.fee * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR / FEE_DENOMINATOR;
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
@@ -1343,7 +1256,7 @@ library StableSwapLib {
             uint256 postLoanBalance = token.balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post balances");
             self.balances[i] = postLoanBalance;
-            self.collectedFees[i] +=  feeAmounts[i] * self.tokenMultipliers[i] * self.adminFee / FEE_DENOMINATOR;
+            self.collectedFees[i] += (feeAmounts[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
@@ -1430,7 +1343,7 @@ library StableSwapLib {
             self.balances[i] = newBalances[i];
             self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
             newBalances[i] -= fees[i];
-             if (amounts[i] != 0) {
+            if (amounts[i] != 0) {
                 self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
             }
         }
@@ -1447,11 +1360,7 @@ library StableSwapLib {
         emit RemoveLiquidityImbalance(msg.sender, amounts, fees, D1, totalSupply - burnAmount);
     }
 
-
-    function sync(
-        SwapStorage storage self,
-        address receiver
-    ) external {
+    function sync(SwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             IERC20 token = self.pooledTokens[i];
             uint256 fee = self.collectedFees[i] / self.tokenMultipliers[i];
@@ -1538,10 +1447,10 @@ library StableSwapLib {
     }
 
     /**
-    * @notice pre-implements calculation for Requiem interface for exat out swap
-    * that due to the fact that the structure is not symmetric (unlike 50/50 pairs)
-    * we require a separate function to calculate the input for a given output
-    */
+     * @notice pre-implements calculation for Requiem interface for exat out swap
+     * that due to the fact that the structure is not symmetric (unlike 50/50 pairs)
+     * we require a separate function to calculate the input for a given output
+     */
     function calculateSwapGivenOut(
         SwapStorage storage self,
         uint256 inIndex,
@@ -1556,7 +1465,7 @@ library StableSwapLib {
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
         uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
 
-        return inAmount + inAmount * self.fee / FEE_DENOMINATOR;
+        return inAmount + (inAmount * self.fee) / FEE_DENOMINATOR;
     }
 
     function calculateRemoveLiquidity(
@@ -2001,7 +1910,7 @@ abstract contract ReentrancyGuard {
     }
 }
 
-// File: contracts/StableSwap.sol
+// File: contracts/poolStable/StableSwap.sol
 
 
 
@@ -2017,12 +1926,11 @@ pragma solidity ^0.8.15;
 
 
 
-using StableSwapLib for StableSwapLib.SwapStorage global;
-using SafeERC20 for IERC20 global;
-
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
 contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
+    using StableSwapLib for StableSwapLib.SwapStorage;
+    using SafeERC20 for IERC20;
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;
@@ -2036,7 +1944,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
-    mapping(address =>bool) internal isToken;
+    mapping(address => bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -2125,7 +2033,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
-     /**  @notice Flash loan using stable swap balances  */
+    /**  @notice Flash loan using stable swap balances  */
     function flashLoan(
         IFlashLoanRecipient recipient,
         uint256[] memory amounts,
@@ -2217,7 +2125,6 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.updateUserWithdrawFee(recipient, transferAmount);
     }
 
-
     /**
      * @notice Sets the admin fee
      * @dev adminFee cannot be higher than 100% of the swap fee
@@ -2241,7 +2148,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.flashFee = newFlashFee;
         swapStorage.defaultWithdrawFee = newWithdrawFee;
 
-        emit NewFee(newSwapFee, newFlashFee,  newAdminFee, newWithdrawFee);
+        emit NewFee(newSwapFee, newFlashFee, newAdminFee, newWithdrawFee);
     }
 
     /**
@@ -2305,7 +2212,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.balances;
     }
 
-    function getTokenMultipliers() external view  returns (uint256[] memory) {
+    function getTokenMultipliers() external view returns (uint256[] memory) {
         return swapStorage.tokenMultipliers;
     }
 

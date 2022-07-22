@@ -10,12 +10,12 @@ async function main() {
 
     console.log("Account balance:", ethers.utils.formatEther(await operator.getBalance()).toString());
 
-    const Library = await ethers.getContractFactory('WeightedPoolLib')
+    const Library = await ethers.getContractFactory('StableSwapLib')
 
     const wPoolLib = await Library.deploy()
 
     // We get the contract to deploy
-    const Pool = await ethers.getContractFactory('WeightedPool', { libraries: { WeightedPoolLib: wPoolLib.address } })
+    const Pool = await ethers.getContractFactory('StableSwap', { libraries: { StableSwapLib: wPoolLib.address } })
 
     // deploy the pool
     const pool = await Pool.deploy()
