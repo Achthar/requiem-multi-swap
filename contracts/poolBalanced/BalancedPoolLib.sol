@@ -37,9 +37,7 @@ library BalancedPoolLib {
         uint256 adminFee;
         /// @dev admin fees that can be withdrawn by feeCollector
         uint256[] collectedFees;
-          uint256[] normalizedWeights;
-
-
+        uint256 normalizedWeight;
     }
 
     /**
@@ -60,6 +58,7 @@ library BalancedPoolLib {
         (mintAmount, swapFees) = BalancedMath._calcLpOutGivenExactTokensIn(
             _xp(self.balances, self.tokenMultipliers),
             _xp(amounts, self.tokenMultipliers),
+            self.normalizedWeight,
             tokenSupply,
             self.fee
         );
@@ -124,13 +123,7 @@ library BalancedPoolLib {
         uint256 amountInWithFee = (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
 
         // get out amount
-        outAmount = BalancedMath._calcOutGivenIn(
-            self.balances[inIndex] * self.tokenMultipliers[inIndex],
-            self.normalizedWeights[inIndex],
-            self.balances[outIndex] * self.tokenMultipliers[outIndex],
-            self.normalizedWeights[outIndex],
-            amountInWithFee
-        );
+        outAmount = BalancedMath._calcOutGivenIn(self.balances[inIndex] * self.tokenMultipliers[inIndex], self.balances[outIndex] * self.tokenMultipliers[outIndex], amountInWithFee);
 
         // denormalize amount
         outAmount = outAmount / self.tokenMultipliers[outIndex];
@@ -199,7 +192,6 @@ library BalancedPoolLib {
         uint256 length = amounts.length;
         feeAmounts = new uint256[](length);
         uint256[] memory preLoanBalances = new uint256[](length);
-        uint256 preInvariant = _getInvariant(self);
         for (uint256 i = 0; i < length; ++i) {
             uint256 amount = amounts[i];
             preLoanBalances[i] = self.pooledTokens[i].balanceOf(address(this));
@@ -224,8 +216,6 @@ library BalancedPoolLib {
 
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
         }
-        self.lastInvariant = _getInvariant(self);
-        require(self.lastInvariant >= preInvariant, "invariant");
     }
 
     function removeLiquidityExactIn(
@@ -259,7 +249,7 @@ library BalancedPoolLib {
         require(lpAmount <= self.lpToken.balanceOf(msg.sender), "bal");
         require(lpAmount <= totalSupply, "supply");
         uint256 swapFee;
-        (amountOut, swapFee) = BalancedMath._calcTokenOutGivenExactLpIn(self.balances[index] * self.tokenMultipliers[index], self.normalizedWeights[index], lpAmount, totalSupply, self.fee);
+        (amountOut, swapFee) = BalancedMath._calcTokenOutGivenExactLpIn(self.balances[index] * self.tokenMultipliers[index], self.normalizedWeight, lpAmount, totalSupply, self.fee);
 
         // This is an exceptional situation in which the fee is charged on a token out instead of a token in.
         // Note that swapFee is already upscaled.
@@ -285,7 +275,7 @@ library BalancedPoolLib {
         totalSupply = self.lpToken.totalSupply();
         require(totalSupply != 0, "supply");
         uint256[] memory swapFees;
-        (burnAmount, swapFees) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), totalSupply, self.fee);
+        (burnAmount, swapFees) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
 
         // This is an exceptional situation in which the fee is charged on a token out instead of a token in.
         // Note that swapFee is already upscaled.
@@ -308,7 +298,7 @@ library BalancedPoolLib {
         uint256 outIndex,
         uint256 lpAmount
     ) external view returns (uint256, uint256) {
-        return BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeights[outIndex], lpAmount, self.lpToken.totalSupply(), self.fee);
+        return BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, self.lpToken.totalSupply(), self.fee);
     }
 
     function calculateRemoveLiquidityExactIn(BalancedSwapStorage storage self, uint256 lpAmount) external view returns (uint256[] memory amounts) {
@@ -324,9 +314,9 @@ library BalancedPoolLib {
         bool deposit
     ) external view returns (uint256 lpTokenAmount) {
         if (deposit) {
-            (lpTokenAmount, ) = BalancedMath._calcLpOutGivenExactTokensIn(_xp(self), _xp(amounts, self.tokenMultipliers), self.lpToken.totalSupply(), self.fee);
+            (lpTokenAmount, ) = BalancedMath._calcLpOutGivenExactTokensIn(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, self.lpToken.totalSupply(), self.fee);
         } else {
-            (lpTokenAmount, ) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), self.lpToken.totalSupply(), self.fee);
+            (lpTokenAmount, ) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, self.lpToken.totalSupply(), self.fee);
         }
     }
 
@@ -341,9 +331,7 @@ library BalancedPoolLib {
         // calculate out amount
         amountOut = BalancedMath._calcOutGivenIn(
             self.balances[inIndex] * self.tokenMultipliers[inIndex],
-            self.normalizedWeights[inIndex],
             self.balances[outIndex] * self.tokenMultipliers[outIndex],
-            self.normalizedWeights[outIndex],
             amountInWithFee
         );
         // downscale out amount
@@ -397,13 +385,6 @@ library BalancedPoolLib {
     }
 
     // Helpers
-
-    /**
-     * @dev Returns the current value of the invariant.
-     */
-    function _getInvariant(BalancedSwapStorage storage self) internal view returns (uint256) {
-        return BalancedMath._calculateInvariant( _xp(self));
-    }
 
     function _processSwapFeeAmount(
         BalancedSwapStorage storage self,

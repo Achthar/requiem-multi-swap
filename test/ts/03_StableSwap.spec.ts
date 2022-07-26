@@ -1,6 +1,5 @@
 import { expect } from "./chai-setup";
 import { BigNumber, Contract } from 'ethers'
-import { ecsign } from 'ethereumjs-util'
 
 import {
 	keccak256,
@@ -26,7 +25,6 @@ import {
 	StableSwapLib__factory,
 	MockFlashLoanRecipient__factory,
 	StableSwap__factory,
-	FeeDistributor__factory,
 	WETH9__factory
 } from "../../types";
 
@@ -59,7 +57,6 @@ describe('StableSwap-Test', () => {
 	let weth: Contract
 	let formula: Contract
 	let factory2: Contract
-	let feeDistributor: Contract
 	let router2: Contract
 	let thiefRouter: Contract
 
@@ -200,9 +197,6 @@ describe('StableSwap-Test', () => {
 
 		const pairB_C2 = await factory2.getPair(tokenC.address, tokenB.address, 22)
 		pairB_C_Contract2 = await ethers.getContractAt('RequiemPair', pairB_C2)
-
-		// swap lib
-		feeDistributor = await new FeeDistributor__factory(wallet).deploy()
 
 		// swap libnew 
 		swapLibNew = await new StableSwapLib__factory(wallet).deploy()
@@ -370,7 +364,7 @@ describe('StableSwap-Test', () => {
 			5e6, //_flashfee = 0.05%
 			5e9, //_admin_fee, 50%,
 			5e7, //withdraw fee = 0.5%
-			feeDistributor.address
+			wallet.address
 		)
 
 

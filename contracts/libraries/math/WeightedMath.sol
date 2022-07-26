@@ -17,8 +17,8 @@ pragma solidity ^0.8.15;
 import "./FixedPoint.sol";
 import "./Math.sol";
 
-// These functions start with an underscore, as if they were part of a contract and not a library. At some point this
-// should be fixed.
+// These functions start with an underscore, as if they were part of a contract and not a library.
+
 // solhint-disable private-vars-leading-underscore
 
 library WeightedMath {
@@ -48,30 +48,6 @@ library WeightedMath {
     // swap fees, it follows that (some) joins and exits should as well.
     // On these operations, we split the token amounts in 'taxable' and 'non-taxable' portions, where the 'taxable' part
     // is the one to which swap fees are applied.
-
-    // Invariant is used to collect protocol swap fees by comparing its value between two times.
-    // So we can round always to the same direction. It is also used to initiate the BPT amount
-    // and, because there is a minimum BPT, we round down the invariant.
-    function _calculateInvariant(uint256[] memory normalizedWeights, uint256[] memory balances) internal pure returns (uint256 invariant) {
-        /**********************************************************************************************
-        // invariant               _____                                                             //
-        // wi = weight index i      | |      wi                                                      //
-        // bi = balance index i     | |  bi ^   = i                                                  //
-        // i = invariant                                                                             //
-        **********************************************************************************************/
-
-        invariant = FixedPoint.ONE;
-        for (uint256 i = 0; i < normalizedWeights.length; i++) {
-            invariant = invariant.mulDown(balances[i].powUp(normalizedWeights[i]));
-        }
-
-        require(invariant > 0, "ZERO_INVARIANT");
-    }
-
-    function _calculateInvariantMultiplier(uint256 normalizedWeight, uint256 balanceToken) internal pure returns (uint256 invMultiplier) {
-        invMultiplier = balanceToken.powDown(normalizedWeight);
-    }
-    
 
     // Computes how many tokens can be taken out of a pool if `amountIn` are sent, given the
     // current balances and weights.
@@ -408,42 +384,5 @@ library WeightedMath {
         }
 
         return amountsOut;
-    }
-
-    function _calcDueTokenProtocolSwapFeeAmount(
-        uint256 balance,
-        uint256 normalizedWeight,
-        uint256 previousInvariant,
-        uint256 currentInvariant,
-        uint256 protocolSwapFeePercentage
-    ) internal pure returns (uint256) {
-        /*********************************************************************************
-        /*  protocolSwapFeePercentage * balanceToken * ( 1 - (previousInvariant / currentInvariant) ^ (1 / weightToken))
-        *********************************************************************************/
-
-        if (currentInvariant <= previousInvariant) {
-            // This shouldn't happen outside of rounding errors, but have this safeguard nonetheless to prevent the Pool
-            // from entering a locked state in which joins and exits revert while computing accumulated swap fees.
-            return 0;
-        }
-
-        // We round down to prevent issues in the Pool's accounting, even if it means paying slightly less in protocol
-        // fees to the Vault.
-
-        // Fee percentage and balance multiplications round down, while the subtrahend (power) rounds up (as does the
-        // base). Because previousInvariant / currentInvariant <= 1, the exponent rounds down.
-
-        uint256 base = previousInvariant.divUp(currentInvariant);
-        uint256 exponent = FixedPoint.ONE.divDown(normalizedWeight);
-
-        // Because the exponent is larger than one, the base of the power function has a lower bound. We cap to this
-        // value to avoid numeric issues, which means in the extreme case (where the invariant growth is larger than
-        // 1 / min exponent) the Pool will pay less in protocol fees than it should.
-        base = Math.max(base, FixedPoint.MIN_POW_BASE_FREE_EXPONENT);
-
-        uint256 power = base.powUp(exponent);
-
-        uint256 tokenAccruedFees = balance.mulDown(power.complement());
-        return tokenAccruedFees.mulDown(protocolSwapFeePercentage);
     }
 }

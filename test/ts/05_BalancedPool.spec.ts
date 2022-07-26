@@ -14,7 +14,7 @@ import { getApprovalDigest, deployContractWithLibraries } from './shared/common'
 import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import NewSwapArtifact from "../../artifacts/contracts/poolWeighted/WeightedPool.sol/WeightedPool.json";
+import NewSwapArtifact from "../../artifacts/contracts/poolBalanced/BalancedPool.sol/BalancedPool.json";
 import {
 	RequiemPairFactory__factory,
 	WeightedFormula__factory,
@@ -22,8 +22,8 @@ import {
 	SwapRouter__factory,
 	ThiefRouter__factory,
 	RequiemPair,
-	WeightedPoolLib__factory,
-	WeightedPool__factory,
+	BalancedPoolLib__factory,
+	BalancedPool__factory,
 	WeightedMathTest__factory,
 	MockFlashLoanRecipient__factory,
 	WETH9__factory
@@ -272,12 +272,11 @@ describe('WeightedPool-Test', () => {
 
 		const pairC_WETH = await factory2.getPair(tokenC.address, tokenWETH.address, 42)
 		pairC_WETH_Contract2 = await ethers.getContractAt('RequiemPair', pairC_WETH)
-
+		// console.log("REGLAR DONE 0")
 
 		// swap libnew 
-		swapLibNew = await new WeightedPoolLib__factory(wallet).deploy()
-		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { WeightedPoolLib: swapLibNew.address })
-
+		swapLibNew = await new BalancedPoolLib__factory(wallet).deploy()
+		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { BalancedPoolLib: swapLibNew.address })
 		weightedMath = await new WeightedMathTest__factory(wallet).deploy()
 		console.log("REGLAR DONE 0")
 
@@ -520,7 +519,6 @@ describe('WeightedPool-Test', () => {
 		await swapNew.initialize(
 			poolTokens,
 			[18, 8, 18, 6], //token decimals
-			weights,  //weights
 			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token

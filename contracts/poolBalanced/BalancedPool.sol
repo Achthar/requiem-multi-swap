@@ -46,7 +46,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     function initialize(
         address[] memory _coins,
         uint8[] memory _decimals,
-        uint256[] memory _normalizedWeights,
         uint256[] memory _amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
@@ -63,23 +62,16 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
 
-        {
-            // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
-            uint256 normalizedSum = 0;
-            for (uint8 i = 0; i < swapStorage.nTokens; i++) {
-                require(_coins[i] != address(0), "addressError");
-                require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
-                swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
-                swapStorage.pooledTokens[i] = IERC20(_coins[i]);
-                tokenIndexes[_coins[i]] = uint8(i);
-                require(_normalizedWeights[i] >= BalancedMath._MIN_WEIGHT, "MIN_WEIGHT");
-                normalizedSum += _normalizedWeights[i];
-                isToken[_coins[i]] = true;
-            }
-
-            require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
+        for (uint8 i = 0; i < swapStorage.nTokens; i++) {
+            require(_coins[i] != address(0), "addressError");
+            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
+            swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
+            swapStorage.pooledTokens[i] = IERC20(_coins[i]);
+            tokenIndexes[_coins[i]] = uint8(i);
+            isToken[_coins[i]] = true;
         }
-        swapStorage.normalizedWeights = _normalizedWeights;
+
+        swapStorage.normalizedWeight = FixedPoint.ONE / _coins.length;
 
         swapStorage.lpToken = new BalancedLPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](swapStorage.nTokens);
@@ -246,10 +238,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
 
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;
-    }
-
-    function getTokenWeights() external view returns (uint256[] memory) {
-        return swapStorage.normalizedWeights;
     }
 
     function getCollectedFees() external view returns (uint256[] memory) {
