@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 
 import "../interfaces/poolBalanced/IBalancedERC20.sol";
 
-// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
+// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length, reason-string
 
 abstract contract BalancedERC20 is IBalancedERC20 {
     uint8 public constant decimals = 18;

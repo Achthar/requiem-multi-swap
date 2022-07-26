@@ -21,7 +21,6 @@ library BalancedPoolLib {
 
     struct BalancedSwapStorage {
         IERC20[] pooledTokens;
-        BalancedLPToken lpToken;
         uint256 nTokens;
         /// @dev token i multiplier to reach POOL_TOKEN_COMMON_DECIMALS
         uint256[] tokenMultipliers;
@@ -49,10 +48,10 @@ library BalancedPoolLib {
     function addLiquidityExactTokensIn(
         BalancedSwapStorage storage self,
         uint256[] memory amounts,
-        uint256 minMintAmount
+        uint256 minMintAmount,
+        uint256 tokenSupply
     ) external returns (uint256 mintAmount) {
         uint256 count = self.balances.length;
-        uint256 tokenSupply = self.lpToken.totalSupply();
         uint256[] memory swapFees;
 
         (mintAmount, swapFees) = BalancedMath._calcLpOutGivenExactTokensIn(
@@ -72,8 +71,6 @@ library BalancedPoolLib {
         }
 
         require(mintAmount >= minMintAmount, "s");
-
-        self.lpToken.mint(msg.sender, mintAmount);
     }
 
     /**
@@ -81,11 +78,12 @@ library BalancedPoolLib {
      * @param amounts List of amounts of coins to deposit
      * @return mintAmount Amount of LP tokens received by depositing
      */
-    function initialize(BalancedSwapStorage storage self, uint256[] memory amounts) external returns (uint256 mintAmount) {
+    function initialize(
+        BalancedSwapStorage storage self,
+        uint256[] memory amounts
+    ) external returns (uint256 mintAmount) {
         uint256 count = self.balances.length;
-        uint256 tokenSupply = self.lpToken.totalSupply();
         uint256 invariantAfterJoin = FixedPoint.ONE;
-        require(tokenSupply == 0, "supply");
 
         for (uint256 i = 0; i < count; i++) {
             require(amounts[i] > 0, "amnt");
@@ -94,8 +92,6 @@ library BalancedPoolLib {
         }
 
         mintAmount = invariantAfterJoin * count;
-
-        self.lpToken.mint(msg.sender, mintAmount);
     }
 
     /**
@@ -221,9 +217,9 @@ library BalancedPoolLib {
     function removeLiquidityExactIn(
         BalancedSwapStorage storage self,
         uint256 lpAmount,
-        uint256[] memory minAmounts
-    ) external returns (uint256[] memory amounts, uint256 totalSupply) {
-        totalSupply = self.lpToken.totalSupply();
+        uint256[] memory minAmounts,
+        uint256 totalSupply
+    ) external returns (uint256[] memory amounts) {
         require(lpAmount <= totalSupply);
 
         amounts = BalancedMath._calcTokensOutGivenExactLpIn(_xp(self), lpAmount, totalSupply);
@@ -234,19 +230,16 @@ library BalancedPoolLib {
             self.balances[i] = self.balances[i] - amount;
             self.pooledTokens[i].safeTransfer(msg.sender, amount);
         }
-
-        self.lpToken.burnFrom(msg.sender, lpAmount);
     }
 
     function removeLiquidityOneToken(
         BalancedSwapStorage storage self,
         uint256 lpAmount,
         uint256 index,
-        uint256 minAmount
+        uint256 minAmount,
+        uint256 totalSupply
     ) external returns (uint256 amountOut) {
-        uint256 totalSupply = self.lpToken.totalSupply();
         require(totalSupply > 0, "supply=0");
-        require(lpAmount <= self.lpToken.balanceOf(msg.sender), "bal");
         require(lpAmount <= totalSupply, "supply");
         uint256 swapFee;
         (amountOut, swapFee) = BalancedMath._calcTokenOutGivenExactLpIn(self.balances[index] * self.tokenMultipliers[index], self.normalizedWeight, lpAmount, totalSupply, self.fee);
@@ -258,7 +251,6 @@ library BalancedPoolLib {
         require(amountOut >= minAmount, "s");
 
         uint256 amountOutFinal = amountOut / self.tokenMultipliers[index];
-        self.lpToken.burnFrom(msg.sender, lpAmount);
         self.pooledTokens[index].safeTransfer(msg.sender, amountOutFinal);
         uint256[] memory amounts = new uint256[](self.nTokens);
         amounts[index] = amountOut;
@@ -269,10 +261,10 @@ library BalancedPoolLib {
     function removeLiquidityExactOut(
         BalancedSwapStorage storage self,
         uint256[] memory amounts,
-        uint256 maxBurnAmount
-    ) external returns (uint256 burnAmount, uint256 totalSupply) {
+        uint256 maxBurnAmount,
+        uint256 totalSupply
+    ) external returns (uint256 burnAmount) {
         require(amounts.length == self.nTokens, "array");
-        totalSupply = self.lpToken.totalSupply();
         require(totalSupply != 0, "supply");
         uint256[] memory swapFees;
         (burnAmount, swapFees) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
@@ -282,8 +274,6 @@ library BalancedPoolLib {
         _processSwapFeeAmounts(self, swapFees);
 
         require(burnAmount <= maxBurnAmount, "b exceeded");
-
-        self.lpToken.burnFrom(msg.sender, burnAmount);
 
         for (uint256 i = 0; i < self.nTokens; i++) {
             if (amounts[i] != 0) {
@@ -296,13 +286,14 @@ library BalancedPoolLib {
     function calculateRemoveLiquidityOneTokenExactIn(
         BalancedSwapStorage storage self,
         uint256 outIndex,
-        uint256 lpAmount
+        uint256 lpAmount,
+        uint256 totalSupply
     ) external view returns (uint256, uint256) {
-        return BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, self.lpToken.totalSupply(), self.fee);
+        return BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, totalSupply, self.fee);
     }
 
-    function calculateRemoveLiquidityExactIn(BalancedSwapStorage storage self, uint256 lpAmount) external view returns (uint256[] memory amounts) {
-        amounts = BalancedMath._calcAllTokensInGivenExactLpOut(_xp(self), lpAmount, self.lpToken.totalSupply());
+    function calculateRemoveLiquidityExactIn(BalancedSwapStorage storage self, uint256 lpAmount, uint256 totalSupply) external view returns (uint256[] memory amounts) {
+        amounts = BalancedMath._calcAllTokensInGivenExactLpOut(_xp(self), lpAmount, totalSupply);
     }
 
     /**
@@ -311,12 +302,13 @@ library BalancedPoolLib {
     function calculateTokenAmount(
         BalancedSwapStorage storage self,
         uint256[] memory amounts,
+        uint256 totalSupply,
         bool deposit
     ) external view returns (uint256 lpTokenAmount) {
         if (deposit) {
-            (lpTokenAmount, ) = BalancedMath._calcLpOutGivenExactTokensIn(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, self.lpToken.totalSupply(), self.fee);
+            (lpTokenAmount, ) = BalancedMath._calcLpOutGivenExactTokensIn(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
         } else {
-            (lpTokenAmount, ) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, self.lpToken.totalSupply(), self.fee);
+            (lpTokenAmount, ) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
         }
     }
 
@@ -329,11 +321,7 @@ library BalancedPoolLib {
         // use in amount with fee alredy deducted
         uint256 amountInWithFee = (amountIn * self.tokenMultipliers[inIndex] * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
         // calculate out amount
-        amountOut = BalancedMath._calcOutGivenIn(
-            self.balances[inIndex] * self.tokenMultipliers[inIndex],
-            self.balances[outIndex] * self.tokenMultipliers[outIndex],
-            amountInWithFee
-        );
+        amountOut = BalancedMath._calcOutGivenIn(self.balances[inIndex] * self.tokenMultipliers[inIndex], self.balances[outIndex] * self.tokenMultipliers[outIndex], amountInWithFee);
         // downscale out amount
         amountOut = amountOut / self.tokenMultipliers[outIndex];
     }

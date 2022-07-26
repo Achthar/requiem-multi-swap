@@ -38,6 +38,7 @@ interface IBalancedSwap {
     function addLiquidityExactIn(
         uint256[] calldata amounts,
         uint256 minToMint,
+        address to,
         uint256 deadline
     ) external returns (uint256);
 

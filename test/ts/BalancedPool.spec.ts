@@ -21,19 +21,13 @@ import {
 	MockERC20__factory,
 	SwapRouter__factory,
 	ThiefRouter__factory,
-	RequiemPair,
 	BalancedPoolLib__factory,
-	BalancedPool__factory,
 	WeightedMathTest__factory,
 	MockFlashLoanRecipient__factory,
 	WETH9__factory
 } from "../../types";
 
-
-const TOTAL_SUPPLY = toWei(10000)
-const TEST_AMOUNT = toWei(10)
-
-describe('WeightedPool-Test', () => {
+describe('BalancedPool-Test', () => {
 	let signers: SignerWithAddress[];
 
 	let wallet: SignerWithAddress;
@@ -41,8 +35,7 @@ describe('WeightedPool-Test', () => {
 	let deployWallet: any;
 
 
-	let tokenA: Contract
-	let tokenB: Contract
+	let tokenA: Contract; let tokenB: Contract
 	let tokenC: Contract
 	let tokenUSDC: Contract
 	let tokenUSDT: Contract
@@ -65,18 +58,15 @@ describe('WeightedPool-Test', () => {
 
 	let fLoanRecipient: Contract
 
-	let pairA_USDC_Contract: Contract
-	let pairDAI_B_Contract: Contract
+
 	let pairA_USDC_Contract2: Contract
-	let pairDAI_B_Contract2: Contract
-	let pairA_B_Contract: Contract
 	let pairA_B_Contract2: Contract
-	let pairB_C_Contract: Contract
 	let pairB_C_Contract2: Contract
 	let pairC_WBTC_Contract2: Contract
 	let pairB_WETH_Contract2: Contract
 	let pairWBTC_C_Contract2: Contract
 	let pairC_WETH_Contract2: Contract
+	let pairDAI_B_Contract2: Contract
 
 	// specs for pair
 	let tokenWeightA = BigNumber.from(40)
@@ -85,8 +75,6 @@ describe('WeightedPool-Test', () => {
 	let amplification = BigNumber.from(15000)
 	let amountIn: BigNumber
 	let amountOut: BigNumber
-	let newSwapFee = BigNumber.from(20)
-	let newAmplification = BigNumber.from(20000)
 	let weights: BigNumber[]
 	let amountA = parseUnits('5010', 18)
 	let amountB = parseUnits('5020', 18)
@@ -97,11 +85,8 @@ describe('WeightedPool-Test', () => {
 	let pools: string[]
 	let tokens: string[]
 	let ZERO = BigNumber.from(0)
-	let pairContract: Contract
+	let userBalanceAfter: BigNumber
 	let deadline = '9999999999999999'
-	let userBalance: any;
-	let userBalanceBefore: any;
-	let userBalanceAfter: any;
 	let receipt: any
 	let gasUsed: any
 	let tx: any;
@@ -940,10 +925,6 @@ describe('WeightedPool-Test', () => {
 
 								})
 							})
-
-
-
-
 
 							await validateSwapBals()
 
