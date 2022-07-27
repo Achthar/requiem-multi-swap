@@ -499,7 +499,6 @@ describe('BalancedPool-Test', () => {
 	})
 
 	it('initialize', async () => {
-		weights = [parseUnits('25', 16), parseUnits('25', 16), parseUnits('25', 16), parseUnits('25', 16)]
 		poolTokens = [tokenA.address, tokenWBTC.address, tokenWETH.address, tokenUSDC.address]
 		await swapNew.initialize(
 			poolTokens,

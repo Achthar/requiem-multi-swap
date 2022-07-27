@@ -962,6 +962,7 @@ describe('WeightedPool-Test', () => {
 									tx = await swapNew.addLiquidityExactIn(
 										liquidityAmounts,
 										1,
+										wallet.address,
 										deadline
 									)
 
@@ -1323,8 +1324,7 @@ describe('WeightedPool-Test', () => {
 								})
 
 								it('Liquidity withdrawl', async () => {
-									const ss = await swapNew.swapStorage()
-									const lpToken = await ethers.getContractAt('LPToken', ss.lpToken)
+									const lpToken = await ethers.getContractAt('WeightedLPToken', swapNew.address)
 									const lpBal = await lpToken.balanceOf(wallet.address)
 
 									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)

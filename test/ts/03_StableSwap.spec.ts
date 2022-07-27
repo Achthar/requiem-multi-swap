@@ -380,6 +380,7 @@ describe('StableSwap-Test', () => {
 				await swapNew.addLiquidity(
 					[parseUnits('123401', 6), parseUnits('102342', 6), parseUnits('104233', 18), parseUnits('102334', 18)],
 					0,
+					wallet.address,
 					deadline
 				)
 				console.log("ADDED LP")
@@ -1026,8 +1027,7 @@ describe('StableSwap-Test', () => {
 								})
 
 								it('Liquidity withdrawl', async () => {
-									const ss = await swapNew.swapStorage()
-									const lpToken = await ethers.getContractAt('LPToken', ss.lpToken)
+									const lpToken = await ethers.getContractAt('LPToken', swapNew.address)
 									const lpBal = await lpToken.balanceOf(wallet.address)
 
 									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)

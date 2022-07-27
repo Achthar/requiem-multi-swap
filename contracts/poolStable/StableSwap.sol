@@ -8,6 +8,7 @@ import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
 import "./StableSwapLib.sol";
+import "./StableERC20.sol";
 import "../interfaces/poolStable/IStableSwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
@@ -15,7 +16,7 @@ import "../interfaces/ISwap.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap {
+contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap, StableERC20 {
     using StableSwapLib for StableSwapLib.SwapStorage;
     using SafeERC20 for IERC20;
 
@@ -23,8 +24,8 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     uint256 internal constant MIN_RAMP_TIME = 1 days;
     uint256 internal constant MAX_A = 1e6;
     uint256 internal constant MAX_A_CHANGE = 10;
-    uint256 internal constant MAX_ADMIN_FEE = 1e10; // 100%
-    uint256 internal constant MAX_TRANSACTION_FEE = 1e8; // 1%
+    uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
+    uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
 
     /// STATE VARS
     StableSwapLib.SwapStorage public swapStorage;
@@ -46,8 +47,8 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     function initialize(
         address[] memory _coins,
         uint8[] memory _decimals,
-        string memory lpTokenName,
-        string memory lpTokenSymbol,
+        string memory _name,
+        string memory _symbol,
         uint256 _A,
         uint256 _fee,
         uint256 _flashFee,
@@ -55,6 +56,9 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 _withdrawFee,
         address _feeDistributor
     ) external onlyOwner initializer {
+        // initialize pool token data
+        _poolTokenInit(_name, _symbol);
+        
         require(_coins.length == _decimals.length, "arrayError");
         require(_feeDistributor != address(0), "addressError");
         uint256 numberOfCoins = _coins.length;
@@ -74,7 +78,6 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
         require(_withdrawFee <= MAX_TRANSACTION_FEE, "feeError");
 
-        swapStorage.lpToken = new LPToken(lpTokenName, lpTokenSymbol);
         swapStorage.balances = new uint256[](numberOfCoins);
         swapStorage.initialA = _A * StableSwapLib.A_PRECISION;
         swapStorage.futureA = _A * StableSwapLib.A_PRECISION;
@@ -91,9 +94,11 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     function addLiquidity(
         uint256[] memory amounts,
         uint256 minMintAmount,
+        address to,
         uint256 deadline
-    ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.addLiquidity(amounts, minMintAmount);
+    ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
+        mintAmount = swapStorage.addLiquidity(amounts, minMintAmount, totalSupply);
+        _mint(to, mintAmount);
     }
 
     // expects amount alrady to be sent to this address
@@ -133,8 +138,9 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 lpAmount,
         uint256[] memory minAmounts,
         uint256 deadline
-    ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory) {
-        return swapStorage.removeLiquidity(lpAmount, minAmounts);
+    ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory amounts) {
+        amounts = swapStorage.removeLiquidity(lpAmount, minAmounts, totalSupply);
+        _burn(msg.sender, lpAmount);
     }
 
     function removeLiquidityOneToken(
@@ -142,26 +148,28 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint8 index,
         uint256 minAmount,
         uint256 deadline
-    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount);
+    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amount) {
+        amount = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, totalSupply);
+        _burn(msg.sender, lpAmount);
     }
 
     function removeLiquidityImbalance(
         uint256[] memory amounts,
         uint256 maxBurnAmount,
         uint256 deadline
-    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256) {
-        return swapStorage.removeLiquidityImbalance(amounts, maxBurnAmount);
+    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 burnAmount) {
+        burnAmount = swapStorage.removeLiquidityImbalance(amounts, maxBurnAmount, totalSupply);
+        _burn(msg.sender, burnAmount);
     }
 
     /// VIEW FUNCTIONS
 
     function getVirtualPrice() external view override returns (uint256) {
-        return swapStorage.getVirtualPrice();
+        return swapStorage.getVirtualPrice(totalSupply);
     }
 
     function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view override returns (uint256) {
-        return swapStorage.calculateTokenAmount(amounts, deposit);
+        return swapStorage.calculateTokenAmount(amounts, totalSupply, deposit);
     }
 
     // calculates output amount for given input
@@ -183,7 +191,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     }
 
     function calculateRemoveLiquidity(address account, uint256 amount) external view override returns (uint256[] memory) {
-        return swapStorage.calculateRemoveLiquidity(account, amount);
+        return swapStorage.calculateRemoveLiquidity(account, amount, totalSupply);
     }
 
     function calculateRemoveLiquidityOneToken(
@@ -191,7 +199,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 amount,
         uint8 index
     ) external view override returns (uint256) {
-        return swapStorage.calculateRemoveLiquidityOneToken(account, amount, index);
+        return swapStorage.calculateRemoveLiquidityOneToken(account, amount, index, totalSupply);
     }
 
     function calculateCurrentWithdrawFee(address account) external view override returns (uint256) {
@@ -208,8 +216,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
      * @param transferAmount amount of pool token to transfer
      */
     function updateUserWithdrawFee(address recipient, uint256 transferAmount) external override {
-        require(msg.sender == address(swapStorage.lpToken), "addressError");
-        swapStorage.updateUserWithdrawFee(recipient, transferAmount);
+        swapStorage.updateUserWithdrawFee(recipient, this.balanceOf(recipient), transferAmount);
     }
 
     /**
