@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./LPToken.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
@@ -11,7 +10,7 @@ import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 /**
  * StableSwap main algorithm
  */
-library StableSwapLib {
+library StablePoolLib {
     using SafeERC20 for IERC20;
 
     event AddLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);

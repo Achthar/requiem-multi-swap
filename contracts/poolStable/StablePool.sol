@@ -7,17 +7,17 @@ import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "./StableSwapLib.sol";
+import "./StablePoolLib.sol";
 import "./StableERC20.sol";
-import "../interfaces/poolStable/IStableSwap.sol";
+import "../interfaces/poolStable/IStablePool.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/ISwap.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
-contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStableSwap, StableERC20 {
-    using StableSwapLib for StableSwapLib.SwapStorage;
+contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStablePool, StableERC20 {
+    using StablePoolLib for StablePoolLib.SwapStorage;
     using SafeERC20 for IERC20;
 
     /// constants
@@ -28,7 +28,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
 
     /// STATE VARS
-    StableSwapLib.SwapStorage public swapStorage;
+    StablePoolLib.SwapStorage public swapStorage;
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
@@ -47,6 +47,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     function initialize(
         address[] memory _coins,
         uint8[] memory _decimals,
+        uint256[] memory amounts,
         string memory _name,
         string memory _symbol,
         uint256 _A,
@@ -58,16 +59,15 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     ) external onlyOwner initializer {
         // initialize pool token data
         _poolTokenInit(_name, _symbol);
-        
+
         require(_coins.length == _decimals.length, "arrayError");
         require(_feeDistributor != address(0), "addressError");
-        uint256 numberOfCoins = _coins.length;
-        swapStorage.tokenMultipliers = new uint256[](numberOfCoins);
-        swapStorage.pooledTokens = new IERC20[](numberOfCoins);
-        for (uint256 i = 0; i < numberOfCoins; i++) {
+        swapStorage.tokenMultipliers = new uint256[](_coins.length);
+        swapStorage.pooledTokens = new IERC20[](_coins.length);
+        for (uint256 i = 0; i < _coins.length; i++) {
             require(_coins[i] != address(0), "addressError");
-            require(_decimals[i] <= StableSwapLib.POOL_TOKEN_COMMON_DECIMALS, "paramError");
-            swapStorage.tokenMultipliers[i] = 10**(StableSwapLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
+            require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "paramError");
+            swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[_coins[i]] = uint8(i);
             isToken[_coins[i]] = true;
@@ -78,16 +78,19 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
         require(_withdrawFee <= MAX_TRANSACTION_FEE, "feeError");
 
-        swapStorage.balances = new uint256[](numberOfCoins);
-        swapStorage.initialA = _A * StableSwapLib.A_PRECISION;
-        swapStorage.futureA = _A * StableSwapLib.A_PRECISION;
+        swapStorage.balances = new uint256[](_coins.length);
+        swapStorage.initialA = _A * StablePoolLib.A_PRECISION;
+        swapStorage.futureA = _A * StablePoolLib.A_PRECISION;
         swapStorage.fee = _fee;
-        swapStorage.nTokens = numberOfCoins;
+        swapStorage.nTokens = _coins.length;
         swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
-        swapStorage.collectedFees = new uint256[](numberOfCoins);
+        swapStorage.collectedFees = new uint256[](_coins.length);
+
+        // add first liquidity
+        swapStorage.addLiquidity(amounts, 0, 0);
     }
 
     /// PUBLIC FUNCTIONS
@@ -258,7 +261,7 @@ contract StableSwap is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         require(0 < futureA && futureA < MAX_A, "arrayError");
 
         uint256 initialAPrecise = swapStorage.getAPrecise();
-        uint256 futureAPrecise = futureA * StableSwapLib.A_PRECISION;
+        uint256 futureAPrecise = futureA * StablePoolLib.A_PRECISION;
 
         if (futureAPrecise < initialAPrecise) {
             require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "paramError");

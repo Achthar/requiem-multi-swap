@@ -1324,7 +1324,7 @@ describe('WeightedPool-Test', () => {
 								})
 
 								it('Liquidity withdrawl', async () => {
-									const lpToken = await ethers.getContractAt('WeightedLPToken', swapNew.address)
+									const lpToken = await ethers.getContractAt('ERC20', swapNew.address)
 									const lpBal = await lpToken.balanceOf(wallet.address)
 
 									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)

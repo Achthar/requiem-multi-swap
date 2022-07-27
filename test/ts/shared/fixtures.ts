@@ -14,6 +14,15 @@ import {
     SwapRouter,
     WETH9,
     RouterEventEmitter,
+    MockERC20__factory,
+    StablePool,
+    MockERC20,
+    StablePool__factory,
+    StablePoolLib__factory,
+    StablePoolFactory__factory,
+    StablePoolFactory,
+    StablePoolCreator,
+    StablePoolCreator__factory
     // TToken,
     // StakePoolCreator,
     // StakePoolEpochRewardCreator,
@@ -28,22 +37,25 @@ import {
     // SwapFactory,
     // SwapUtils,
     // MathUtilsFactory,
-    // StableSwapRouterFactory, SwapCreator, StableSwapFactory, LpToken, StableSwapRouter, Swap, StableSwapFactoryFactory,
+    // StablePoolRouterFactory, SwapCreator, StablePoolFactory, LpToken, StablePoolRouter, Swap, StablePoolFactoryFactory,
 } from "../../../types";
 import {
     getAddress,
-    keccak256
+    keccak256,
+    parseUnits
 } from "ethers/lib/utils";
 
-import { toWei } from "./utilities";
-import { Contract } from "ethers";
+import { maxUint256, toWei } from "./utilities";
+import { BigNumber, Contract, Signer } from "ethers";
 import { deployments } from 'hardhat';
 import { deployContractWithLibraries } from "./common";
 // @ts-ignore
-import SwapUtilsArtifact from "../../../artifacts/contracts/stableSwap/SwapUtils.sol/SwapUtils.json";
+import SwapUtilsArtifact from "../../../artifacts/contracts/StablePool/SwapUtils.sol/SwapUtils.json";
 // @ts-ignore
-import SwapCreatorArtifact from "../../../artifacts/contracts/stableSwap/SwapCreator.sol/SwapCreator.json";
+import SwapCreatorArtifact from "../../../artifacts/contracts/StablePool/SwapCreator.sol/SwapCreator.json";
+import StablePoolArtifact from "../../../artifacts/contracts/poolStable/StablePool.sol/StablePool.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { drop } from "lodash";
 
 interface FormulaFixture {
     formula: WeightedFormula
@@ -205,6 +217,107 @@ export async function v2Fixture(signer: SignerWithAddress, samePairWeight: boole
 
 }
 
+interface ERC20Fixture {
+    token0: MockERC20
+    token1: MockERC20
+    token2: MockERC20
+    token3: MockERC20
+    token4: MockERC20
+    token5: MockERC20
+}
+
+
+export async function tokenFixture(signer: SignerWithAddress): Promise<ERC20Fixture> {
+
+    const t0 = await new MockERC20__factory(signer).deploy("Token0", "T0", 6)
+    const t1 = await new MockERC20__factory(signer).deploy("Token1", "T1", 8)
+    const t2 = await new MockERC20__factory(signer).deploy("Token2", "T2", 18)
+    const t3 = await new MockERC20__factory(signer).deploy("Token3", "T3", 18)
+    const t4 = await new MockERC20__factory(signer).deploy("Token4", "T4", 18)
+    const t5 = await new MockERC20__factory(signer).deploy("Token5", "T5", 18)
+
+    return {
+        token0: t0,
+        token1: t1,
+        token2: t2,
+        token3: t3,
+        token4: t4,
+        token5: t5
+    }
+}
+
+
+interface SwapRouterFixture {
+    weth: WETH9
+    formula: WeightedFormula
+    factory: RequiemPairFactory
+    router: SwapRouter
+}
+
+
+export async function swapRouterFixture(signer: SignerWithAddress): Promise<SwapRouterFixture> {
+    const formula = await new WeightedFormula__factory(signer).deploy()
+    const weth = await new WETH9__factory(signer).deploy()
+    const factory = await new RequiemPairFactory__factory(signer).deploy(signer.address, formula.address, signer.address)
+    const router = await new SwapRouter__factory(signer).deploy(factory.address, weth.address)
+    return {
+        router,
+        weth,
+        factory,
+        formula
+    }
+}
+
+interface StablePoolFixture {
+    factory: StablePoolFactory
+    creator: StablePoolCreator
+    pool: StablePool
+}
+
+export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockERC20[], amounts: BigNumber[]): Promise<StablePoolFixture> {
+    const lib = await new StablePoolLib__factory(signer).deploy()
+    const creator = await new StablePoolCreator__factory({ ["contracts/poolStable/StablePoolLib.sol:StablePoolLib"]: lib.address }, signer).deploy()
+    const factory = await new StablePoolFactory__factory(signer).deploy()
+
+    await factory.initialize(signer.address, creator.address)
+    await factory.setFeeAmount(
+        parseUnits('5', 17), // admin fee 50%
+    )
+
+    const stablePool = await new StablePool__factory({ ["contracts/poolStable/StablePoolLib.sol:StablePoolLib"]: lib.address }, signer).connect(signer)
+    const decs: number[] = []
+
+    for (let i = 0; i < tokens.length; i++) {
+        const dec = await tokens[i].decimals()
+        decs.push(dec)
+    }
+
+
+    const tx = await factory.createPool(
+        tokens.map(t => t.address),
+        decs,
+        amounts,
+        "StablePool",
+        "SP",
+        600, // amp
+        parseUnits('1', 15), // fee
+        parseUnits('1', 15), // flash fee
+        parseUnits('5', 16), // withdraw fee
+    )
+
+    const receipt = await tx.wait();
+    const swapAddress = getAddress(receipt.logs[3].topics[1].slice(26)) ?? null;
+
+    // const poolAddress = await factory.allPools(0)
+
+    const pool = StablePool__factory.connect(swapAddress, signer)
+
+    return {
+        pool,
+        factory,
+        creator
+    }
+}
 // interface StakePoolFixture {
 // 	stakeToken: TToken,
 // 	stakePoolCreator: StakePoolCreator,
@@ -235,10 +348,10 @@ export async function v2Fixture(signer: SignerWithAddress, samePairWeight: boole
 // 	firstToken: Contract,
 // 	secondToken: Contract,
 // 	thirdToken: Contract,
-// 	stableFactory: StableSwapFactory,
+// 	stableFactory: StablePoolFactory,
 // 	swapToken: LpToken,
 // 	linkSwapToken: LpToken,
-// 	stableSwapRouter: StableSwapRouter,
+// 	StablePoolRouter: StablePoolRouter,
 // 	swap: Swap,
 // 	linkSwap: Swap,
 // }
@@ -249,7 +362,7 @@ export async function v2Fixture(signer: SignerWithAddress, samePairWeight: boole
 // 		const firstToken = await new TestERC20__factory(signer).deploy(toWei(10000));
 // 		const secondToken = await new TestERC20__factory(signer).deploy(toWei(10000));
 // 		const thirdToken = await new TestERC20__factory(signer).deploy(toWei(10000));
-// 		const stableSwapRouter = await new StableSwapRouterFactory(signer).deploy();
+// 		const StablePoolRouter = await new StablePoolRouterFactory(signer).deploy();
 
 // 		// Deploy MathUtils
 // 		const mathUtils = await new MathUtilsFactory(signer).deploy();
@@ -269,7 +382,7 @@ export async function v2Fixture(signer: SignerWithAddress, samePairWeight: boole
 // 		)) as SwapCreator;
 
 // 		// Deploy Factory
-// 		const stableFactory = await new StableSwapFactoryFactory(signer).deploy();
+// 		const stableFactory = await new StablePoolFactoryFactory(signer).deploy();
 // 		await stableFactory.initialize(signer.address, stableCreator.address);
 
 // 		const tx = await stableFactory.createPool(
@@ -315,7 +428,7 @@ export async function v2Fixture(signer: SignerWithAddress, samePairWeight: boole
 // 			thirdToken,
 // 			stableFactory,
 // 			swapToken,
-// 			stableSwapRouter,
+// 			StablePoolRouter,
 // 			swap,
 // 			linkSwap,
 // 			linkSwapToken,

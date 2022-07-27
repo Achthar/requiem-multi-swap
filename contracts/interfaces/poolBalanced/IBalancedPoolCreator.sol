@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./ERC20/IERC20.sol";
-
-interface ISwapCreator {
+interface IBalancedPoolCreator {
 
     function create(
-        IERC20[] memory _pooledTokens,
+        address[] memory _pooledTokens,
         uint8[] memory decimals,
+        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
-        uint256 _a,
         uint256 _fee,
+        uint256 _flashFee,
         uint256 _adminFee,
-        uint256 _withdrawFee,
-        address timeLock
+        address to
     ) external returns (address);
 }

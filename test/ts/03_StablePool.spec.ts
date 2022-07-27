@@ -14,7 +14,7 @@ import { getApprovalDigest, deployContractWithLibraries } from './shared/common'
 import { maxUint256, toWei } from './shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import NewSwapArtifact from "../../artifacts/contracts/poolStable/StableSwap.sol/StableSwap.json";
+import NewSwapArtifact from "../../artifacts/contracts/poolStable/StablePool.sol/StablePool.json";
 import {
 	RequiemPairFactory__factory,
 	WeightedFormula__factory,
@@ -22,7 +22,7 @@ import {
 	SwapRouter__factory,
 	ThiefRouter__factory,
 	RequiemPair,
-	StableSwapLib__factory,
+	StablePoolLib__factory,
 	MockFlashLoanRecipient__factory,
 	StableSwap__factory,
 	WETH9__factory
@@ -199,8 +199,8 @@ describe('StableSwap-Test', () => {
 		pairB_C_Contract2 = await ethers.getContractAt('RequiemPair', pairB_C2)
 
 		// swap libnew 
-		swapLibNew = await new StableSwapLib__factory(wallet).deploy()
-		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { StableSwapLib: swapLibNew.address })
+		swapLibNew = await new StablePoolLib__factory(wallet).deploy()
+		swapNew = await deployContractWithLibraries(wallet, NewSwapArtifact, { StablePoolLib: swapLibNew.address })
 
 
 
@@ -357,6 +357,7 @@ describe('StableSwap-Test', () => {
 		await swapNew.initialize(
 			[tokenUSDC.address, tokenUSDT.address, tokenDAI.address, tokenTUSD.address],
 			[6, 6, 18, 18], //token decimals
+			[parseUnits('123401', 6), parseUnits('102342', 6), parseUnits('104233', 18), parseUnits('102334', 18)], // amnoutns
 			'Requiem Stableswap LP', // pool token name
 			'zDollar', //_pool_token
 			600, // _A
@@ -1027,7 +1028,7 @@ describe('StableSwap-Test', () => {
 								})
 
 								it('Liquidity withdrawl', async () => {
-									const lpToken = await ethers.getContractAt('LPToken', swapNew.address)
+									const lpToken = await ethers.getContractAt('ERC20', swapNew.address)
 									const lpBal = await lpToken.balanceOf(wallet.address)
 
 									await lpToken.approve(swapNew.address, ethers.constants.MaxUint256)
