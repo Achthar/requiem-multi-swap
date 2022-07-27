@@ -39,13 +39,12 @@ contract WeightedPoolFactory is IWeightedPoolFactory {
         address[] memory _pooledTokens,
         uint8[] memory decimals,
         uint256[] memory normalizedWeights,
-        uint256[] memory _amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
         uint256 _flashFee
     ) external override returns (address) {
-        address swap = createPoolInternal(_pooledTokens, decimals, normalizedWeights, _amounts, lpTokenName, lpTokenSymbol, _fee, _flashFee, msg.sender);
+        address swap = createPoolInternal(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, msg.sender);
 
         return swap;
     }
@@ -54,7 +53,6 @@ contract WeightedPoolFactory is IWeightedPoolFactory {
         address[] memory _pooledTokens,
         uint8[] memory decimals,
         uint256[] memory normalizedWeights,
-        uint256[] memory _amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
@@ -62,7 +60,7 @@ contract WeightedPoolFactory is IWeightedPoolFactory {
         address _to
     ) public returns (address) {
 
-        address swap = IWeightedPoolCreator(swapCreator).create(_pooledTokens, decimals, normalizedWeights, _amounts, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, _to);
+        address swap = IWeightedPoolCreator(swapCreator).create(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, _to);
 
         allPools.push(swap);
         _pools[swap] = true;

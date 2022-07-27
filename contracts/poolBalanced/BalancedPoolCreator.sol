@@ -9,7 +9,6 @@ contract BalancedPoolCreator is IBalancedPoolCreator {
     function create(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
@@ -18,7 +17,7 @@ contract BalancedPoolCreator is IBalancedPoolCreator {
         address to
     ) external override returns (address) {
         BalancedPool swap = new BalancedPool();
-        swap.initialize(_pooledTokens, decimals,amounts, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, to);
+        swap.initialize(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, to);
         return address(swap);
     }
 }

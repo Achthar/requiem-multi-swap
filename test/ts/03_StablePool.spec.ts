@@ -24,7 +24,6 @@ import {
 	RequiemPair,
 	StablePoolLib__factory,
 	MockFlashLoanRecipient__factory,
-	StableSwap__factory,
 	WETH9__factory
 } from "../../types";
 

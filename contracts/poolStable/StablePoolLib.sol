@@ -29,8 +29,7 @@ library StablePoolLib {
      */
     event FlashLoan(IFlashLoanRecipient indexed recipient, IERC20 indexed token, uint256 amount, uint256 feeAmount);
 
-    uint256 public constant FEE_DENOMINATOR = 1e10;
-    // uint256 public constant PRECISION = 1e18;
+    uint256 public constant FEE_DENOMINATOR = 1e18;
 
     /// @dev protect from division loss when run approximation loop. We cannot divide at the end because of overflow,
     /// so we add some (small) PRECISION when divide in each iteration

@@ -47,7 +47,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     function initialize(
         address[] memory _coins,
         uint8[] memory _decimals,
-        uint256[] memory amounts,
         string memory _name,
         string memory _symbol,
         uint256 _A,
@@ -73,10 +72,10 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
             isToken[_coins[i]] = true;
         }
 
-        require(_A < MAX_A, "paramError");
+        require(_A < MAX_A, "maxA");
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
-        require(_adminFee <= MAX_ADMIN_FEE, "feeError");
-        require(_withdrawFee <= MAX_TRANSACTION_FEE, "feeError");
+        require(_adminFee <= MAX_ADMIN_FEE, "maxAdminFee");
+        require(_withdrawFee <= MAX_TRANSACTION_FEE, "maxWithdrawFee");
 
         swapStorage.balances = new uint256[](_coins.length);
         swapStorage.initialA = _A * StablePoolLib.A_PRECISION;
@@ -88,9 +87,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.defaultWithdrawFee = _withdrawFee;
         feeDistributor = _feeDistributor;
         swapStorage.collectedFees = new uint256[](_coins.length);
-
-        // add first liquidity
-        swapStorage.addLiquidity(amounts, 0, 0);
     }
 
     /// PUBLIC FUNCTIONS

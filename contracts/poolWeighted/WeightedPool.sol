@@ -48,7 +48,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         address[] memory _coins,
         uint8[] memory _decimals,
         uint256[] memory _normalizedWeights,
-        uint256[] memory _amounts,
         string memory _name,
         string memory _symbol,
         uint256 _fee,
@@ -90,11 +89,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         swapStorage.adminFee = _adminFee;
         feeDistributor = _feeDistributor;
         swapStorage.collectedFees = new uint256[](swapStorage.nTokens);
-
-        // add the first liquidity
-        uint256 mintAmount = swapStorage.initialize(_amounts);
-
-        _mint(msg.sender, mintAmount);
     }
 
     /// PUBLIC MUTATIVE FUNCTIONS
@@ -148,7 +142,12 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
         require(to != address(0), "zero Address");
-        mintAmount = swapStorage.addLiquidityExactTokensIn(amounts, minMintAmount, totalSupply);
+        if (totalSupply == 0) {
+            // add the first liquidity
+            mintAmount = swapStorage.initialize(amounts);
+        } else {
+            mintAmount = swapStorage.addLiquidityExactTokensIn(amounts, minMintAmount, totalSupply);
+        }
         _mint(to, mintAmount);
         emit AddLiquidity(msg.sender, amounts, mintAmount);
     }

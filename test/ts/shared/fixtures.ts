@@ -217,7 +217,7 @@ export async function v2Fixture(signer: SignerWithAddress, samePairWeight: boole
 
 }
 
-interface ERC20Fixture {
+export interface ERC20Fixture {
     token0: MockERC20
     token1: MockERC20
     token2: MockERC20
@@ -246,8 +246,39 @@ export async function tokenFixture(signer: SignerWithAddress): Promise<ERC20Fixt
     }
 }
 
+export async function approveAll(tokenFixture: ERC20Fixture, address: string) {
+    await tokenFixture.token0.approve(address, maxUint256)
+    await tokenFixture.token1.approve(address, maxUint256)
+    await tokenFixture.token2.approve(address, maxUint256)
+    await tokenFixture.token3.approve(address, maxUint256)
+    await tokenFixture.token4.approve(address, maxUint256)
+    await tokenFixture.token5.approve(address, maxUint256)
+}
 
-interface SwapRouterFixture {
+export async function distributeTokens(tokenFixture: ERC20Fixture, address: string, amount: string) {
+    let dec = await tokenFixture.token0.decimals()
+    await tokenFixture.token0.mint(address, parseUnits(amount, dec))
+
+    dec = await tokenFixture.token1.decimals()
+    await tokenFixture.token1.mint(address, parseUnits(amount, dec))
+
+    dec = await tokenFixture.token2.decimals()
+    await tokenFixture.token2.mint(address, parseUnits(amount, dec))
+
+    dec = await tokenFixture.token3.decimals()
+    await tokenFixture.token3.mint(address, parseUnits(amount, dec))
+
+    dec = await tokenFixture.token4.decimals()
+    await tokenFixture.token4.mint(address, parseUnits(amount, dec))
+
+    dec = await tokenFixture.token5.decimals()
+    await tokenFixture.token5.mint(address, parseUnits(amount, dec))
+
+}
+
+
+
+export interface SwapRouterFixture {
     weth: WETH9
     formula: WeightedFormula
     factory: RequiemPairFactory
@@ -268,11 +299,20 @@ export async function swapRouterFixture(signer: SignerWithAddress): Promise<Swap
     }
 }
 
-interface StablePoolFixture {
+export interface StablePoolFixture {
     factory: StablePoolFactory
     creator: StablePoolCreator
     pool: StablePool
 }
+
+async function approveArray(tokens: MockERC20[], address: string) {
+    for (let i = 0; i < tokens.length; i++) {
+        await tokens[i].approve(address, maxUint256)
+    }
+}
+
+
+
 
 export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockERC20[], amounts: BigNumber[]): Promise<StablePoolFixture> {
     const lib = await new StablePoolLib__factory(signer).deploy()
@@ -284,7 +324,6 @@ export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockE
         parseUnits('5', 17), // admin fee 50%
     )
 
-    const stablePool = await new StablePool__factory({ ["contracts/poolStable/StablePoolLib.sol:StablePoolLib"]: lib.address }, signer).connect(signer)
     const decs: number[] = []
 
     for (let i = 0; i < tokens.length; i++) {
@@ -293,24 +332,27 @@ export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockE
     }
 
 
-    const tx = await factory.createPool(
+    await factory.createPool(
         tokens.map(t => t.address),
         decs,
-        amounts,
         "StablePool",
         "SP",
         600, // amp
         parseUnits('1', 15), // fee
         parseUnits('1', 15), // flash fee
-        parseUnits('5', 16), // withdraw fee
+        parseUnits('1', 16), // withdraw fee
     )
 
-    const receipt = await tx.wait();
-    const swapAddress = getAddress(receipt.logs[3].topics[1].slice(26)) ?? null;
+    // const receipt = await tx.wait();
+    // const swapAddress = getAddress(receipt.logs[3].topics[1].slice(26)) ?? null;
 
-    // const poolAddress = await factory.allPools(0)
+    const poolAddress = await factory.allPools(0)
 
-    const pool = StablePool__factory.connect(swapAddress, signer)
+    const pool = StablePool__factory.connect(poolAddress, signer)
+
+    await approveArray(tokens, pool.address)
+
+    await pool.addLiquidity(amounts, 0, signer.address, maxUint256)
 
     return {
         pool,

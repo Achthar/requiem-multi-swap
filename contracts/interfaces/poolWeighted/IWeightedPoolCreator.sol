@@ -6,7 +6,6 @@ interface IWeightedPoolCreator {
         address[] memory _pooledTokens,
         uint8[] memory decimals,
         uint256[] memory normalizedWeights,
-        uint256[] memory _amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,

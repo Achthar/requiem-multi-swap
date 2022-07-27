@@ -521,13 +521,20 @@ describe('WeightedPool-Test', () => {
 			poolTokens,
 			[18, 8, 18, 6], //token decimals
 			weights,  //weights
-			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
+			// [parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
 			'Requiem WeightedPool LP', // pool token name
 			'REQ 4-LP', //_pool_token
 			123e13, //_fee = 1.23%
 			123e12, //_fee = 0.023111%
 			parseUnits('5', 17), //_admin_fee, 50%,
 			wallet.address
+		)
+
+		await swapNew.addLiquidityExactIn(
+			[parseUnits('1000', 18), parseUnits('1000', 8), parseUnits('1000', 18), parseUnits('1000', 6)], // init amounts
+			0,
+			wallet.address,
+			maxUint256
 		)
 
 

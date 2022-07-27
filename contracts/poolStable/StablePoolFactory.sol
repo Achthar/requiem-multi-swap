@@ -38,7 +38,6 @@ contract StablePoolFactory is IStablePoolFactory {
     function createPool(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _a,
@@ -46,7 +45,7 @@ contract StablePoolFactory is IStablePoolFactory {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) external override returns (address) {
-        address swap = createPoolInternal(_pooledTokens, decimals, amounts, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _withdrawFee);
+        address swap = createPoolInternal(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _withdrawFee);
 
         return swap;
     }
@@ -54,7 +53,6 @@ contract StablePoolFactory is IStablePoolFactory {
     function createPoolInternal(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _a,
@@ -62,7 +60,7 @@ contract StablePoolFactory is IStablePoolFactory {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address) {
-        address swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, amounts, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, feeAmount, _withdrawFee);
+        address swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, feeAmount, _withdrawFee);
 
         allPools.push(swap);
         _pools[swap] = true;

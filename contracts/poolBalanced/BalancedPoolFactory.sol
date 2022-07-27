@@ -38,13 +38,12 @@ contract BalancedPoolFactory is IBalancedPoolFactory {
     function createPool(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
         uint256 _flashFee
     ) external override returns (address) {
-        address swap = createPoolInternal(_pooledTokens, decimals, amounts, lpTokenName, lpTokenSymbol, _fee, _flashFee);
+        address swap = createPoolInternal(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee);
 
         return swap;
     }
@@ -52,13 +51,12 @@ contract BalancedPoolFactory is IBalancedPoolFactory {
     function createPoolInternal(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _fee,
         uint256 _flashFee
     ) public returns (address) {
-        address swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, amounts, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, msg.sender);
+        address swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, msg.sender);
 
         allPools.push(swap);
         _pools[swap] = true;

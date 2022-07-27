@@ -23,7 +23,6 @@ interface IWeightedPoolFactory {
         address[] memory _pooledTokens,
         uint8[] memory decimals,
         uint256[] memory normalizedWeights,
-        uint256[] memory _amounts,
         string memory name,
         string memory symbol,
         uint256 _fee,

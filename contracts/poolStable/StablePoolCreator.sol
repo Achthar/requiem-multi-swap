@@ -9,7 +9,6 @@ contract StablePoolCreator is IStablePoolCreator {
     function create(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory lpTokenName,
         string memory lpTokenSymbol,
         uint256 _a,
@@ -19,7 +18,7 @@ contract StablePoolCreator is IStablePoolCreator {
         uint256 _withdrawFee
     ) external override returns (address) {
         StablePool swap = new StablePool();
-        swap.initialize(_pooledTokens, decimals, amounts, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _adminFee, _withdrawFee, msg.sender);
+        swap.initialize(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _adminFee, _withdrawFee, msg.sender);
         return address(swap);
     }
 }

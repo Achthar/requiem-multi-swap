@@ -22,7 +22,6 @@ interface IStablePoolFactory {
     function createPool(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
-        uint256[] memory amounts,
         string memory name,
         string memory symbol,
         uint256 _a,
