@@ -22,7 +22,9 @@ interface IStablePool {
 
     event StopRampA(uint256 A, uint256 timestamp);
 
-    event NewFee(uint256 fee, uint256 flashFee, uint256 adminFee, uint256 withdrawFee);
+    event NewTransactionFees(uint256 swapFee, uint256 flashFee, uint256 defaultWithdrawFee);
+
+    event NewAdminFee(uint256 adminFee);
 
     event FeeControllerChanged(address newController);
 

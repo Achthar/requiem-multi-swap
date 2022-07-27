@@ -83,17 +83,11 @@ library StablePoolLib {
 
         uint256 amp = _getAPrecise(self);
 
-        uint256 D0 = 0;
-        if (tokenSupply > 0) {
-            D0 = _getD(_xp(self.balances, self.tokenMultipliers), amp);
-        }
+        uint256 D0 = _getD(_xp(self.balances, self.tokenMultipliers), amp);
 
         uint256[] memory newBalances = self.balances;
 
         for (uint256 i = 0; i < nCoins; i++) {
-            if (tokenSupply == 0) {
-                require(amounts[i] > 0, "tokenError");
-            }
             // get real transfer in amount
             newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
         }
@@ -101,26 +95,51 @@ library StablePoolLib {
         uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
         assert(D1 > D0); // double check
 
-        if (tokenSupply == 0) {
-            self.balances = newBalances;
-            mintAmount = D1;
-        } else {
-            uint256 diff = 0;
-            for (uint256 i = 0; i < nCoins; i++) {
-                diff = _distance((D1 * self.balances[i]) / D0, newBalances[i]);
-                fees[i] = (_fee * diff) / FEE_DENOMINATOR;
-                self.balances[i] = newBalances[i];
-                // collect admin fee on a normalized basis
-                self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
-                newBalances[i] -= fees[i];
-            }
-            D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-            mintAmount = (tokenSupply * (D1 - D0)) / D0;
+        uint256 diff = 0;
+        for (uint256 i = 0; i < nCoins; i++) {
+            diff = _distance((D1 * self.balances[i]) / D0, newBalances[i]);
+            fees[i] = (_fee * diff) / FEE_DENOMINATOR;
+            self.balances[i] = newBalances[i];
+            // collect admin fee on a normalized basis
+            self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
+            newBalances[i] -= fees[i];
         }
+        D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
+        mintAmount = (tokenSupply * (D1 - D0)) / D0;
 
         require(mintAmount >= minMintAmount, "slippageError");
 
         emit AddLiquidity(msg.sender, amounts, fees, D1, mintAmount);
+    }
+
+    /**
+     * @notice Deposit coins into the pool for the first time
+     * @param amounts List of amounts of coins to deposit
+     * @return mintAmount Amount of LP tokens received by depositing
+     */
+    function addLiquidityInit(
+        SwapStorage storage self,
+        uint256[] memory amounts
+    ) external returns (uint256 mintAmount) {
+        uint256 nCoins = self.pooledTokens.length;
+        require(amounts.length == nCoins, "arrayError");
+
+        uint256[] memory newBalances = self.balances;
+
+        for (uint256 i = 0; i < nCoins; i++) {
+            require(amounts[i] > 0, "tokenError");
+
+            // get real transfer in amount
+            newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
+        }
+
+        uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), _getAPrecise(self));
+        assert(D1 > 0); // double check
+
+        self.balances = newBalances;
+        mintAmount = D1;
+
+        emit AddLiquidity(msg.sender, amounts, new uint256[](nCoins), D1, mintAmount);
     }
 
     /**

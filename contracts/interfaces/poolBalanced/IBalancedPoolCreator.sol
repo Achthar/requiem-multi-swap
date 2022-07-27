@@ -11,6 +11,7 @@ interface IBalancedPoolCreator {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _adminFee,
-        address to
+        address _feeController,
+        address _creator
     ) external returns (address);
 }

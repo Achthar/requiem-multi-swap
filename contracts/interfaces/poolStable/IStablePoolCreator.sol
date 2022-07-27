@@ -2,7 +2,6 @@
 pragma solidity ^0.8.15;
 
 interface IStablePoolCreator {
-
     function create(
         address[] memory _pooledTokens,
         uint8[] memory decimals,
@@ -12,6 +11,8 @@ interface IStablePoolCreator {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _adminFee,
-        uint256 _withdrawFee
+        uint256 _withdrawFee,
+        address _feeController,
+        address _creator
     ) external returns (address);
 }

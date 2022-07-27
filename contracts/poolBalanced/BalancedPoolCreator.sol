@@ -14,10 +14,11 @@ contract BalancedPoolCreator is IBalancedPoolCreator {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _adminFee,
-        address to
+        address _feeController,
+        address _creator
     ) external override returns (address) {
         BalancedPool swap = new BalancedPool();
-        swap.initialize(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, to);
+        swap.initialize(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, _feeController, _creator);
         return address(swap);
     }
 }

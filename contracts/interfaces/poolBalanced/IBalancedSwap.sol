@@ -18,7 +18,9 @@ interface IBalancedSwap {
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
 
-    event NewFee(uint256 fee, uint256 adminFee, uint256 withdrawFee);
+    event NewTransactionFees(uint256 swapFee, uint256 flashFee);
+
+    event NewAdminFee(uint256 adminFee);
 
     event FeeControllerChanged(address newController);
 

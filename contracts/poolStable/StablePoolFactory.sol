@@ -60,7 +60,7 @@ contract StablePoolFactory is IStablePoolFactory {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address) {
-        address swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, feeAmount, _withdrawFee);
+        address swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, feeAmount, _withdrawFee, feeToSetter, msg.sender);
 
         allPools.push(swap);
         _pools[swap] = true;

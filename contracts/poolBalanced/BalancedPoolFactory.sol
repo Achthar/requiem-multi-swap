@@ -56,7 +56,7 @@ contract BalancedPoolFactory is IBalancedPoolFactory {
         uint256 _fee,
         uint256 _flashFee
     ) public returns (address) {
-        address swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, msg.sender);
+        address swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, feeToSetter, msg.sender);
 
         allPools.push(swap);
         _pools[swap] = true;

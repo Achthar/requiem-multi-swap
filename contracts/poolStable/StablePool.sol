@@ -14,7 +14,7 @@ import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/ISwap.sol";
 
-// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
 contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStablePool, StableERC20 {
     using StablePoolLib for StablePoolLib.SwapStorage;
@@ -29,6 +29,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
 
     /// STATE VARS
     StablePoolLib.SwapStorage public swapStorage;
+    address public creator;
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
@@ -39,10 +40,12 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         _;
     }
 
-    modifier onlyFeeControllerOrOwner() {
-        require(msg.sender == feeController || msg.sender == owner(), "!feeController");
+    modifier onlyFeeController() {
+        require(msg.sender == feeController, "!feeController");
         _;
     }
+
+    constructor() OwnerPausable() ReentrancyGuard() {}
 
     function initialize(
         address[] memory _coins,
@@ -54,13 +57,14 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
-        address _feeDistributor
+        address _feeController,
+        address _creator
     ) external onlyOwner initializer {
         // initialize pool token data
         _poolTokenInit(_name, _symbol);
 
         require(_coins.length == _decimals.length, "arrayError");
-        require(_feeDistributor != address(0), "addressError");
+        require(_feeController != address(0), "addressError");
         swapStorage.tokenMultipliers = new uint256[](_coins.length);
         swapStorage.pooledTokens = new IERC20[](_coins.length);
         for (uint256 i = 0; i < _coins.length; i++) {
@@ -85,7 +89,8 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
-        feeDistributor = _feeDistributor;
+        feeController = _feeController;
+        creator = _creator;
         swapStorage.collectedFees = new uint256[](_coins.length);
     }
 
@@ -96,7 +101,13 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         address to,
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
-        mintAmount = swapStorage.addLiquidity(amounts, minMintAmount, totalSupply);
+        uint256 _totalSupply = totalSupply;
+        if (_totalSupply == 0) {
+            require(msg.sender == creator, "can only be inititalized by creator");
+            mintAmount = swapStorage.addLiquidityInit(amounts);
+        } else {
+            mintAmount = swapStorage.addLiquidity(amounts, minMintAmount, totalSupply);
+        }
         _mint(to, mintAmount);
     }
 
@@ -219,29 +230,34 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     }
 
     /**
-     * @notice Sets the admin fee
-     * @dev adminFee cannot be higher than 100% of the swap fee
+     * @notice Sets the all applicable transaction fees
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
-     * @param newAdminFee new admin fee to be applied on future transactions
-     * @param newWithdrawFee new initial withdraw fee to be applied on future withdrawal transactions
+     * @param newFlashFee new flash loan fee
+     * @param newDefaultWithdrawFee new default witdraw fee
      */
     function setFee(
         uint256 newSwapFee,
         uint256 newFlashFee,
-        uint256 newAdminFee,
-        uint256 newWithdrawFee
+        uint256 newDefaultWithdrawFee
     ) external onlyOwner {
         require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
-        require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
-        require(newWithdrawFee <= MAX_TRANSACTION_FEE, "feeError");
-        swapStorage.adminFee = newAdminFee;
         swapStorage.fee = newSwapFee;
         swapStorage.flashFee = newFlashFee;
-        swapStorage.defaultWithdrawFee = newWithdrawFee;
 
-        emit NewFee(newSwapFee, newFlashFee, newAdminFee, newWithdrawFee);
+        emit NewTransactionFees(newSwapFee, newFlashFee, newDefaultWithdrawFee);
+    }
+
+    /**
+     * @notice Sets the all applicable fees
+     * @dev adminFee cannot be higher than 50% of the swap fee
+     * @param newAdminFee new admin fee to be applied on future transactions
+     */
+    function setAdminFee(uint256 newAdminFee) external onlyFeeController {
+        require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
+        swapStorage.adminFee = newAdminFee;
+        emit NewAdminFee(newAdminFee);
     }
 
     /**
@@ -285,19 +301,19 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         emit StopRampA(currentA, block.timestamp);
     }
 
-    function setFeeController(address _feeController) external onlyOwner {
+    function setFeeController(address _feeController) external onlyFeeController {
         require(_feeController != address(0), "addressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
     }
 
-    function setFeeDistributor(address _feeDistributor) external onlyOwner {
+    function setFeeDistributor(address _feeDistributor) external onlyFeeController {
         require(_feeDistributor != address(0), "addressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
     }
 
-    function withdrawAdminFee() external onlyFeeControllerOrOwner {
+    function withdrawAdminFee() external onlyFeeController {
         swapStorage.sync(feeDistributor);
     }
 
