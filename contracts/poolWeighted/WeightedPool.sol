@@ -6,12 +6,12 @@ import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "./WeightedPoolLib.sol";
-import "./WeightedERC20.sol";
 import "../interfaces/poolWeighted/IWeightedSwap.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
+import "./WeightedPoolLib.sol";
+import "./WeightedERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 

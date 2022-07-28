@@ -356,7 +356,6 @@ describe('StableSwap-Test', () => {
 		await swapNew.initialize(
 			[tokenUSDC.address, tokenUSDT.address, tokenDAI.address, tokenTUSD.address],
 			[6, 6, 18, 18], //token decimals
-			[parseUnits('123401', 6), parseUnits('102342', 6), parseUnits('104233', 18), parseUnits('102334', 18)], // amnoutns
 			'Requiem Stableswap LP', // pool token name
 			'zDollar', //_pool_token
 			600, // _A
@@ -364,6 +363,7 @@ describe('StableSwap-Test', () => {
 			5e6, //_flashfee = 0.05%
 			5e9, //_admin_fee, 50%,
 			5e7, //withdraw fee = 0.5%
+			wallet.address,
 			wallet.address
 		)
 
@@ -1062,7 +1062,7 @@ describe('StableSwap-Test', () => {
 										swapNew.flashLoan(fLoanRecipient.address,
 											[BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
 											0)
-									).to.be.revertedWith("insufficient loan fee")
+									).to.be.revertedWith("post balances")
 
 									// repay loan = true & reentrant
 									await fLoanRecipient.setReenter(1)

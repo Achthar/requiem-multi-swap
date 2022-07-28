@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.15;
+
 import "../libraries/ReentrancyGuard.sol";
 import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "./BalancedPoolLib.sol";
-import "./BalancedERC20.sol";
 import "../interfaces/poolBalanced/IBalancedSwap.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
+import "./BalancedPoolLib.sol";
+import "./BalancedERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 

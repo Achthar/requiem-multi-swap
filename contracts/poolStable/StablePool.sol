@@ -7,12 +7,12 @@ import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "./StablePoolLib.sol";
-import "./StableERC20.sol";
 import "../interfaces/poolStable/IStablePool.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/ISwap.sol";
+import "./StablePoolLib.sol";
+import "./StableERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
@@ -84,14 +84,19 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.balances = new uint256[](_coins.length);
         swapStorage.initialA = _A * StablePoolLib.A_PRECISION;
         swapStorage.futureA = _A * StablePoolLib.A_PRECISION;
-        swapStorage.fee = _fee;
         swapStorage.nTokens = _coins.length;
+
+        // initialize fee data
+        swapStorage.fee = _fee;
         swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
         swapStorage.defaultWithdrawFee = _withdrawFee;
-        feeController = _feeController;
-        creator = _creator;
+        swapStorage.withdrawDuration = (4 weeks);
         swapStorage.collectedFees = new uint256[](_coins.length);
+
+        // assign creator and fee controller
+        creator = _creator;
+        feeController = _feeController;
     }
 
     /// PUBLIC FUNCTIONS
@@ -118,9 +123,10 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         address tokenOut,
         uint256 amountIn,
         address to
-    ) external override whenNotPaused nonReentrant returns (uint256) {
+    ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
         require(isToken[tokenIn] && isToken[tokenOut], "invalid tokens");
-        return swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 
     // calculates the input amount from a given output amount
@@ -131,8 +137,9 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
-        require(isToken[tokenIn] && isToken[tokenOut], "invalid tokens");
-        return swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
+        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
+        uint256 inAmount = swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
+        emit TokenExchange(to, tokenIn, inAmount, tokenOut, amountOut);
     }
 
     /**  @notice Flash loan using stable swap balances  */
@@ -188,7 +195,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         address tokenOut,
         uint256 amountIn
     ) external view returns (uint256) {
-        return swapStorage.calculateSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn);
+        return swapStorage.calculateSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn);
     }
 
     // calculates input amount for given output
@@ -217,16 +224,21 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     }
 
     /// RESTRICTED FUNCTION
+
     /**
      * @notice Updates the user withdraw fee. This function can only be called by
      * the pool token. Should be used to update the withdraw fee on transfer of pool tokens.
      * Transferring your pool token will reset the 4 weeks period. If the recipient is already
-     * holding some pool tokens, the withdraw fee will be discounted in respective amounts.
-     * @param recipient address of the recipient of pool token
-     * @param transferAmount amount of pool token to transfer
+     * holding some pool tokens, the withdraw fee will be discounted
+     * @dev Overrides ERC20._beforeTokenTransfer() which get called on
+     * minting and burning. This ensures that swap.updateUserWithdrawFees are called everytime.
      */
-    function updateUserWithdrawFee(address recipient, uint256 transferAmount) external override {
-        swapStorage.updateUserWithdrawFee(recipient, this.balanceOf(recipient), transferAmount);
+    function _beforeTokenTransfer(
+        address,
+        address to,
+        uint256 amount
+    ) internal override(StableERC20) {
+        swapStorage.updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 
     /**
@@ -234,28 +246,36 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
      * @param newFlashFee new flash loan fee
-     * @param newDefaultWithdrawFee new default witdraw fee
      */
-    function setFee(
-        uint256 newSwapFee,
-        uint256 newFlashFee,
-        uint256 newDefaultWithdrawFee
-    ) external onlyOwner {
-        require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
-        require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
+    function setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
+        require(newSwapFee <= MAX_TRANSACTION_FEE, "SwapFeeError");
+        require(newFlashFee <= MAX_TRANSACTION_FEE, "FlashFeeError");
         swapStorage.fee = newSwapFee;
         swapStorage.flashFee = newFlashFee;
 
-        emit NewTransactionFees(newSwapFee, newFlashFee, newDefaultWithdrawFee);
+        emit NewTransactionFees(newSwapFee, newFlashFee);
     }
 
     /**
-     * @notice Sets the all applicable fees
+     * @notice Sets the duration for which the withdraw fee is applicable
+     * and the fee itself
+     * @param newWithdrawDuration new flash loan fee
+     * @param newDefaultWithdrawFee new default witdraw fee
+     */
+    function setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) external onlyOwner {
+        require(newWithdrawDuration <= (4 weeks), "WithdrawDurationError");
+        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
+        swapStorage.withdrawDuration = newWithdrawDuration;
+        emit NewWithdrawFee(newWithdrawDuration, newDefaultWithdrawFee);
+    }
+
+    /**
+     * @notice Sets the admin fee - accessible only to the fee controller
      * @dev adminFee cannot be higher than 50% of the swap fee
      * @param newAdminFee new admin fee to be applied on future transactions
      */
     function setAdminFee(uint256 newAdminFee) external onlyFeeController {
-        require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
+        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
         swapStorage.adminFee = newAdminFee;
         emit NewAdminFee(newAdminFee);
     }
@@ -268,7 +288,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
      * @param futureATime timestamp when the new A should be reached
      */
     function rampA(uint256 futureA, uint256 futureATime) external onlyOwner {
-        require(block.timestamp >= swapStorage.initialATime + (1 days), "paramError"); // please wait 1 days before start a new ramping
+        require(block.timestamp >= swapStorage.initialATime + (1 days), "ramp period"); // please wait 1 days before start a new ramping
         require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "paramError");
         require(0 < futureA && futureA < MAX_A, "arrayError");
 

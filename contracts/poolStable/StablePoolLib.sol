@@ -15,8 +15,6 @@ library StablePoolLib {
 
     event AddLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
 
-    event TokenExchange(address indexed buyer, uint256 sold_id, uint256 tokens_sold, uint256 bought_id, uint256 tokens_bought);
-
     event RemoveLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 token_supply);
 
     event RemoveLiquidityOne(address indexed provider, uint256 index, uint256 token_amount, uint256 coin_amount);
@@ -33,7 +31,7 @@ library StablePoolLib {
 
     /// @dev protect from division loss when run approximation loop. We cannot divide at the end because of overflow,
     /// so we add some (small) PRECISION when divide in each iteration
-    uint256 public constant A_PRECISION = 100;
+    uint256 public constant A_PRECISION = 1e3;
     /// @dev max iteration of converge calccuate
     uint256 internal constant MAX_ITERATION = 256;
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
@@ -58,7 +56,9 @@ library StablePoolLib {
         uint256 futureATime;
         // withdrawal fee control
         uint256 defaultWithdrawFee;
+        uint256 withdrawDuration;
         mapping(address => uint256) depositTimestamp;
+        mapping(address => uint256) feeEndTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
         uint256[] collectedFees;
         /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
@@ -117,10 +117,7 @@ library StablePoolLib {
      * @param amounts List of amounts of coins to deposit
      * @return mintAmount Amount of LP tokens received by depositing
      */
-    function addLiquidityInit(
-        SwapStorage storage self,
-        uint256[] memory amounts
-    ) external returns (uint256 mintAmount) {
+    function addLiquidityInit(SwapStorage storage self, uint256[] memory amounts) external returns (uint256 mintAmount) {
         uint256 nCoins = self.pooledTokens.length;
         require(amounts.length == nCoins, "arrayError");
 
@@ -178,16 +175,13 @@ library StablePoolLib {
         self.collectedFees[j] += (dy_fee * self.tokenMultipliers[j] * self.adminFee) / FEE_DENOMINATOR;
 
         self.pooledTokens[j].safeTransfer(to, dy);
-        emit TokenExchange(to, i, inAmount, j, dy);
 
         // returns final output amount
         return dy;
     }
 
     /**
-     * Full swap given out - executes both - trade in and trade out
-     *  - designed to be used in the requirem swap framework
-     *  - deducts the fees from the input
+     * @notice Full swap given out - assumes that correct amount in to be sent in already.
      * @param i token index in
      * @param j token index out
      */
@@ -197,30 +191,35 @@ library StablePoolLib {
         uint256 j,
         uint256 outAmount,
         address to
-    ) external {
+    ) external returns (uint256 inAmount) {
         uint256[] memory normalizedBalances = _xp(self);
 
+        // calculate in balance based on desired output
         uint256 newOutBalance = normalizedBalances[j] - (outAmount * self.tokenMultipliers[j]);
-        uint256 inAmountVirtual = divUp(_getY(self, j, i, newOutBalance, normalizedBalances) - normalizedBalances[i], self.tokenMultipliers[i]);
-        // add fee to in Amounts
-        inAmountVirtual += (inAmountVirtual * self.fee) / FEE_DENOMINATOR;
+        uint256 inBalanceVirtual = _getY(self, j, i, newOutBalance, normalizedBalances);
 
+        // calculated in amount
+        uint256 inAmountNormalized = inBalanceVirtual - normalizedBalances[i];
+
+        // add fee to in Amount
+        inAmount = (inAmountNormalized * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / self.tokenMultipliers[i] + 1;
+
+        // get received amount
         uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
         uint256 inAmountActual = balanceIn - self.balances[i];
 
         // check the whether sufficient amounts have been sent in
-        require(inAmountVirtual <= inAmountActual, "insufficient in");
+        require(inAmount <= inAmountActual, "insufficient in");
 
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
 
         // collect admin fee
-        self.collectedFees[i] += (inAmountActual * self.fee * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR / FEE_DENOMINATOR;
+        self.collectedFees[i] += (inAmountNormalized * self.fee * self.adminFee) / FEE_DENOMINATOR / FEE_DENOMINATOR;
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
-        emit TokenExchange(to, i, inAmountActual, j, outAmount);
     }
 
     /**  @notice Flash Loan using the stable swap balances*/
@@ -425,7 +424,7 @@ library StablePoolLib {
     }
 
     /**  @notice pre-implements calculation for Requiem interface for exat in swap */
-    function calculateSwap(
+    function calculateSwapGivenIn(
         SwapStorage storage self,
         uint256 inIndex,
         uint256 outIndex,
@@ -434,9 +433,9 @@ library StablePoolLib {
         uint256[] memory normalizedBalances = _xp(self);
         uint256 newInBalance = normalizedBalances[inIndex] + (inAmount * self.tokenMultipliers[inIndex]);
         uint256 outBalance = _getY(self, inIndex, outIndex, newInBalance, normalizedBalances);
-        uint256 outAmount = (normalizedBalances[outIndex] - outBalance) / self.tokenMultipliers[outIndex];
+        uint256 outAmount = (normalizedBalances[outIndex] - outBalance);
         uint256 _fee = (self.fee * outAmount) / FEE_DENOMINATOR;
-        return outAmount - _fee;
+        return (outAmount - _fee) / self.tokenMultipliers[outIndex];
     }
 
     /**
@@ -452,13 +451,11 @@ library StablePoolLib {
     ) external view returns (uint256) {
         uint256[] memory normalizedBalances = _xp(self);
         // fee has to be deducted on the output
-        // uint256 _amountOutInclFee = (outAmount *  FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee);
         uint256 newOutBalance = normalizedBalances[outIndex] - (outAmount * self.tokenMultipliers[outIndex]);
-        // switch index on regulat _getY function
+        // switch index on regular _getY function
         uint256 inBalance = _getY(self, outIndex, inIndex, newOutBalance, normalizedBalances);
-        uint256 inAmount = divUp(inBalance - normalizedBalances[inIndex], self.tokenMultipliers[inIndex]);
 
-        return inAmount + (inAmount * self.fee) / FEE_DENOMINATOR;
+        return ((inBalance - normalizedBalances[inIndex]) * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / self.tokenMultipliers[inIndex] + 1;
     }
 
     function calculateRemoveLiquidity(
@@ -610,7 +607,7 @@ library StablePoolLib {
 
         for (uint256 index = 0; index < MAX_ITERATION; index++) {
             lastY = y;
-            y = divUp(y * y + c, 2 * y + b - D);
+            y = (y * y + c) / (2 * y + b - D);
             if (_distance(lastY, y) <= 1) {
                 return y;
             }
@@ -737,19 +734,20 @@ library StablePoolLib {
             }
         }
         self.depositTimestamp[user] = block.timestamp;
+        self.feeEndTimestamp[user] = block.timestamp + self.withdrawDuration;
     }
 
     /**
      * @notice Calculate the fee that is applied when the given user withdraws.
-     * Withdraw fee decays linearly over 4 weeks.
+     * Withdraw fee decays linearly over the witdhrawDuraion parameter.
      * @param user address you want to calculate withdraw fee of
      * @return current withdraw fee of the user
      */
     function _calculateCurrentWithdrawFee(SwapStorage storage self, address user) internal view returns (uint256) {
-        uint256 endTime = self.depositTimestamp[user] + (4 weeks);
+        uint256 endTime = self.feeEndTimestamp[user];
         if (endTime > block.timestamp) {
             uint256 timeLeftover = endTime - block.timestamp;
-            return (self.defaultWithdrawFee * self.withdrawFeeMultiplier[user] * timeLeftover) / (4 weeks) / FEE_DENOMINATOR;
+            return (self.defaultWithdrawFee * self.withdrawFeeMultiplier[user] * timeLeftover) / self.withdrawDuration / FEE_DENOMINATOR;
         }
         return 0;
     }
@@ -769,13 +767,5 @@ library StablePoolLib {
 
     function _distance(uint256 x, uint256 y) internal pure returns (uint256) {
         return x > y ? x - y : y - x;
-    }
-
-    function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a == 0) {
-            return 0;
-        } else {
-            return 1 + (a - 1) / b;
-        }
     }
 }

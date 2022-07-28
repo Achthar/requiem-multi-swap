@@ -22,7 +22,13 @@ import {
     StablePoolFactory__factory,
     StablePoolFactory,
     StablePoolCreator,
-    StablePoolCreator__factory
+    StablePoolCreator__factory,
+    MockStableMath,
+    MockStableMath__factory,
+    ThiefRouter,
+    ThiefRouter__factory,
+    MockFlashLoanRecipient,
+    MockFlashLoanRecipient__factory
     // TToken,
     // StakePoolCreator,
     // StakePoolEpochRewardCreator,
@@ -230,10 +236,10 @@ export interface ERC20Fixture {
 export async function tokenFixture(signer: SignerWithAddress): Promise<ERC20Fixture> {
 
     const t0 = await new MockERC20__factory(signer).deploy("Token0", "T0", 6)
-    const t1 = await new MockERC20__factory(signer).deploy("Token1", "T1", 8)
+    const t1 = await new MockERC20__factory(signer).deploy("Token1", "T1", 18)
     const t2 = await new MockERC20__factory(signer).deploy("Token2", "T2", 18)
-    const t3 = await new MockERC20__factory(signer).deploy("Token3", "T3", 18)
-    const t4 = await new MockERC20__factory(signer).deploy("Token4", "T4", 18)
+    const t3 = await new MockERC20__factory(signer).deploy("Token3", "T3", 8)
+    const t4 = await new MockERC20__factory(signer).deploy("Token4", "T4", 9)
     const t5 = await new MockERC20__factory(signer).deploy("Token5", "T5", 18)
 
     return {
@@ -246,13 +252,13 @@ export async function tokenFixture(signer: SignerWithAddress): Promise<ERC20Fixt
     }
 }
 
-export async function approveAll(tokenFixture: ERC20Fixture, address: string) {
-    await tokenFixture.token0.approve(address, maxUint256)
-    await tokenFixture.token1.approve(address, maxUint256)
-    await tokenFixture.token2.approve(address, maxUint256)
-    await tokenFixture.token3.approve(address, maxUint256)
-    await tokenFixture.token4.approve(address, maxUint256)
-    await tokenFixture.token5.approve(address, maxUint256)
+export async function approveAll(signer: SignerWithAddress, tokenFixture: ERC20Fixture, address: string) {
+    await tokenFixture.token0.connect(signer).approve(address, maxUint256)
+    await tokenFixture.token1.connect(signer).approve(address, maxUint256)
+    await tokenFixture.token2.connect(signer).approve(address, maxUint256)
+    await tokenFixture.token3.connect(signer).approve(address, maxUint256)
+    await tokenFixture.token4.connect(signer).approve(address, maxUint256)
+    await tokenFixture.token5.connect(signer).approve(address, maxUint256)
 }
 
 export async function distributeTokens(tokenFixture: ERC20Fixture, address: string, amount: string) {
@@ -299,9 +305,20 @@ export async function swapRouterFixture(signer: SignerWithAddress): Promise<Swap
     }
 }
 
+
+
+export async function thiefRouterFixture(signer: SignerWithAddress): Promise<ThiefRouter> {
+    const formula = await new WeightedFormula__factory(signer).deploy()
+    const weth = await new WETH9__factory(signer).deploy()
+    const factory = await new RequiemPairFactory__factory(signer).deploy(signer.address, formula.address, signer.address)
+    const router = await new ThiefRouter__factory(signer).deploy(factory.address, weth.address)
+    return router
+}
+
 export interface StablePoolFixture {
     factory: StablePoolFactory
     creator: StablePoolCreator
+    flashLoanRecipient: MockFlashLoanRecipient
     pool: StablePool
 }
 
@@ -314,7 +331,7 @@ async function approveArray(tokens: MockERC20[], address: string) {
 
 
 
-export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockERC20[], amounts: BigNumber[]): Promise<StablePoolFixture> {
+export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockERC20[], fee: BigNumber, flashFee: BigNumber, withdrawFee: BigNumber): Promise<StablePoolFixture> {
     const lib = await new StablePoolLib__factory(signer).deploy()
     const creator = await new StablePoolCreator__factory({ ["contracts/poolStable/StablePoolLib.sol:StablePoolLib"]: lib.address }, signer).deploy()
     const factory = await new StablePoolFactory__factory(signer).deploy()
@@ -338,9 +355,9 @@ export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockE
         "StablePool",
         "SP",
         600, // amp
-        parseUnits('1', 15), // fee
-        parseUnits('1', 15), // flash fee
-        parseUnits('1', 16), // withdraw fee
+        fee, // fee
+        flashFee, // flash fee
+        withdrawFee, // withdraw fee
     )
 
     // const receipt = await tx.wait();
@@ -350,16 +367,31 @@ export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockE
 
     const pool = StablePool__factory.connect(poolAddress, signer)
 
-    await approveArray(tokens, pool.address)
-
-    await pool.addLiquidity(amounts, 0, signer.address, maxUint256)
+    // await approveArray(tokens, pool.address)
+    const flashLoanRecipient = await new MockFlashLoanRecipient__factory(signer).deploy(pool.address)
+    // await pool.addLiquidity(amounts, 0, signer.address, maxUint256)
 
     return {
         pool,
         factory,
-        creator
+        creator,
+        flashLoanRecipient
     }
 }
+
+
+export interface MockStableMathFixture {
+    math: MockStableMath
+}
+
+export async function balancerMathFixture(signer: SignerWithAddress): Promise<MockStableMathFixture> {
+    const lib = await new MockStableMath__factory(signer).deploy()
+    return {
+        math: lib
+    }
+}
+
+
 // interface StakePoolFixture {
 // 	stakeToken: TToken,
 // 	stakePoolCreator: StakePoolCreator,

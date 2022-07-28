@@ -10,7 +10,7 @@ interface IStablePool {
     /// EVENTS
     event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 invariant, uint256 tokenSupply);
 
-    event TokenExchange(address indexed buyer, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
+    event TokenExchange(address indexed buyer, address soldId, uint256 tokensSold, address boughtId, uint256 tokensBought);
 
     event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 tokenSupply);
 
@@ -22,7 +22,9 @@ interface IStablePool {
 
     event StopRampA(uint256 A, uint256 timestamp);
 
-    event NewTransactionFees(uint256 swapFee, uint256 flashFee, uint256 defaultWithdrawFee);
+    event NewTransactionFees(uint256 swapFee, uint256 flashFee);
+
+    event NewWithdrawFee(uint256 withdrawDuration, uint256 defaultWithdrawFee);
 
     event NewAdminFee(uint256 adminFee);
 
@@ -70,8 +72,6 @@ interface IStablePool {
         uint256 maxBurnAmount,
         uint256 deadline
     ) external returns (uint256);
-
-    function updateUserWithdrawFee(address recipient, uint256 transferAmount) external;
 
     function getTokenBalances() external view returns (uint256[] memory);
 }
