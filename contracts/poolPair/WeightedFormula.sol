@@ -713,6 +713,9 @@ contract WeightedFormula is IWeightedFormula {
         uint32 tokenWeightOut,
         uint32 swapFee
     ) public view override returns (uint256 amountOut) {
+        // validate input
+        require(amountIn > 0, "REQF: IIA");
+        require(reserveIn > 0 && reserveOut > 0, "REQF: IL");
         uint256 amountInWithFee = amountIn * (10000 - swapFee);
         // special case for equal weights
         if (tokenWeightIn == tokenWeightOut) {
@@ -754,6 +757,8 @@ contract WeightedFormula is IWeightedFormula {
         uint32 swapFee
     ) public view override returns (uint256 amountIn) {
         // validate input
+        require(amountOut > 0, "REQF: IOA");
+        require(reserveIn > 0 && reserveOut > 0, "REQF: IL");
         // special case for equal weights
         if (tokenWeightIn == tokenWeightOut) {
             uint256 numerator = reserveIn * amountOut * 10000;
@@ -957,8 +962,8 @@ contract WeightedFormula is IWeightedFormula {
         uint256 reserveA,
         uint256 reserveB
     ) external pure override returns (uint256 amountB) {
-        require(amountA > 0, "REQD: IA");
-        require(reserveA > 0 && reserveB > 0, "REQD: IL");
+        require(amountA > 0, "REQF: IA");
+        require(reserveA > 0 && reserveB > 0, "REQF: IL");
         amountB = (amountA * reserveB) / reserveA;
     }
 

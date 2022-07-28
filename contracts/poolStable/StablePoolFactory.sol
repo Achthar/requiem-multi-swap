@@ -21,7 +21,7 @@ contract StablePoolFactory is IStablePoolFactory {
     bool private _initialized = false;
 
     function initialize(address _feeToSetter, IStablePoolCreator _swapCreator) public {
-        require(_initialized == false, "StableSwapFactory: initialized");
+        require(_initialized == false, "StablePoolFactory: initialized");
         feeToSetter = _feeToSetter;
         swapCreator = _swapCreator;
         _initialized = true;

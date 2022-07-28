@@ -5,7 +5,7 @@ import {
 	toUtf8Bytes,
 	solidityPack
 } from 'ethers/lib/utils'
-import {BigNumber, Contract, ContractFactory, Signer, Bytes} from "ethers";
+import { BigNumber, Contract, ContractFactory, Signer, Bytes } from "ethers";
 import { ParamType } from "@ethersproject/abi/src.ts/fragments";
 import { ethers, network } from "hardhat";
 import { Artifact } from 'hardhat/types';
@@ -36,22 +36,21 @@ function getDomainSeparator(name: string, tokenAddress: string) {
 	)
 }
 
-function getPairSalt(token0: string | number, token1: string | number, tokenWeight0: string | number, swapFee: number) {
-	return keccak256(solidityPack(['address', 'address', 'uint32', 'uint32'], [token0, token1, tokenWeight0, swapFee]));
+function getPairSalt(token0: string | number, token1: string | number, tokenWeight0: string | number) {
+	return keccak256(solidityPack(['address', 'address', 'uint32'], [token0, token1, tokenWeight0]));
 }
 
 export function getCreate2Address(
 	factoryAddress: string,
 	[tokenA, tokenB]: [string, string],
 	tokenWeightA: number,
-	swapFee: number,
 	bytecode: string
 ): string {
 	const [token0, token1, tokenWeight0] = tokenA < tokenB ? [tokenA, tokenB, tokenWeightA] : [tokenB, tokenA, 100 - tokenWeightA]
 	const create2Inputs = [
 		'0xff',
 		factoryAddress,
-		getPairSalt(token0, token1, tokenWeight0, swapFee),
+		getPairSalt(token0, token1, tokenWeight0),
 		keccak256(bytecode)
 	]
 	const sanitizedInputs = `0x${create2Inputs.map(i => i.slice(2)).join('')}`
@@ -180,8 +179,8 @@ function encodeParameters(types: Array<string | ParamType>, values: Array<any>) 
 	return abi.encode(types, values);
 }
 
-export function encodePoolInfo(data : any) {
-	return encodeParameters([ 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256'], [
+export function encodePoolInfo(data: any) {
+	return encodeParameters(['address', 'address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256'], [
 		data.rewardRebaser,
 		data.rewardMultiplier,
 		data.startBlock,
@@ -194,8 +193,8 @@ export function encodePoolInfo(data : any) {
 	])
 }
 
-export function encodeEpochPoolInfo(data : any) {
-	return encodeParameters([ 'address', 'uint256', 'uint256'], [
+export function encodeEpochPoolInfo(data: any) {
+	return encodeParameters(['address', 'uint256', 'uint256'], [
 		data.epochController,
 		data.withdrawLockupEpochs,
 		data.rewardLockupEpochs

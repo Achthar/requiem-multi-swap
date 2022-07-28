@@ -22,8 +22,8 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;
-    uint256 internal constant MAX_A = 1e6;
-    uint256 internal constant MAX_A_CHANGE = 10;
+    uint256 internal constant MAX_A = 1e7;
+    uint256 internal constant MAX_A_CHANGE = 100;
     uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
     uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
 
@@ -69,7 +69,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.pooledTokens = new IERC20[](_coins.length);
         for (uint256 i = 0; i < _coins.length; i++) {
             require(_coins[i] != address(0), "addressError");
-            require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "paramError");
+            require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "decimalError");
             swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[_coins[i]] = uint8(i);
@@ -77,7 +77,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         }
 
         require(_A < MAX_A, "maxA");
-        require(_fee <= MAX_TRANSACTION_FEE, "feeError");
+        require(_fee <= MAX_TRANSACTION_FEE, "maxSwapFee");
         require(_adminFee <= MAX_ADMIN_FEE, "maxAdminFee");
         require(_withdrawFee <= MAX_TRANSACTION_FEE, "maxWithdrawFee");
 
@@ -124,7 +124,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 amountIn,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
-        require(isToken[tokenIn] && isToken[tokenOut], "invalid tokens");
+        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
         amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
         emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
@@ -226,9 +226,8 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     /// RESTRICTED FUNCTION
 
     /**
-     * @notice Updates the user withdraw fee. This function can only be called by
-     * the pool token. Should be used to update the withdraw fee on transfer of pool tokens.
-     * Transferring your pool token will reset the 4 weeks period. If the recipient is already
+     * @notice Updates the user withdraw fee
+     * Transferring your pool token will reset the withdraw durtion. If the recipient is already
      * holding some pool tokens, the withdraw fee will be discounted
      * @dev Overrides ERC20._beforeTokenTransfer() which get called on
      * minting and burning. This ensures that swap.updateUserWithdrawFees are called everytime.

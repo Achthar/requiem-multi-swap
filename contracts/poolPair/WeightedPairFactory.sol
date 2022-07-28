@@ -80,6 +80,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
+        require(initialFee > 0 && initialFee <= 500 && initialAmp >= 10000, "RLP: ISP");
         IWeightedPair(pair).setSwapParams(formula, initialFee, initialAmp);
 
         tokenPairs[token0][token1].add(pair);
@@ -141,7 +142,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
      * @param _pair pair to change
      * @param _newSwapFee new seleted swap fee
      * @param _amp new amplification parameter
-     * @param _formula new 
+     * @param _formula new
      */
     function setSwapParams(
         address _pair,
@@ -150,8 +151,8 @@ contract RequiemPairFactory is IWeightedPairFactory {
         uint32 _amp
     ) external {
         require(msg.sender == pairGovernance, "unauthorized");
-        // 0.01% - 5% fee range for swapFee and amplification parameter has to be >1
-        require(_newSwapFee >= 0 && _newSwapFee <= 500 && _amp >= 10000, "RLP: ISF");
+        // 0.01% - 5% fee range for swapFee and amplification parameter has to be >=0.5
+        require(_newSwapFee > 0 && _newSwapFee <= 500 && _amp >= 5000, "RLP: ISF");
         IWeightedPair(_pair).setSwapParams(_formula, _newSwapFee, _amp);
         IWeightedPair(_pair).sync();
     }
