@@ -11,7 +11,6 @@ import "../interfaces/poolPair/IRequiemCallee.sol";
 import "../interfaces/poolPair/IUniswapV2TypeSwap.sol";
 import "./WeightedPairERC20.sol";
 import "../libraries/Math.sol";
-import "../libraries/TransferHelper.sol";
 import "../libraries/UQ112x112.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../interfaces/ERC20/IERC20Metadata.sol";
@@ -39,7 +38,6 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     // 1 slot
     // bytes4(keccak256(bytes("transfer(address,uint256)")));
     bytes4 private constant SELECTOR = 0xa9059cbb;
-
     uint32 private tokenWeight1;
     uint32 private swapFee;
     bool private unlocked = true;
@@ -47,7 +45,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     // 1 slot
     uint112 private vReserve0;
     uint112 private vReserve1;
-    uint32 private ampBps; // 10000 is equyivalent to a scale of 1
+    uint32 private ampBps = 10000; // 10000 is equivalent to a scale of 1
 
     // ===== modifiers =====
 
@@ -146,20 +144,18 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @notice Calculator of swap fees sent to feeTo address in LP tokens
      * @param reserveData reserve data in uint256
      */
-    function _mintFee(ReserveData memory reserveData) private returns (bool feeOn) {
+    function _mintFee(ReserveData memory reserveData) private {
         address feeTo = IWeightedPairFactory(factory).feeTo();
 
         // one slot
         uint112 protocolFee = uint112(IWeightedPairFactory(factory).protocolFee());
         uint32 _tokenWeight0 = tokenWeight0;
 
-        feeOn = feeTo != address(0);
-
         // one slot
         (uint112 _collectedFee0, uint112 _collectedFee1) = getCollectedFees();
         uint32 _tokenWeight1 = tokenWeight1;
 
-        if (protocolFee > 0 && feeOn && (_collectedFee0 > 0 || _collectedFee1 > 0)) {
+        if (protocolFee > 0 && feeTo != address(0) && (_collectedFee0 > 0 || _collectedFee1 > 0)) {
             uint256 liquidity;
             liquidity = IWeightedFormula(formula).mintLiquidityFee(
                 totalSupply,
@@ -511,7 +507,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         vReserve0 = (vReserve0 * _newAmp) / BPS;
         vReserve1 = (vReserve1 * _newAmp) / BPS;
         assert(vReserve0 >= reserve0 && vReserve1 >= reserve0);
-        ampBps = _newAmp;
+        ampBps = (_newAmp * ampBps) / BPS;
         formula = _formula;
     }
 }

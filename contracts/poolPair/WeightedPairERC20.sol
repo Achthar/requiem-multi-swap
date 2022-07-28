@@ -7,7 +7,6 @@ import "../interfaces/poolPair/IWeightedPairERC20.sol";
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
 abstract contract WeightedPairERC20 is IWeightedPairERC20 {
-    uint8 public constant decimals = 18;
     uint256 public totalSupply;
 
     mapping(address => uint256) public balanceOf;
@@ -24,7 +23,7 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
         assembly {
             chainId := chainid()
         }
-        
+
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
@@ -37,12 +36,12 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
     }
 
     /** @notice Name of pair */
-    function name() external pure override virtual returns (string memory) {
+    function name() external pure virtual override returns (string memory) {
         return "Requiem wPair LP";
     }
 
     /** @notice Symbol of pair */
-    function symbol() external pure override virtual returns (string memory) {
+    function symbol() external pure virtual override returns (string memory) {
         return "REQWP";
     }
 
@@ -113,5 +112,9 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == owner, "REQ: IS");
         _approve(owner, spender, value);
+    }
+
+    function decimals() external pure returns (uint8) {
+        return 18;
     }
 }

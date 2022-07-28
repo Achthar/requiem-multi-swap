@@ -101,7 +101,7 @@ describe('Pair Factory', () => {
     it('createPair:gas', async () => {
         const tx = await factory.createPair(...TEST_ADDRESSES, 50, 30, 10000)
         const receipt = await tx.wait()
-        expect(receipt.gasUsed).to.eq(4165665)
+        expect(receipt.gasUsed).to.eq(3974350)
     })
 
     it('setFeeTo', async () => {

@@ -1,14 +1,14 @@
 import { expect } from "./chai-setup";
 import { BigNumber } from "ethers";
 import { expandTo18Decimals, encodePrice } from "./shared/common";
-import { pairDifferentWeightFixture } from "./shared/fixtures";
+import { pairDifferentWeightAndAmpFixture, pairDifferentWeightFixture } from "./shared/fixtures";
 import { getLatestBlock, mineBlockTimeStamp } from "./shared/utilities";
 import { ethers } from "hardhat";
 import { WeightedFormula, WeightedERC20, RequiemPairFactory, RequiemPair } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const overrides = {};
 
-describe("RequiemPairWeight", () => {
+describe("RequiemPairWeightAmp", () => {
     let signers: SignerWithAddress[];
 
     let wallet: SignerWithAddress;
@@ -28,7 +28,7 @@ describe("RequiemPairWeight", () => {
         signers = await ethers.getSigners();
         wallet = signers[0];
         other = signers[1];
-        const fixture = await pairDifferentWeightFixture(wallet);
+        const fixture = await pairDifferentWeightAndAmpFixture(wallet);
         factory = fixture.factory;
         token0 = fixture.token0;
         token1 = fixture.token1;
@@ -66,8 +66,9 @@ describe("RequiemPairWeight", () => {
     swapTestCases.forEach((swapTestCase, i) => {
         it(`getInputPrice:token0:${i}`, async () => {
             const [swapAmount, token0Amount, token1Amount] = swapTestCase;
-
-            const expectedOutputAmount = BigNumber.from(await formula.getAmountOut(swapAmount, token0Amount, token1Amount, tokenWeight0, tokenWeight1, 40));
+            const amp = await pair.getParameters()
+            const [tokenAmp0, tokenAmp1] = [token0Amount, token1Amount].map(t => t.mul(amp._amp).div(10000))
+            const expectedOutputAmount = BigNumber.from(await formula.getAmountOut(swapAmount, tokenAmp0, tokenAmp1, tokenWeight0, tokenWeight1, 40));
             await addLiquidity(token0Amount, token1Amount);
             await token0.transfer(pair.address, swapAmount);
             await expect(pair.swap(0, expectedOutputAmount.add(2), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
@@ -76,8 +77,9 @@ describe("RequiemPairWeight", () => {
         });
         it(`getInputPrice:token1:${i}`, async () => {
             const [amountOut, token0Amount, token1Amount] = swapTestCase;
-
-            const expectedInputAmountIn = await formula.getAmountIn(amountOut, token1Amount, token0Amount, tokenWeight1, tokenWeight0, 40);
+            const amp = await pair.getParameters()
+            const [tokenAmp0, tokenAmp1] = [token0Amount, token1Amount].map(t => t.mul(amp._amp).div(10000))
+            const expectedInputAmountIn = await formula.getAmountIn(amountOut, tokenAmp1, tokenAmp0, tokenWeight1, tokenWeight0, 40);
             await addLiquidity(token0Amount, token1Amount);
             await token1.transfer(pair.address, expectedInputAmountIn);
             await expect(pair.swap(amountOut.add(5), 0, wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
@@ -275,8 +277,12 @@ describe("RequiemPairWeight", () => {
         await token1.transfer(pair.address, swapAmountIn)
         await pair.sync()
         let afterReserves = await pair.getReserves();
-        expect(afterReserves.vReserve0).eq(beforeReserves.vReserve0.add(swapAmountIn))
-        expect(afterReserves.vReserve1).eq(beforeReserves.vReserve1.add(swapAmountIn))
+        const _totalSupply = await pair.totalSupply()
+        const f1 = (afterReserves.reserve0.mul(_totalSupply)).div(beforeReserves.reserve0)
+        const f2 = (afterReserves.reserve1.mul(_totalSupply)).div(beforeReserves.reserve1)
+        const factor = f1.lte(f2) ? f1 : f2;
+        expect(afterReserves.vReserve0).eq(beforeReserves.vReserve0.mul(factor).div(_totalSupply))
+        expect(afterReserves.vReserve1).eq(beforeReserves.vReserve1.mul(factor).div(_totalSupply))
         expect(afterReserves.reserve0).eq(beforeReserves.reserve0.add(swapAmountIn))
         expect(afterReserves.reserve1).eq(beforeReserves.reserve1.add(swapAmountIn))
         await checkBalanceReserves();

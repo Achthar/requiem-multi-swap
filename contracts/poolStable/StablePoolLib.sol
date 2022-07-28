@@ -37,6 +37,7 @@ library StablePoolLib {
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     struct SwapStorage {
+        /// @dev tokens in pool
         IERC20[] pooledTokens;
         /// @dev token i multiplier to reach POOL_TOKEN_COMMON_DECIMALS
         uint256[] tokenMultipliers;
@@ -45,7 +46,7 @@ library StablePoolLib {
         uint256[] balances;
         /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
         uint256 fee;
-        /// @dev flash loanfee ratio. Charge on any action which move balance state far from the ideal state
+        /// @dev flash loan fee. Charged on full loan amount, should be acccordingly low
         uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
@@ -54,14 +55,14 @@ library StablePoolLib {
         uint256 futureA;
         uint256 initialATime;
         uint256 futureATime;
-        // withdrawal fee control
+        /// @dev withdrawal fee control
         uint256 defaultWithdrawFee;
         uint256 withdrawDuration;
         mapping(address => uint256) depositTimestamp;
         mapping(address => uint256) feeEndTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
+        /// @dev array that collects admin fees
         uint256[] collectedFees;
-        /// @dev swap fee ratio. Charge on any action which move balance state far from the ideal state
     }
 
     /**

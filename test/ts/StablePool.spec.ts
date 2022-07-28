@@ -247,28 +247,28 @@ describe("Stable Pools", () => {
 
     })
 
-    // it('FlashLoan', async () => {
+    it('FlashLoan: valid, insufficient fee and reentrant', async () => {
 
-    //     await stableFixture.flashLoanRecipient.setRepayInExcess(true)
-    //     // repay loan = true 
-    //     await stableFixture.flashLoanRecipient.setRepayLoan(true)
-    //     await stableFixture.pool.flashLoan(stableFixture.flashLoanRecipient.address,
-    //         [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
-    //         '0x')
-    //     // repay loan = true 
-    //     await stableFixture.flashLoanRecipient.setRepayLoan(false)
-    //     await expect(
-    //         stableFixture.pool.flashLoan(stableFixture.flashLoanRecipient.address,
-    //             [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
-    //             '0x')
-    //     ).to.be.revertedWith("post balances")
+        await stableFixture.flashLoanRecipient.setRepayInExcess(true)
+        // repay loan = true 
+        await stableFixture.flashLoanRecipient.setRepayLoan(true)
+        await stableFixture.pool.flashLoan(stableFixture.flashLoanRecipient.address,
+            [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+            '0x')
+        // repay loan = true 
+        await stableFixture.flashLoanRecipient.setRepayLoan(false)
+        await expect(
+            stableFixture.pool.flashLoan(stableFixture.flashLoanRecipient.address,
+                [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+                '0x')
+        ).to.be.revertedWith("insufficient loan fee")
 
-    //     // repay loan = true & reentrant
-    //     await stableFixture.flashLoanRecipient.setReenter(true)
-    //     await expect(
-    //         stableFixture.pool.flashLoan(stableFixture.flashLoanRecipient.address,
-    //             [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
-    //             '0x')
-    //     ).to.be.revertedWith("ReentrancyGuard: reentrant call")
-    // })
+        // repay loan = true & reentrant
+        await stableFixture.flashLoanRecipient.setReenter(true)
+        await expect(
+            stableFixture.pool.flashLoan(stableFixture.flashLoanRecipient.address,
+                [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
+                '0x')
+        ).to.be.revertedWith("ReentrancyGuard: reentrant call")
+    })
 });

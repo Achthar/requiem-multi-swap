@@ -23,6 +23,7 @@ describe('RequiemPair', () => {
 
     let wallet: SignerWithAddress;
     let other: SignerWithAddress;
+    let third: SignerWithAddress;
 
     let factory: RequiemPairFactory
     let token0: TestERC20
@@ -33,6 +34,7 @@ describe('RequiemPair', () => {
         signers = await ethers.getSigners();
         wallet = signers[0];
         other = signers[1];
+        third = signers[2];
         const fixture = await pairFixture(wallet)
         factory = fixture.factory
         token0 = fixture.token0
@@ -378,12 +380,16 @@ describe('RequiemPair', () => {
         const expectedOutputAmount = BigNumber.from('453305446940074565')
         await token1.transfer(pair.address, swapAmount)
         await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        const tx = await pair.onSwapGivenIn( token1.address,token1.address, 0, wallet.address, overrides)
+        const balPre = await token0.balanceOf(wallet.address)
+        const tx = await pair.onSwapGivenIn(token1.address, token0.address, 0, wallet.address, overrides)
         // 		const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
 
         const receipt = await tx.wait()
         // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(81338)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(81415) // the special function takes slihgtly more gas than the usual weighted pair
+
+        const bal = await token0.balanceOf(wallet.address)
+        expect(bal.sub(balPre)).to.equal(expectedOutputAmount)
     })
 
     // it('swap:gas old pair', async () => {

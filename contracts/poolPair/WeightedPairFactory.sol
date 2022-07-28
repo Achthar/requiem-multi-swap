@@ -3,13 +3,13 @@
 pragma solidity ^0.8.15;
 
 import "../interfaces/poolPair/IWeightedPairFactory.sol";
-import "../libraries/EnumerableSet.sol";
+import "../libraries/EnumerableSetLite.sol";
 import "./WeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
 contract RequiemPairFactory is IWeightedPairFactory {
-    using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSetLite for EnumerableSetLite.AddressSet;
 
     address public feeTo;
     address public formula;
@@ -21,7 +21,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
     uint256 private _pairCount;
     mapping(address => bool) private _pairs;
 
-    mapping(address => mapping(address => EnumerableSet.AddressSet)) private tokenPairs;
+    mapping(address => mapping(address => EnumerableSetLite.AddressSet)) private tokenPairs;
 
     constructor(
         address _feeToSetter,
@@ -80,7 +80,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
-        require(initialFee > 0 && initialFee <= 500 && initialAmp >= 10000, "RLP: ISP");
+        require(initialFee <= 500 && initialAmp >= 10000, "RLP: ISP");
         IWeightedPair(pair).setSwapParams(formula, initialFee, initialAmp);
 
         tokenPairs[token0][token1].add(pair);
@@ -102,7 +102,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
         uint256 _protocolFee
     ) external {
         require(msg.sender == feeToSetter, "RLP: F");
-        require(_protocolFee == 0 || (_protocolFee >= 10**3 && _protocolFee <= 10**5), "RLP: IPF");
+        require(_protocolFee <= 10**5, "RLP: IPF");
         protocolFee = _protocolFee;
         feeToSetter = _feeToSetter;
         feeTo = _feeTo;
@@ -118,9 +118,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
             uint32 amp
         )
     {
-        if (_pairs[pair]) {
-            (tokenWeight0, tokenWeight1, swapFee, amp) = IWeightedPair(pair).getParameters();
-        }
+        (tokenWeight0, tokenWeight1, swapFee, amp) = IWeightedPair(pair).getParameters();
     }
 
     /**
@@ -150,15 +148,15 @@ contract RequiemPairFactory is IWeightedPairFactory {
         uint32 _newSwapFee,
         uint32 _amp
     ) external {
-        require(msg.sender == pairGovernance, "unauthorized");
+        require(msg.sender == pairGovernance, "auth");
         // 0.01% - 5% fee range for swapFee and amplification parameter has to be >=0.5
-        require(_newSwapFee > 0 && _newSwapFee <= 500 && _amp >= 5000, "RLP: ISF");
+        require(_newSwapFee <= 500 && _amp >= 5000, "RLP: ISF");
         IWeightedPair(_pair).setSwapParams(_formula, _newSwapFee, _amp);
         IWeightedPair(_pair).sync();
     }
 
     function setGovernance(address _newGov) external {
-        require(msg.sender == pairGovernance, "unauthorized");
+        require(msg.sender == pairGovernance, "auth");
         pairGovernance = _newGov;
     }
 }
