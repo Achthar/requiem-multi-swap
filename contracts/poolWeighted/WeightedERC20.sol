@@ -39,17 +39,43 @@ abstract contract WeightedERC20 is IWeightedERC20 {
         );
     }
 
-    function _mint(address to, uint256 value) internal {
-        totalSupply += value;
-        balanceOf[to] += value;
-        emit Transfer(address(0), to, value);
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
+
+    function _mint(address account, uint256 amount) internal virtual {
+        require(account != address(0), "ERC20: mint to the zero address");
+
+        _beforeTokenTransfer(address(0), account, amount);
+
+        totalSupply += amount;
+        balanceOf[account] += amount;
+        emit Transfer(address(0), account, amount);
+
+        _afterTokenTransfer(address(0), account, amount);
     }
 
-    function _burn(address from, uint256 value) internal {
-        balanceOf[from] -= value;
-        totalSupply -= value;
-        emit Transfer(from, address(0), value);
+    function _burn(address account, uint256 amount) internal virtual {
+        require(account != address(0), "ERC20: burn from the zero address");
+
+        _beforeTokenTransfer(account, address(0), amount);
+
+        balanceOf[account] -= amount;
+
+        totalSupply -= amount;
+
+        emit Transfer(account, address(0), amount);
+
+        _afterTokenTransfer(account, address(0), amount);
     }
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 
     function _approve(
         address owner,
@@ -65,6 +91,8 @@ abstract contract WeightedERC20 is IWeightedERC20 {
         address to,
         uint256 value
     ) private {
+        require(from != address(0), "ERC20: transfer from the zero address");
+        _beforeTokenTransfer(from, to, value);
         balanceOf[from] -= value;
         balanceOf[to] += value;
         emit Transfer(from, to, value);

@@ -35,7 +35,14 @@ import {
     WeightedPoolLib__factory,
     WeightedPoolCreator__factory,
     WeightedPoolFactory__factory,
-    WeightedPool__factory
+    WeightedPool__factory,
+    BalancedPoolFactory,
+    BalancedPoolCreator,
+    BalancedPool,
+    BalancedPoolLib__factory,
+    BalancedPoolCreator__factory,
+    BalancedPoolFactory__factory,
+    BalancedPool__factory
     // TToken,
     // StakePoolCreator,
     // StakePoolEpochRewardCreator,
@@ -428,13 +435,13 @@ export async function balancerMathFixture(signer: SignerWithAddress): Promise<Mo
 
 
 export interface WeightedPoolFixture {
-    factory:WeightedPoolFactory
-    creator:WeightedPoolCreator
+    factory: WeightedPoolFactory
+    creator: WeightedPoolCreator
     flashLoanRecipient: MockFlashLoanRecipient
-    pool:WeightedPool
+    pool: WeightedPool
 }
 
-export async function weightedPoolFixture(signer: SignerWithAddress, tokens: MockERC20[], weights:BigNumber[], fee: BigNumber, flashFee: BigNumber): Promise<WeightedPoolFixture> {
+export async function weightedPoolFixture(signer: SignerWithAddress, tokens: MockERC20[], weights: BigNumber[], fee: BigNumber, flashFee: BigNumber, withdrawFee: BigNumber): Promise<WeightedPoolFixture> {
     const lib = await new WeightedPoolLib__factory(signer).deploy()
     const creator = await new WeightedPoolCreator__factory({ ["contracts/poolWeighted/WeightedPoolLib.sol:WeightedPoolLib"]: lib.address }, signer).deploy()
     const factory = await new WeightedPoolFactory__factory(signer).deploy()
@@ -460,6 +467,7 @@ export async function weightedPoolFixture(signer: SignerWithAddress, tokens: Moc
         "WP",
         fee, // fee
         flashFee, // flash fee
+        withdrawFee
     )
 
     // const receipt = await tx.wait();
@@ -481,6 +489,60 @@ export async function weightedPoolFixture(signer: SignerWithAddress, tokens: Moc
     }
 }
 
+
+export interface BalancedPoolFixture {
+    factory: BalancedPoolFactory
+    creator: BalancedPoolCreator
+    flashLoanRecipient: MockFlashLoanRecipient
+    pool: BalancedPool
+}
+
+export async function balancedPoolFixture(signer: SignerWithAddress, tokens: MockERC20[], fee: BigNumber, flashFee: BigNumber, withdrawFee: BigNumber): Promise<BalancedPoolFixture> {
+    const lib = await new BalancedPoolLib__factory(signer).deploy()
+    const creator = await new BalancedPoolCreator__factory({ ["contracts/poolBalanced/BalancedPoolLib.sol:BalancedPoolLib"]: lib.address }, signer).deploy()
+    const factory = await new BalancedPoolFactory__factory(signer).deploy()
+
+    await factory.initialize(signer.address, creator.address)
+    await factory.setFeeAmount(
+        parseUnits('5', 17), // admin fee 50%
+    )
+
+    const decs: number[] = []
+
+    for (let i = 0; i < tokens.length; i++) {
+        const dec = await tokens[i].decimals()
+        decs.push(dec)
+    }
+
+
+    await factory.createPool(
+        tokens.map(t => t.address),
+        decs,
+        "BalancedPool",
+        "WP",
+        fee, // fee
+        flashFee, // flash fee
+        withdrawFee
+    )
+
+    // const receipt = await tx.wait();
+    // const swapAddress = getAddress(receipt.logs[3].topics[1].slice(26)) ?? null;
+
+    const poolAddress = await factory.allPools(0)
+
+    const pool = BalancedPool__factory.connect(poolAddress, signer)
+
+    // await approveArray(tokens, pool.address)
+    const flashLoanRecipient = await new MockFlashLoanRecipient__factory(signer).deploy(pool.address)
+    // await pool.addLiquidity(amounts, 0, signer.address, maxUint256)
+
+    return {
+        pool,
+        factory,
+        creator,
+        flashLoanRecipient
+    }
+}
 
 // interface StakePoolFixture {
 // 	stakeToken: TToken,

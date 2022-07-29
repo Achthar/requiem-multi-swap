@@ -87,6 +87,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.fee = _fee;
         swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
+        swapStorage.adminSwapFee = (_adminFee * _fee) / StablePoolLib.FEE_DENOMINATOR;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         swapStorage.withdrawDuration = (4 weeks);
         swapStorage.collectedFees = new uint256[](_coins.length);
@@ -254,9 +255,23 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         require(newFlashFee <= MAX_TRANSACTION_FEE, "FlashFeeError");
         swapStorage.fee = newSwapFee;
         swapStorage.flashFee = newFlashFee;
-
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / StablePoolLib.FEE_DENOMINATOR;
         emit NewTransactionFees(newSwapFee, newFlashFee);
     }
+
+
+    /**
+     * @notice Sets the admin fee - accessible only to the fee controller
+     * @dev adminFee cannot be higher than 50% of the swap fee
+     * @param newAdminFee new admin fee to be applied on future transactions
+     */
+    function setAdminFee(uint256 newAdminFee) external onlyFeeController {
+        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
+        swapStorage.adminFee = newAdminFee;
+        swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / StablePoolLib.FEE_DENOMINATOR;
+        emit NewAdminFee(newAdminFee);
+    }
+
 
     /**
      * @notice Sets the duration for which the withdraw fee is applicable
@@ -269,17 +284,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
         swapStorage.withdrawDuration = newWithdrawDuration;
         emit NewWithdrawFee(newWithdrawDuration, newDefaultWithdrawFee);
-    }
-
-    /**
-     * @notice Sets the admin fee - accessible only to the fee controller
-     * @dev adminFee cannot be higher than 50% of the swap fee
-     * @param newAdminFee new admin fee to be applied on future transactions
-     */
-    function setAdminFee(uint256 newAdminFee) external onlyFeeController {
-        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
-        swapStorage.adminFee = newAdminFee;
-        emit NewAdminFee(newAdminFee);
     }
 
     /**

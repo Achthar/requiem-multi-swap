@@ -34,8 +34,15 @@ library WeightedPoolLib {
         uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
+        uint256 adminSwapFee;
         /// @dev admin fees that can be withdrawn by feeCollector
         uint256[] collectedFees;
+        /// @dev withdrawal fee control
+        uint256 defaultWithdrawFee;
+        uint256 withdrawDuration;
+        mapping(address => uint256) depositTimestamp;
+        mapping(address => uint256) feeEndTimestamp;
+        mapping(address => uint256) withdrawFeeMultiplier;
     }
 
     /**
@@ -130,12 +137,12 @@ library WeightedPoolLib {
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
-        self.collectedFees[inIndex] += (inAmount * self.fee * self.adminFee) / FEE_DENOMINATOR / FEE_DENOMINATOR;
+
         // transfer amount
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
 
         inAmount /= inMultiplier;
-
+        self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
         emit TokenExchange(to, inIndex, inAmount, outIndex, outAmount);
     }
 
@@ -170,7 +177,7 @@ library WeightedPoolLib {
         inAmount = (inAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / inMultiplier + 1;
 
         // collect admin fee
-        self.collectedFees[inIndex] += (inAmount * inMultiplier * self.fee * self.adminFee) / FEE_DENOMINATOR / FEE_DENOMINATOR;
+        self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         //validate trade
         require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
@@ -219,7 +226,7 @@ library WeightedPoolLib {
             uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post bal");
             self.balances[i] = postLoanBalance;
-            self.collectedFees[i] += (feeAmounts[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
+            self.collectedFees[i] += (feeAmounts[i] * self.adminFee) / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
 
@@ -373,7 +380,7 @@ library WeightedPoolLib {
     function sync(WeightedSwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             IERC20 token = self.pooledTokens[i];
-            uint256 fee = self.collectedFees[i] / self.tokenMultipliers[i];
+            uint256 fee = self.collectedFees[i];
             if (fee > 0) {
                 token.safeTransfer(receiver, fee);
                 self.collectedFees[i] = 0;
@@ -408,7 +415,7 @@ library WeightedPoolLib {
         uint256 amount
     ) internal {
         if (amount > 0) {
-            self.collectedFees[index] += (amount * self.adminFee) / FEE_DENOMINATOR;
+            self.collectedFees[index] += (amount * self.adminSwapFee) / FEE_DENOMINATOR / self.tokenMultipliers[index];
         }
     }
 
@@ -416,5 +423,58 @@ library WeightedPoolLib {
         for (uint256 i = 0; i < amounts.length; ++i) {
             _processSwapFeeAmount(self, i, amounts[i]);
         }
+    }
+
+    /**
+     * @notice Update the withdraw fee for `user`. If the user is currently
+     * not providing liquidity in the pool, sets to default value. If not, recalculate
+     * the starting withdraw fee based on the last deposit's time & amount relative
+     * to the new deposit.
+     *
+     * @param self Swap struct to read from and write to
+     * @param user address of the user depositing tokens
+     * @param toMint amount of pool tokens to be minted
+     */
+    function _updateUserWithdrawFee(
+        WeightedSwapStorage storage self,
+        address user,
+        uint256 userBalance,
+        uint256 toMint
+    ) internal {
+        // If token is transferred to address 0 (or burned), don't update the fee.
+        if (user == address(0)) {
+            return;
+        }
+        if (self.defaultWithdrawFee == 0) {
+            // If current fee is set to 0%, set multiplier to FEE_DENOMINATOR
+            self.withdrawFeeMultiplier[user] = FEE_DENOMINATOR;
+        } else {
+            // Otherwise, calculate appropriate discount based on last deposit amount
+            uint256 currentFee = _calculateCurrentWithdrawFee(self, user);
+            uint256 currentBalance = userBalance;
+
+            // ((currentBalance * currentFee) + (toMint * defaultWithdrawFee)) * FEE_DENOMINATOR /
+            // ((toMint + currentBalance) * defaultWithdrawFee)
+            if ((toMint + currentBalance) * self.defaultWithdrawFee != 0) {
+                self.withdrawFeeMultiplier[user] = (((currentBalance * currentFee) + (toMint * self.defaultWithdrawFee)) * (FEE_DENOMINATOR)) / ((toMint + currentBalance) * self.defaultWithdrawFee);
+            }
+        }
+        self.depositTimestamp[user] = block.timestamp;
+        self.feeEndTimestamp[user] = block.timestamp + self.withdrawDuration;
+    }
+
+    /**
+     * @notice Calculate the fee that is applied when the given user withdraws.
+     * Withdraw fee decays linearly over the witdhrawDuraion parameter.
+     * @param user address you want to calculate withdraw fee of
+     * @return current withdraw fee of the user
+     */
+    function _calculateCurrentWithdrawFee(WeightedSwapStorage storage self, address user) internal view returns (uint256) {
+        uint256 endTime = self.feeEndTimestamp[user];
+        if (endTime > block.timestamp) {
+            uint256 timeLeftover = endTime - block.timestamp;
+            return (self.defaultWithdrawFee * self.withdrawFeeMultiplier[user] * timeLeftover) / self.withdrawDuration / FEE_DENOMINATOR;
+        }
+        return 0;
     }
 }

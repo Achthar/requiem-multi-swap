@@ -190,8 +190,8 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             _reserveData.vReserve0 = (_reserveData.reserve0 * _ampBps) / _bps;
             _reserveData.vReserve1 = (_reserveData.reserve1 * _ampBps) / _bps;
 
-            liquidity = Math.sqrt(amount0 * amount1) - _bps;
-            _mint(address(0), _bps);
+            liquidity = Math.sqrt(amount0 * amount1) - 1000;
+            _mint(address(0), 1000);
             // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
             liquidity = Math.min((amount0 * _totalSupply) / reserveData.reserve0, (amount1 * _totalSupply) / reserveData.reserve1);

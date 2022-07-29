@@ -53,22 +53,48 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 _fee,
         uint256 _flashFee,
         uint256 _adminFee,
+        uint256 _withdrawFee,
         address _feeController,
         address _creator
     ) external onlyOwner initializer {
         // initialize token
         _poolTokenInit(_name, _symbol);
-        require(_coins.length == _decimals.length, "arrayError");
-        require(_feeController != address(0), "addressError");
-        swapStorage.nTokens = _coins.length;
-        swapStorage.tokenMultipliers = new uint256[](_coins.length);
-        swapStorage.pooledTokens = new IERC20[](_coins.length);
+        // initialize arrays
+        _assignArrays(_coins.length, _coins, _normalizedWeights, _decimals);
+
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
 
+        swapStorage.normalizedWeights = _normalizedWeights;
+        // assign fees
+        swapStorage.fee = _fee;
+        swapStorage.flashFee = _flashFee;
+        swapStorage.adminFee = _adminFee;
+        swapStorage.adminSwapFee = (_adminFee * _fee) / WeightedPoolLib.FEE_DENOMINATOR;
+        swapStorage.defaultWithdrawFee = _withdrawFee;
+
+        // assign creator and fee controller
+        creator = _creator;
+        feeDistributor = _feeController;
+        feeController = _feeController;
+    }
+
+    function _assignArrays(
+        uint256 _length,
+        address[] memory _coins,
+        uint256[] memory _normalizedWeights,
+        uint8[] memory _decimals
+    ) internal {
+        swapStorage.nTokens = _length;
+        require(_length == _decimals.length, "arrayError");
+        swapStorage.withdrawDuration = (4 weeks);
+        swapStorage.collectedFees = new uint256[](_length);
+        swapStorage.balances = new uint256[](_length);
+        swapStorage.tokenMultipliers = new uint256[](_length);
+        swapStorage.pooledTokens = new IERC20[](_length);
         // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
         uint256 normalizedSum = 0;
-        for (uint8 i = 0; i < _coins.length; i++) {
+        for (uint8 i = 0; i < _length; i++) {
             require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
             swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
@@ -76,22 +102,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
             require(_normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
             normalizedSum += _normalizedWeights[i];
         }
-
         require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
-
-        swapStorage.normalizedWeights = _normalizedWeights;
-        // assign fees
-        swapStorage.fee = _fee;
-        swapStorage.flashFee = _flashFee;
-        swapStorage.adminFee = _adminFee;
-        swapStorage.collectedFees = new uint256[](_coins.length);
-
-        swapStorage.balances = new uint256[](_coins.length);
-
-        // assign creator and fee controller
-        creator = _creator;
-        feeDistributor = _feeController;
-        feeController = _feeController;
     }
 
     /// PUBLIC MUTATIVE FUNCTIONS
@@ -237,6 +248,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
         swapStorage.fee = newSwapFee;
+        swapStorage.adminSwapFee = (newSwapFee * swapStorage.adminFee) / WeightedPoolLib.FEE_DENOMINATOR;
         swapStorage.flashFee = newFlashFee;
 
         emit NewTransactionFees(newSwapFee, newFlashFee);
@@ -250,6 +262,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     function setAdminFee(uint256 newAdminFee) external onlyFeeController {
         require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
         swapStorage.adminFee = newAdminFee;
+        swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / WeightedPoolLib.FEE_DENOMINATOR;
         emit NewAdminFee(newAdminFee);
     }
 
@@ -263,6 +276,34 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         require(_feeDistributor != address(0), "addressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
+    }
+
+    /**
+     * @notice Updates the user withdraw fee
+     * Transferring your pool token will reset the withdraw durtion. If the recipient is already
+     * holding some pool tokens, the withdraw fee will be discounted
+     * @dev Overrides ERC20._beforeTokenTransfer() which get called on
+     * minting and burning. This ensures that swap.updateUserWithdrawFees are called everytime.
+     */
+    function _beforeTokenTransfer(
+        address,
+        address to,
+        uint256 amount
+    ) internal override(WeightedERC20) {
+        swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
+    }
+
+    /**
+     * @notice Sets the duration for which the withdraw fee is applicable
+     * and the fee itself
+     * @param newWithdrawDuration new flash loan fee
+     * @param newDefaultWithdrawFee new default witdraw fee
+     */
+    function setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) external onlyOwner {
+        require(newWithdrawDuration <= (4 weeks), "WithdrawDurationError");
+        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
+        swapStorage.withdrawDuration = newWithdrawDuration;
+        emit NewWithdrawFee(newWithdrawDuration, newDefaultWithdrawFee);
     }
 
     function withdrawAdminFee() external onlyFeeController {

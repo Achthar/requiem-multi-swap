@@ -56,6 +56,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 _fee,
         uint256 _flashFee,
         uint256 _adminFee,
+        uint256 _withdrawFee,
         address _feeController,
         address _creator
     ) external onlyOwner initializer {
@@ -86,6 +87,10 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         swapStorage.fee = _fee;
         swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
+        swapStorage.adminSwapFee = (_adminFee * _fee) / BalancedPoolLib.FEE_DENOMINATOR;
+
+        swapStorage.defaultWithdrawFee = _withdrawFee;
+        swapStorage.withdrawDuration = (4 weeks);
         feeController = _feeController;
         swapStorage.collectedFees = new uint256[](swapStorage.nTokens);
         creator = _creator;
@@ -142,6 +147,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
         if (totalSupply == 0) {
+            require(msg.sender == creator, "can only be inititalized by creator");
             // add the first liquidity
             mintAmount = swapStorage.initialize(amounts);
         } else {
@@ -217,40 +223,71 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         (amountOut, fee) = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount, totalSupply);
     }
 
-       /**
+    /**
      * @notice Sets the all applicable transaction fees
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
-     * @param newFlashFee new flash lash loan fee
+     * @param newFlashFee new flash loan fee
      */
-    function setFee(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
-        require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
-        require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
+    function setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
+        require(newSwapFee <= MAX_TRANSACTION_FEE, "SwapFeeError");
+        require(newFlashFee <= MAX_TRANSACTION_FEE, "FlashFeeError");
         swapStorage.fee = newSwapFee;
         swapStorage.flashFee = newFlashFee;
-
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / BalancedPoolLib.FEE_DENOMINATOR;
         emit NewTransactionFees(newSwapFee, newFlashFee);
     }
 
     /**
-     * @notice Sets the all applicable fees
+     * @notice Sets the admin fee - accessible only to the fee controller
      * @dev adminFee cannot be higher than 50% of the swap fee
      * @param newAdminFee new admin fee to be applied on future transactions
      */
-    function setAdminFee(
-        uint256 newAdminFee
-    ) external onlyFeeController {
-        require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
+    function setAdminFee(uint256 newAdminFee) external onlyFeeController {
+        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
         swapStorage.adminFee = newAdminFee;
+        swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / BalancedPoolLib.FEE_DENOMINATOR;
         emit NewAdminFee(newAdminFee);
     }
 
-    function setFeeControllerAndDistributor(address _feeController, address _feeDistributor) external onlyFeeController {
-        require(_feeController != address(0) && _feeDistributor != address(0), "addressError");
+    /**
+     * @notice Sets the duration for which the withdraw fee is applicable
+     * and the fee itself
+     * @param newWithdrawDuration new flash loan fee
+     * @param newDefaultWithdrawFee new default witdraw fee
+     */
+    function setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) external onlyOwner {
+        require(newWithdrawDuration <= (4 weeks), "WithdrawDurationError");
+        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
+        swapStorage.withdrawDuration = newWithdrawDuration;
+        emit NewWithdrawFee(newWithdrawDuration, newDefaultWithdrawFee);
+    }
+
+    function setFeeController(address _feeController) external onlyFeeController {
+        require(_feeController != address(0), "addressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
+    }
+
+    function setFeeDistributor(address _feeDistributor) external onlyFeeController {
+        require(_feeDistributor != address(0), "addressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
+    }
+
+    /**
+     * @notice Updates the user withdraw fee
+     * Transferring your pool token will reset the withdraw durtion. If the recipient is already
+     * holding some pool tokens, the withdraw fee will be discounted
+     * @dev Overrides ERC20._beforeTokenTransfer() which get called on
+     * minting and burning. This ensures that swap.updateUserWithdrawFees are called everytime.
+     */
+    function _beforeTokenTransfer(
+        address,
+        address to,
+        uint256 amount
+    ) internal override(BalancedERC20) {
+        swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 
     function withdrawAdminFee() external onlyFeeController {

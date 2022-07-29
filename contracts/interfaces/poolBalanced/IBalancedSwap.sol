@@ -20,6 +20,8 @@ interface IBalancedSwap {
 
     event NewAdminFee(uint256 adminFee);
 
+    event NewWithdrawFee(uint256 withdrawDuration, uint256 defaultWithdrawFee);
+
     event FeeControllerChanged(address newController);
 
     event FeeDistributorChanged(address newController);
@@ -28,10 +30,7 @@ interface IBalancedSwap {
 
     function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
 
-    function calculateRemoveLiquidityOneToken(
-        uint256 tokenAmount,
-        uint256 tokenIndex
-    ) external view returns (uint256, uint256);
+    function calculateRemoveLiquidityOneToken(uint256 tokenAmount, uint256 tokenIndex) external view returns (uint256, uint256);
 
     function calculateRemoveLiquidityExactIn(uint256 amount) external view returns (uint256[] memory);
 

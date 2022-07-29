@@ -128,10 +128,7 @@ library LogExpMath {
         logx_times_y /= ONE_18;
 
         // Finally, we compute exp(y * ln(x)) to arrive at x^y
-        require(
-            MIN_NATURAL_EXPONENT <= logx_times_y && logx_times_y <= MAX_NATURAL_EXPONENT,
-            "PRODUCT_OUT_OF_BOUNDS"
-        );
+        require(MIN_NATURAL_EXPONENT <= logx_times_y && logx_times_y <= MAX_NATURAL_EXPONENT, "PRODUCT_OUT_OF_BOUNDS");
 
         return uint256(exp(logx_times_y));
     }
@@ -326,7 +323,7 @@ library LogExpMath {
             // Since ln(a^k) = k * ln(a), we can compute ln(a) as ln(a) = ln((1/a)^(-1)) = - ln((1/a)). If a is less
             // than one, 1/a will be greater than one, and this if statement will not be entered in the recursive call.
             // Fixed point division requires multiplying by ONE_18.
-            return (-_ln((ONE_18 * ONE_18) / a));
+            return (-_ln(ONE_36 / a));
         }
 
         // First, we use the fact that ln^(a * b) = ln(a) + ln(b) to decompose ln(a) into a sum of powers of two, which

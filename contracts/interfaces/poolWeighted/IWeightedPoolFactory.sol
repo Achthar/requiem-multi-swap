@@ -25,7 +25,8 @@ interface IWeightedPoolFactory {
         string memory name,
         string memory symbol,
         uint256 _fee,
-        uint256 _flashFee
+        uint256 _flashFee,
+        uint256 _withdrawFee
     ) external returns (address pool);
 
     function setFeeTo(address) external;

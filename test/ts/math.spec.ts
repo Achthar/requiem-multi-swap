@@ -36,58 +36,11 @@ const TEST_AMOUNT = BigNumber.from(1e9)
 
 describe('RequiemPair-Test', () => {
 	let signers: SignerWithAddress[];
-
 	let wallet: SignerWithAddress;
 	let other: SignerWithAddress;
 	let deployWallet: any;
-
-	let tokenA: Contract
-	let tokenB: Contract
-	let tokenC: Contract
-	let tokenUSDC: Contract
-	let tokenUSDT: Contract
-	let tokenDAI: Contract
-	let tokenTUSD: Contract
-	let weth: Contract
-	let formula: Contract
-	let factory: Contract
-	let router: Contract
-
-
-	let feeDistributor: Contract
-	let thiefRouter: Contract
-
-
 	let math: MathMock
-	let pairDAI_B_Contract: Contract
-	let pairA_B_Contract: Contract
-	let pairB_C_Contract: Contract
-	let pairTest_Contract: Contract
 
-	// specs for pair
-	let tokenWeightA = BigNumber.from(20)
-	let swapFee = BigNumber.from(10)
-	let amplification = BigNumber.from(15000)
-
-	let newSwapFee = BigNumber.from(20)
-	let newAmplification = BigNumber.from(20000)
-
-	let amountA = parseUnits('50', 18)
-	let amountB = parseUnits('100', 18)
-	let ZERO = BigNumber.from(0)
-	let pairContract: Contract
-	let deadline = '9999999999999999'
-
-	let tokenWeightB = BigNumber.from(60)
-
-	let amplification2 = BigNumber.from(20000)
-	let amountIn: BigNumber
-	let amountOut: BigNumber
-
-	let amountC = parseUnits('3231', 8)
-	const amountInMax = ethers.constants.MaxUint256
-	let amountUSDC = parseUnits('10010', 6)
-	let amountDAI = parseUnits('10000', 18)
 
 	beforeEach(async () => {
 		deployWallet = await ethers.Wallet.fromMnemonic(((network.config.accounts) as any).mnemonic);
@@ -95,10 +48,6 @@ describe('RequiemPair-Test', () => {
 		wallet = signers[0];
 		other = signers[1];
 		math = await new MathMock__factory(wallet).deploy()
-
-
-
-
 	})
 
 

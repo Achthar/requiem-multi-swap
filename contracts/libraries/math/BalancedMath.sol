@@ -79,9 +79,6 @@ library BalancedMath {
 
         // Amount in, so we round up overall.
 
-        // The multiplication rounds up, and the power rounds up (so the base rounds up too).
-        // Because b0 / (b0 - a0) >= 1, the exponent rounds up.
-
         // Cannot exceed maximum out ratio
         require(amountOut <= balanceOut.mulDown(_MAX_OUT_RATIO), "MAX_OUT_RATIO");
 

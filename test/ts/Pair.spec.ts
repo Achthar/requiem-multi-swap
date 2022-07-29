@@ -381,7 +381,7 @@ describe('RequiemPair', () => {
         await token1.transfer(pair.address, swapAmount)
         await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
         const balPre = await token0.balanceOf(wallet.address)
-        const tx = await pair.onSwapGivenIn(token1.address, token0.address, 0, wallet.address, overrides)
+        const tx = await pair.onSwapGivenIn(token1.address, token0.address, wallet.address, overrides)
         // 		const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
 
         const receipt = await tx.wait()

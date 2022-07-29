@@ -20,6 +20,8 @@ interface IWeightedSwap {
 
     event NewAdminFee(uint256 adminFee);
 
+    event NewWithdrawFee(uint256 withdrawDuration, uint256 defaultWithdrawFee);
+
     event FeeControllerChanged(address newController);
 
     event FeeDistributorChanged(address newController);

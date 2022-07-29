@@ -52,6 +52,7 @@ library StablePoolLib {
         uint256 flashFee;
         /// @dev admin fee in ratio of swap fee.
         uint256 adminFee;
+        uint256 adminSwapFee;
         /// @dev observation of A, multiplied with A_PRECISION
         uint256 initialA;
         uint256 futureA;
@@ -104,7 +105,7 @@ library StablePoolLib {
             fees[i] = (_fee * diff) / FEE_DENOMINATOR;
             self.balances[i] = newBalances[i];
             // collect admin fee on a normalized basis
-            self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
+            self.collectedFees[i] += (fees[i] * self.adminFee) / FEE_DENOMINATOR;
             newBalances[i] -= fees[i];
         }
         D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
@@ -171,7 +172,7 @@ library StablePoolLib {
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= dy;
-        self.collectedFees[j] += (dy_fee * self.tokenMultipliers[j] * self.adminFee) / FEE_DENOMINATOR;
+        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR;
 
         self.pooledTokens[j].safeTransfer(to, dy);
 
@@ -214,7 +215,7 @@ library StablePoolLib {
         self.balances[j] -= outAmount;
 
         // collect admin fee
-        self.collectedFees[i] += (inAmountNormalized * self.fee * self.adminFee) / FEE_DENOMINATOR / FEE_DENOMINATOR;
+        self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
@@ -254,7 +255,7 @@ library StablePoolLib {
             uint256 postLoanBalance = token.balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post balances");
             self.balances[i] = postLoanBalance;
-            self.collectedFees[i] += (feeAmounts[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
+            self.collectedFees[i] += (feeAmounts[i] * self.adminFee) / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
             require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
@@ -336,7 +337,7 @@ library StablePoolLib {
             uint256 idealBalance = (D1 * self.balances[i]) / D0;
             fees[i] = (_fee * _distance(newBalances[i], idealBalance)) / FEE_DENOMINATOR;
             self.balances[i] = newBalances[i];
-            self.collectedFees[i] += (fees[i] * self.tokenMultipliers[i] * self.adminFee) / FEE_DENOMINATOR;
+            self.collectedFees[i] += (fees[i] * self.adminFee) / FEE_DENOMINATOR;
             newBalances[i] -= fees[i];
             if (amounts[i] != 0) {
                 self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
@@ -356,7 +357,7 @@ library StablePoolLib {
     function sync(SwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             IERC20 token = self.pooledTokens[i];
-            uint256 fee = self.collectedFees[i] / self.tokenMultipliers[i];
+            uint256 fee = self.collectedFees[i];
             if (fee != 0) {
                 token.safeTransfer(receiver, fee);
                 self.collectedFees[i] = 0;

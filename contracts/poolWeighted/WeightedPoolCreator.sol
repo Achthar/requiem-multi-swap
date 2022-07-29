@@ -5,6 +5,8 @@ pragma solidity ^0.8.15;
 import "./WeightedPool.sol";
 import "../interfaces/poolWeighted/IWeightedPoolCreator.sol";
 
+// solhint-disable  max-line-length
+
 contract WeightedPoolCreator is IWeightedPoolCreator {
     function create(
         address[] memory _pooledTokens,
@@ -15,11 +17,12 @@ contract WeightedPoolCreator is IWeightedPoolCreator {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _adminFee,
+        uint256 _withdrawFee,
         address _feeController,
         address _creator
     ) external override returns (address) {
         WeightedPool swap = new WeightedPool();
-        swap.initialize(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, _feeController, _creator);
+        swap.initialize(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, _withdrawFee, _feeController, _creator);
         return address(swap);
     }
 }

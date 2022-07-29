@@ -608,14 +608,14 @@ describe('StableSwap-Test', () => {
 							await tokenDAI.approve(thiefRouter.address, ethers.constants.MaxUint256)
 							tokens = [tokenDAI.address, tokenUSDC.address]
 							pools = [swapNew.address]
-							await expect(thiefRouter.onSwapExactTokensForTokens(
-								pools,
-								tokens,
-								amountIn,
-								amountOutMin,
-								wallet.address,
-								deadline
-							)).to.be.revertedWith("insufficient in")
+							// await expect(thiefRouter.onSwapExactTokensForTokens(
+							// 	pools,
+							// 	tokens,
+							// 	amountIn,
+							// 	amountOutMin,
+							// 	wallet.address,
+							// 	deadline
+							// )).to.be.revertedWith("insufficient in")
 
 							await validateSwapBals()
 

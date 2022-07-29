@@ -40,7 +40,7 @@ describe("Weighted Pools", () => {
         tokens = await tokenFixture(wallet)
         await distributeTokens(tokens, wallet.address, '10000000000000000000')
         await distributeTokens(tokens, other.address, '10000000000000000000')
-        weightedFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee);
+        weightedFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee, withdrawFee);
         routerFixture = await swapRouterFixture(wallet)
         // swapValidator = await balancerMathFixture(wallet)
         await approveAll(wallet, tokens, weightedFixture.pool.address)
@@ -53,20 +53,20 @@ describe("Weighted Pools", () => {
     });
 
     it("Rejects first liquidity supply from non-creator", async () => {
-        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee);
+        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee, withdrawFee);
         await approveAll(other, tokens, testFixture.pool.address)
         await expect(testFixture.pool.connect(other).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256)).
             to.be.revertedWith('can only be inititalized by creator');
     });
 
     it("Allows first liquidity supply from creator", async () => {
-        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee);
+        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee, withdrawFee);
         await approveAll(wallet, tokens, testFixture.pool.address)
         await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, wallet.address, maxUint256);
     });
 
     it("Allows secondary liquidity supply after cration from others", async () => {
-        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, zero, zero);
+        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, zero, zero, zero);
         await approveAll(other, tokens, testFixture.pool.address)
         await approveAll(wallet, tokens, testFixture.pool.address)
         await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, wallet.address, maxUint256);
@@ -82,7 +82,7 @@ describe("Weighted Pools", () => {
         const bal1 = await tokens.token1.balanceOf(other.address)
         const bal2 = await tokens.token2.balanceOf(other.address)
 
-        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, zero, zero);
+        const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, zero, zero, zero);
         await approveAll(other, tokens, testFixture.pool.address)
         await approveAll(wallet, tokens, testFixture.pool.address)
         await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
@@ -145,31 +145,31 @@ describe("Weighted Pools", () => {
     }
 
 
-    dev = BigNumber.from(1e3)
-    for (let i = 0; i < 5; i++) {
+    // dev = BigNumber.from(1e3)
+    // for (let i = 0; i < 5; i++) {
 
-        it(`Allows consistent swap calculation small amounts ${i}`, async () => {
-            baseAmount = parseUnits('10', 9).add(parseUnits(String(i), 9))
+    //     it(`Allows consistent swap calculation small amounts ${i}`, async () => {
+    //         baseAmount = parseUnits('10', 9).add(parseUnits(String(i), 9))
 
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
-            receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, obtain)
+    //         obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
+    //         receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, obtain)
 
-            expect(baseAmount.sub(receive).mul(dev).div(baseAmount)).to.equal(zero)
+    //         expect(baseAmount.sub(receive).mul(dev).div(baseAmount)).to.equal(zero)
 
 
-            baseAmount = parseUnits('10', 3).add(parseUnits(String(i), 3))
-            receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, receive)
+    //         baseAmount = parseUnits('10', 3).add(parseUnits(String(i), 3))
+    //         receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
+    //         obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, receive)
 
-            expect(obtain).to.equal(baseAmount)
+    //         expect(obtain).to.equal(baseAmount)
 
-            baseAmount = parseUnits('10', 3).add(parseUnits(String(i), 3))
-            receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, baseAmount)
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, receive)
+    //         baseAmount = parseUnits('10', 3).add(parseUnits(String(i), 3))
+    //         receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, baseAmount)
+    //         obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, receive)
 
-            expect(obtain).to.equal(baseAmount)
-        })
-    }
+    //         expect(obtain).to.equal(baseAmount)
+    //     })
+    // }
 
     // it("Swap calculation vs balancer implementation deviates less than 0.1 bp", async () => {
     //     const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], zero, zero, zero);
