@@ -20,8 +20,6 @@ import "../interfaces/ERC20/IERC20Metadata.sol";
 contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairERC20 {
     using UQ112x112 for uint224;
 
-    uint256 public constant MINIMUM_LIQUIDITY = 10**3;
-
     address public factory;
     address public token0;
     address public token1;
@@ -187,12 +185,13 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 _totalSupply = totalSupply;
         // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
+            uint256 _bps = BPS;
             uint32 _ampBps = ampBps;
-            _reserveData.vReserve0 = (_reserveData.reserve0 * _ampBps) / BPS;
-            _reserveData.vReserve1 = (_reserveData.reserve1 * _ampBps) / BPS;
+            _reserveData.vReserve0 = (_reserveData.reserve0 * _ampBps) / _bps;
+            _reserveData.vReserve1 = (_reserveData.reserve1 * _ampBps) / _bps;
 
-            liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
-            _mint(address(0), MINIMUM_LIQUIDITY);
+            liquidity = Math.sqrt(amount0 * amount1) - _bps;
+            _mint(address(0), _bps);
             // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
             liquidity = Math.min((amount0 * _totalSupply) / reserveData.reserve0, (amount1 * _totalSupply) / reserveData.reserve1);
@@ -284,7 +283,6 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     function onSwapGivenIn(
         address tokenIn,
         address,
-        uint256,
         address to
     ) external override lock returns (uint256 amountOut) {
         //initialized data for new reserves
@@ -304,8 +302,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             amountOut = IWeightedFormula(formula).getAmountOut(amountIn, v0, v1, tokenWeight0, tokenWeight1, swapFee);
 
             // handle fee
-            uint256 amount0InFee = amountIn * swapFee;
-            collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
+            collectedFee0 = uint112(uint256(collectedFee0) + amountIn * swapFee);
 
             // transfer token amount
             _safeTransfer(token1, to, amountOut);
@@ -320,8 +317,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             amountOut = IWeightedFormula(formula).getAmountOut(amountIn, v1, v0, tokenWeight1, tokenWeight0, swapFee);
 
             // handle fee
-            uint256 amount1InFee = amountIn * swapFee;
-            collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
+            collectedFee1 = uint112(uint256(collectedFee1) + amountIn * swapFee);
             newReserveData.reserve1 = balanceIn;
 
             // transfer token amount
@@ -432,8 +428,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             amountIn = IWeightedFormula(formula).getAmountIn(amountOut, v0, v1, tokenWeight0, tokenWeight1, swapFee);
 
             // handle fee
-            uint256 amount0InFee = ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn;
-            collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
+            collectedFee0 = uint112(uint256(collectedFee0) +  ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn);
 
             // transfer token amount
             _safeTransfer(token1, to, amountOut);
@@ -450,8 +445,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             amountIn = IWeightedFormula(formula).getAmountIn(amountOut, v1, v0, tokenWeight1, tokenWeight0, swapFee);
 
             // handle fee
-            uint256 amount1InFee = ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn;
-            collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
+            collectedFee1 = uint112(uint256(collectedFee1) + ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn);
             newReserveData.reserve1 = balanceIn;
 
             // transfer token amount

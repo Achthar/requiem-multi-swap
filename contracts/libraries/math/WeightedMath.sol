@@ -15,7 +15,7 @@
 pragma solidity ^0.8.15;
 
 import "./FixedPoint.sol";
-import "./Math.sol";
+import "./ExpMath.sol";
 
 // These functions start with an underscore, as if they were part of a contract and not a library.
 
@@ -26,10 +26,7 @@ library WeightedMath {
     // A minimum normalized weight imposes a maximum weight ratio. We need this due to limitations in the
     // implementation of the power function, as these ratios are often exponents.
     uint256 internal constant _MIN_WEIGHT = 0.01e18;
-    // Having a minimum normalized weight imposes a limit on the maximum number of tokens;
-    // i.e., the largest possible pool is one where all tokens have exactly the minimum weight.
-    uint256 internal constant _MAX_WEIGHTED_TOKENS = 100;
-
+    
     // Pool limits that arise from limitations in the fixed point power function (and the imposed 1:100 maximum weight
     // ratio).
 
@@ -79,7 +76,7 @@ library WeightedMath {
         uint256 denominator = balanceIn + amountIn;
         uint256 base = balanceIn.divUp(denominator);
         uint256 exponent = weightIn.divDown(weightOut);
-        uint256 power = base.powUp(exponent);
+        uint256 power = base.pow(exponent);
 
         return balanceOut.mulDown(power.complement());
     }
@@ -113,7 +110,7 @@ library WeightedMath {
 
         uint256 base = balanceOut.divUp(balanceOut - amountOut);
         uint256 exponent = weightOut.divUp(weightIn);
-        uint256 power = base.powUp(exponent);
+        uint256 power = base.pow(exponent);
 
         // Because the base is larger than one (and the power rounds up), the power should always be larger than one, so
         // the following subtraction should never revert.
@@ -184,7 +181,7 @@ library WeightedMath {
 
             uint256 balanceRatio = (balances[i] + amountInWithoutFee).divDown(balances[i]);
 
-            invariantRatio = invariantRatio.mulDown(balanceRatio.powDown(normalizedWeights[i]));
+            invariantRatio = invariantRatio.mulDown(balanceRatio.pow(normalizedWeights[i]));
         }
     }
 
@@ -211,7 +208,7 @@ library WeightedMath {
         require(invariantRatio <= _MAX_INVARIANT_RATIO, "MAX_OUT_LP");
 
         // Calculate by how much the token balance has to increase to match the invariantRatio
-        uint256 balanceRatio = invariantRatio.powUp(FixedPoint.ONE.divUp(normalizedWeight));
+        uint256 balanceRatio = invariantRatio.pow(FixedPoint.ONE.divUp(normalizedWeight));
 
         uint256 amountInWithoutFee = balance.mulUp(balanceRatio - FixedPoint.ONE);
 
@@ -313,7 +310,7 @@ library WeightedMath {
 
             uint256 balanceRatio = (balances[i] - amountOutWithFee).divDown(balances[i]);
 
-            invariantRatio = invariantRatio.mulDown(balanceRatio.powDown(normalizedWeights[i]));
+            invariantRatio = invariantRatio.mulDown(balanceRatio.pow(normalizedWeights[i]));
         }
     }
 
@@ -341,7 +338,7 @@ library WeightedMath {
         require(invariantRatio >= _MIN_INVARIANT_RATIO, "MIN_LP_IN");
 
         // Calculate by how much the token balance has to decrease to match invariantRatio
-        uint256 balanceRatio = invariantRatio.powUp(FixedPoint.ONE.divDown(normalizedWeight));
+        uint256 balanceRatio = invariantRatio.pow(FixedPoint.ONE.divDown(normalizedWeight));
 
         // Because of rounding up, balanceRatio can be greater than one. Using complement prevents reverts.
         uint256 amountOutWithoutFee = balance.mulDown(balanceRatio.complement());

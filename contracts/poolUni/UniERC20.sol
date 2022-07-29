@@ -2,12 +2,17 @@
 
 pragma solidity ^0.8.15;
 
-import "../interfaces/poolPair/IWeightedPairERC20.sol";
+import "../interfaces/poolWeighted/IWeightedERC20.sol";
 
-// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
+// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-abstract contract WeightedPairERC20 is IWeightedPairERC20 {
+abstract contract WeightedERC20 is IWeightedERC20 {
+    uint8 public constant decimals = 18;
+    bool private initialized;
     uint256 public totalSupply;
+
+    string public name;
+    string public symbol;
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -18,31 +23,20 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
 
     mapping(address => uint256) public nonces;
 
-    constructor() {
+    constructor() {}
+
+    function _poolTokenInit(string memory _name, string memory _symbol) internal {
+        name = _name;
+        symbol = _symbol;
+
         uint256 chainId;
         assembly {
             chainId := chainid()
         }
 
         DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-                keccak256(bytes("Requiem wPair LP")),
-                keccak256(bytes("1")),
-                chainId,
-                address(this)
-            )
+            abi.encode(keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak256(bytes(_name)), keccak256(bytes("1")), chainId, address(this))
         );
-    }
-
-    /** @notice Name of pair */
-    function name() external pure virtual override returns (string memory) {
-        return "Requiem wPair LP";
-    }
-
-    /** @notice Symbol of pair */
-    function symbol() external pure virtual override returns (string memory) {
-        return "REQWP";
     }
 
     function _mint(address to, uint256 value) internal {
@@ -107,14 +101,10 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "REQ: EXP");
+        require(deadline >= block.timestamp, "REQ: EXPIRED");
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))));
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == owner, "REQ: IS");
         _approve(owner, spender, value);
-    }
-
-    function decimals() external pure returns (uint8) {
-        return 18;
     }
 }

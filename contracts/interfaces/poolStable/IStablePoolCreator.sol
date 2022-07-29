@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import "../ERC20/IERC20.sol";
+
 interface IStablePoolCreator {
     function create(
         address[] memory _pooledTokens,

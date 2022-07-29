@@ -14,7 +14,7 @@
 
 pragma solidity ^0.8.15;
 
-import "./math/LogExpMath.sol";
+import "./math/weighted/LogExpMath.sol";
 
 /**
  * @dev Library for encoding and decoding values stored inside a 256 bit word. Typically used to pack multiple values in

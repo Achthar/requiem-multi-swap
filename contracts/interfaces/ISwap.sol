@@ -11,7 +11,6 @@ interface ISwap {
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
-        uint256 amountIn,
         address to
     ) external returns (uint256);
 

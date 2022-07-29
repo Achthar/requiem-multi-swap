@@ -1,113 +1,27 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: MIT
+
 pragma solidity >=0.8.4;
 
-// solhint-disable no-inline-assembly
+// solhint-disable no-inline-assembly, func-name-mixedcase, max-line-length
 
-/// @notice Emitted when the result overflows uint256.
-error PRBMath__MulDivFixedPointOverflow(uint256 prod1);
+/// @title PRBMathUD60x18
+/// @author Paul Razvan Berg
+/// @notice Smart contract library for advanced fixed-point math that works with uint256 numbers considered to have 18
+/// trailing decimals. We call this number representation unsigned 60.18-decimal fixed-point, since there can be up to 60
+/// digits in the integer part and up to 18 decimals in the fractional part. The numbers are bound by the minimum and the
+/// maximum values permitted by the Solidity type uint256.
+library ExpMath {
+    /// @dev Half the SCALE number.
+    uint256 internal constant HALF_SCALE = 5e17;
 
-/// @notice Emitted when the result overflows uint256.
-error PRBMath__MulDivOverflow(uint256 prod1, uint256 denominator);
+    /// @dev log2(e) as an unsigned 60.18-decimal fixed-point number.
+    uint256 internal constant LOG2_E = 1_442695040888963407;
 
-/// @notice Emitted when one of the inputs is type(int256).min.
-error PRBMath__MulDivSignedInputTooSmall();
+    /// @dev The maximum value an unsigned 60.18-decimal fixed-point number can have.
+    uint256 internal constant MAX_UD60x18 = 115792089237316195423570985008687907853269984665640564039457_584007913129639935;
 
-/// @notice Emitted when the intermediary absolute result overflows int256.
-error PRBMath__MulDivSignedOverflow(uint256 rAbs);
-
-/// @notice Emitted when the input is MIN_SD59x18.
-error PRBMathSD59x18__AbsInputTooSmall();
-
-/// @notice Emitted when ceiling a number overflows SD59x18.
-error PRBMathSD59x18__CeilOverflow(int256 x);
-
-/// @notice Emitted when one of the inputs is MIN_SD59x18.
-error PRBMathSD59x18__DivInputTooSmall();
-
-/// @notice Emitted when one of the intermediary unsigned results overflows SD59x18.
-error PRBMathSD59x18__DivOverflow(uint256 rAbs);
-
-/// @notice Emitted when the input is greater than 133.084258667509499441.
-error PRBMathSD59x18__ExpInputTooBig(int256 x);
-
-/// @notice Emitted when the input is greater than 192.
-error PRBMathSD59x18__Exp2InputTooBig(int256 x);
-
-/// @notice Emitted when flooring a number underflows SD59x18.
-error PRBMathSD59x18__FloorUnderflow(int256 x);
-
-/// @notice Emitted when converting a basic integer to the fixed-point format overflows SD59x18.
-error PRBMathSD59x18__FromIntOverflow(int256 x);
-
-/// @notice Emitted when converting a basic integer to the fixed-point format underflows SD59x18.
-error PRBMathSD59x18__FromIntUnderflow(int256 x);
-
-/// @notice Emitted when the product of the inputs is negative.
-error PRBMathSD59x18__GmNegativeProduct(int256 x, int256 y);
-
-/// @notice Emitted when multiplying the inputs overflows SD59x18.
-error PRBMathSD59x18__GmOverflow(int256 x, int256 y);
-
-/// @notice Emitted when the input is less than or equal to zero.
-error PRBMathSD59x18__LogInputTooSmall(int256 x);
-
-/// @notice Emitted when one of the inputs is MIN_SD59x18.
-error PRBMathSD59x18__MulInputTooSmall();
-
-/// @notice Emitted when the intermediary absolute result overflows SD59x18.
-error PRBMathSD59x18__MulOverflow(uint256 rAbs);
-
-/// @notice Emitted when the intermediary absolute result overflows SD59x18.
-error PRBMathSD59x18__PowuOverflow(uint256 rAbs);
-
-/// @notice Emitted when the input is negative.
-error PRBMathSD59x18__SqrtNegativeInput(int256 x);
-
-/// @notice Emitted when the calculating the square root overflows SD59x18.
-error PRBMathSD59x18__SqrtOverflow(int256 x);
-
-/// @notice Emitted when addition overflows UD60x18.
-error PRBMathUD60x18__AddOverflow(uint256 x, uint256 y);
-
-/// @notice Emitted when ceiling a number overflows UD60x18.
-error PRBMathUD60x18__CeilOverflow(uint256 x);
-
-/// @notice Emitted when the input is greater than 133.084258667509499441.
-error PRBMathUD60x18__ExpInputTooBig(uint256 x);
-
-/// @notice Emitted when the input is greater than 192.
-error PRBMathUD60x18__Exp2InputTooBig(uint256 x);
-
-/// @notice Emitted when converting a basic integer to the fixed-point format format overflows UD60x18.
-error PRBMathUD60x18__FromUintOverflow(uint256 x);
-
-/// @notice Emitted when multiplying the inputs overflows UD60x18.
-error PRBMathUD60x18__GmOverflow(uint256 x, uint256 y);
-
-/// @notice Emitted when the input is less than 1.
-error PRBMathUD60x18__LogInputTooSmall(uint256 x);
-
-/// @notice Emitted when the calculating the square root overflows UD60x18.
-error PRBMathUD60x18__SqrtOverflow(uint256 x);
-
-/// @notice Emitted when subtraction underflows UD60x18.
-error PRBMathUD60x18__SubUnderflow(uint256 x, uint256 y);
-
-/// @dev Common mathematical functions used in both PRBMathSD59x18 and PRBMathUD60x18. Note that this shared library
-/// does not always assume the signed 59.18-decimal fixed-point or the unsigned 60.18-decimal fixed-point
-/// representation. When it does not, it is explicitly mentioned in the NatSpec documentation.
-library PRBMath {
-    /// STRUCTS ///
-
-    struct SD59x18 {
-        int256 value;
-    }
-
-    struct UD60x18 {
-        uint256 value;
-    }
-
-    /// STORAGE ///
+    /// @dev The maximum whole value an unsigned 60.18-decimal fixed-point number can have.
+    uint256 internal constant MAX_WHOLE_UD60x18 = 115792089237316195423570985008687907853269984665640564039457_000000000000000000;
 
     /// @dev How many trailing decimals can be represented.
     uint256 internal constant SCALE = 1e18;
@@ -116,17 +30,14 @@ library PRBMath {
     uint256 internal constant SCALE_LPOTD = 262144;
 
     /// @dev SCALE inverted mod 2^256.
-    uint256 internal constant SCALE_INVERSE =
-        78156646155174841979727994598816262306175212592076161876661_508869554232690281;
-
-    /// FUNCTIONS ///
+    uint256 internal constant SCALE_INVERSE = 78156646155174841979727994598816262306175212592076161876661_508869554232690281;
 
     /// @notice Calculates the binary exponent of x using the binary fraction method.
     /// @dev Has to use 192.64-bit fixed-point numbers.
     /// See https://ethereum.stackexchange.com/a/96594/24693.
     /// @param x The exponent as an unsigned 192.64-bit fixed-point number.
     /// @return result The result as an unsigned 60.18-decimal fixed-point number.
-    function exp2(uint256 x) internal pure returns (uint256 result) {
+    function exp2_192(uint256 x) internal pure returns (uint256 result) {
         unchecked {
             // Start from 0.5 in the 192.64-bit fixed-point format.
             result = 0x800000000000000000000000000000000000000000000000;
@@ -339,6 +250,78 @@ library PRBMath {
         }
     }
 
+    /// @notice Divides two unsigned 60.18-decimal fixed-point numbers, returning a new unsigned 60.18-decimal fixed-point number.
+    ///
+    /// @dev Uses mulDiv to enable overflow-safe multiplication and division.
+    ///
+    /// Requirements:
+    /// - The denominator cannot be zero.
+    ///
+    /// @param x The numerator as an unsigned 60.18-decimal fixed-point number.
+    /// @param y The denominator as an unsigned 60.18-decimal fixed-point number.
+    /// @param result The quotient as an unsigned 60.18-decimal fixed-point number.
+    function div(uint256 x, uint256 y) internal pure returns (uint256 result) {
+        result = mulDiv(x, SCALE, y);
+    }
+
+    /// @notice Calculates the natural exponent of x.
+    ///
+    /// @dev Based on the insight that e^x = 2^(x * log2(e)).
+    ///
+    /// Requirements:
+    /// - All from "log2".
+    /// - x must be less than 133.084258667509499441.
+    ///
+    /// @param x The exponent as an unsigned 60.18-decimal fixed-point number.
+    /// @return result The result as an unsigned 60.18-decimal fixed-point number.
+    function exp(uint256 x) internal pure returns (uint256 result) {
+        // Without this check, the value passed to "exp2" would be greater than 192.
+        require(x < 133_084258667509499441, "exp 60 input too large");
+
+        // Do the fixed-point multiplication inline to save gas.
+        unchecked {
+            uint256 doubleScaleProduct = x * LOG2_E;
+            result = exp2((doubleScaleProduct + HALF_SCALE) / SCALE);
+        }
+    }
+
+    /// @notice Calculates the binary exponent of x using the binary fraction method.
+    ///
+    /// @dev See https://ethereum.stackexchange.com/q/79903/24693.
+    ///
+    /// Requirements:
+    /// - x must be 192 or less.
+    /// - The result must fit within MAX_UD60x18.
+    ///
+    /// @param x The exponent as an unsigned 60.18-decimal fixed-point number.
+    /// @return result The result as an unsigned 60.18-decimal fixed-point number.
+    function exp2(uint256 x) internal pure returns (uint256 result) {
+        // 2^192 doesn't fit within the 192.64-bit format used internally in this function.
+        require(x < 192e18, "exp 192 input too large");
+
+        unchecked {
+            // Convert x to the 192.64-bit fixed-point format.
+            uint256 x192x64 = (x << 64) / SCALE;
+
+            // Pass x to the PRBMath.exp2 function, which uses the 192.64-bit fixed-point number representation.
+            result = exp2_192(x192x64);
+        }
+    }
+
+    /// @notice Calculates 1 / x, rounding toward zero.
+    ///
+    /// @dev Requirements:
+    /// - x cannot be zero.
+    ///
+    /// @param x The unsigned 60.18-decimal fixed-point number for which to calculate the inverse.
+    /// @return result The inverse as an unsigned 60.18-decimal fixed-point number.
+    function inv(uint256 x) internal pure returns (uint256 result) {
+        unchecked {
+            // 1e36 is SCALE * SCALE.
+            result = 1e36 / x;
+        }
+    }
+
     /// @notice Finds the zero-based index of the first one in the binary representation of x.
     /// @dev See the note on msb in the "Find First Set" Wikipedia article https://en.wikipedia.org/wiki/Find_first_set
     /// @param x The uint256 number for which to find the index of the most significant bit.
@@ -375,6 +358,53 @@ library PRBMath {
         if (x >= 2**1) {
             // No need to shift x any more.
             msb += 1;
+        }
+    }
+
+    /// @notice Calculates the binary logarithm of x.
+    ///
+    /// @dev Based on the iterative approximation algorithm.
+    /// https://en.wikipedia.org/wiki/Binary_logarithm#Iterative_approximation
+    ///
+    /// Requirements:
+    /// - x must be greater than or equal to SCALE, otherwise the result would be negative.
+    ///
+    /// Caveats:
+    /// - The results are nor perfectly accurate to the last decimal, due to the lossy precision of the iterative approximation.
+    ///
+    /// @param x The unsigned 60.18-decimal fixed-point number for which to calculate the binary logarithm.
+    /// @return result The binary logarithm as an unsigned 60.18-decimal fixed-point number.
+    function log2(uint256 x) internal pure returns (uint256 result) {
+        unchecked {
+            // Calculate the integer part of the logarithm and add it to the result and finally calculate y = x * 2^(-n).
+            uint256 n = mostSignificantBit(x / SCALE);
+
+            // The integer part of the logarithm as an unsigned 60.18-decimal fixed-point number. The operation can't overflow
+            // because n is maximum 255 and SCALE is 1e18.
+            result = n * SCALE;
+
+            // This is y = x * 2^(-n).
+            uint256 y = x >> n;
+
+            // If y = 1, the fractional part is zero.
+            if (y == SCALE) {
+                return result;
+            }
+
+            // Calculate the fractional part via the iterative approximation.
+            // The "delta >>= 1" part is equivalent to "delta /= 2", but shifting bits is faster.
+            for (uint256 delta = HALF_SCALE; delta > 0; delta >>= 1) {
+                y = (y * y) / SCALE;
+
+                // Is y^2 > 2 and so in the range [2,4)?
+                if (y >= 2 * SCALE) {
+                    // Add the 2^(-m) factor to the logarithm.
+                    result += delta;
+
+                    // Corresponds to z/2 on Wikipedia.
+                    y >>= 1;
+                }
+            }
         }
     }
 
@@ -418,9 +448,7 @@ library PRBMath {
         }
 
         // Make sure the result is less than 2^256. Also prevents denominator == 0.
-        if (prod1 >= denominator) {
-            revert PRBMath__MulDivOverflow(prod1, denominator);
-        }
+        require(prod1 < denominator, "MulDivOverflow");
 
         ///////////////////////////////////////////////
         // 512 by 256 division.
@@ -506,9 +534,7 @@ library PRBMath {
             prod1 := sub(sub(mm, prod0), lt(mm, prod0))
         }
 
-        if (prod1 >= SCALE) {
-            revert PRBMath__MulDivFixedPointOverflow(prod1);
-        }
+        require(prod1 < SCALE, "MulDivFixedPointOverflow");
 
         uint256 remainder;
         uint256 roundUpUnit;
@@ -525,126 +551,45 @@ library PRBMath {
         }
 
         assembly {
-            result := add(
-                mul(
-                    or(
-                        div(sub(prod0, remainder), SCALE_LPOTD),
-                        mul(sub(prod1, gt(remainder, prod0)), add(div(sub(0, SCALE_LPOTD), SCALE_LPOTD), 1))
-                    ),
-                    SCALE_INVERSE
-                ),
-                roundUpUnit
-            )
+            result := add(mul(or(div(sub(prod0, remainder), SCALE_LPOTD), mul(sub(prod1, gt(remainder, prod0)), add(div(sub(0, SCALE_LPOTD), SCALE_LPOTD), 1))), SCALE_INVERSE), roundUpUnit)
         }
     }
 
-    /// @notice Calculates floor(x*y÷denominator) with full precision.
+    /// @notice Multiplies two unsigned 60.18-decimal fixed-point numbers together, returning a new unsigned 60.18-decimal
+    /// fixed-point number.
+    /// @dev See the documentation for the "PRBMath.mulDivFixedPoint" function.
+    /// @param x The multiplicand as an unsigned 60.18-decimal fixed-point number.
+    /// @param y The multiplier as an unsigned 60.18-decimal fixed-point number.
+    /// @return result The product as an unsigned 60.18-decimal fixed-point number.
+    function mul(uint256 x, uint256 y) internal pure returns (uint256 result) {
+        result = mulDivFixedPoint(x, y);
+    }
+
+    /// @notice Raises x to the power of y.
     ///
-    /// @dev An extension of "mulDiv" for signed numbers. Works by computing the signs and the absolute values separately.
+    /// @dev Based on the insight that x^y = 2^(log2(x) * y).
+    ///      if x < scale -> log negative - use -log2(1/x) instead
     ///
     /// Requirements:
-    /// - None of the inputs can be type(int256).min.
-    /// - The result must fit within int256.
-    ///
-    /// @param x The multiplicand as an int256.
-    /// @param y The multiplier as an int256.
-    /// @param denominator The divisor as an int256.
-    /// @return result The result as an int256.
-    function mulDivSigned(
-        int256 x,
-        int256 y,
-        int256 denominator
-    ) internal pure returns (int256 result) {
-        if (x == type(int256).min || y == type(int256).min || denominator == type(int256).min) {
-            revert PRBMath__MulDivSignedInputTooSmall();
-        }
-
-        // Get hold of the absolute values of x, y and the denominator.
-        uint256 ax;
-        uint256 ay;
-        uint256 ad;
-        unchecked {
-            ax = x < 0 ? uint256(-x) : uint256(x);
-            ay = y < 0 ? uint256(-y) : uint256(y);
-            ad = denominator < 0 ? uint256(-denominator) : uint256(denominator);
-        }
-
-        // Compute the absolute value of (x*y)÷denominator. The result must fit within int256.
-        uint256 rAbs = mulDiv(ax, ay, ad);
-        if (rAbs > uint256(type(int256).max)) {
-            revert PRBMath__MulDivSignedOverflow(rAbs);
-        }
-
-        // Get the signs of x, y and the denominator.
-        uint256 sx;
-        uint256 sy;
-        uint256 sd;
-        assembly {
-            sx := sgt(x, sub(0, 1))
-            sy := sgt(y, sub(0, 1))
-            sd := sgt(denominator, sub(0, 1))
-        }
-
-        // XOR over sx, sy and sd. This is checking whether there are one or three negative signs in the inputs.
-        // If yes, the result should be negative.
-        result = sx ^ sy ^ sd == 0 ? -int256(rAbs) : int256(rAbs);
-    }
-
-    /// @notice Calculates the square root of x, rounding down.
-    /// @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+    /// - All from "exp2", "log2" and "mul".
     ///
     /// Caveats:
-    /// - This function does not work with fixed-point numbers.
+    /// - All from "exp2", "log2" and "mul".
+    /// - Assumes 0^0 is 1.
     ///
-    /// @param x The uint256 number for which to calculate the square root.
-    /// @return result The result as an uint256.
-    function sqrt(uint256 x) internal pure returns (uint256 result) {
+    /// @param x Number to raise to given power y, as an unsigned 60.18-decimal fixed-point number.
+    /// @param y Exponent to raise x to, as an unsigned 60.18-decimal fixed-point number.
+    /// @return result x raised to power y, as an unsigned 60.18-decimal fixed-point number.
+    function pow(uint256 x, uint256 y) internal pure returns (uint256 result) {
         if (x == 0) {
-            return 0;
-        }
-
-        // Set the initial guess to the closest power of two that is higher than x.
-        uint256 xAux = uint256(x);
-        result = 1;
-        if (xAux >= 0x100000000000000000000000000000000) {
-            xAux >>= 128;
-            result <<= 64;
-        }
-        if (xAux >= 0x10000000000000000) {
-            xAux >>= 64;
-            result <<= 32;
-        }
-        if (xAux >= 0x100000000) {
-            xAux >>= 32;
-            result <<= 16;
-        }
-        if (xAux >= 0x10000) {
-            xAux >>= 16;
-            result <<= 8;
-        }
-        if (xAux >= 0x100) {
-            xAux >>= 8;
-            result <<= 4;
-        }
-        if (xAux >= 0x10) {
-            xAux >>= 4;
-            result <<= 2;
-        }
-        if (xAux >= 0x8) {
-            result <<= 1;
-        }
-
-        // The operations can never overflow because the result is max 2^127 when it enters this block.
-        unchecked {
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1; // Seven iterations should be enough
-            uint256 roundedDownResult = x / result;
-            return result >= roundedDownResult ? roundedDownResult : result;
+            result = y == 0 ? SCALE : uint256(0);
+        } else {
+            if (x < SCALE) {
+                uint256 log = log2(inv(x));
+                result = inv(exp2(mul(log, y)));
+            } else {
+                result = exp2(mul(log2(x), y));
+            }
         }
     }
 }

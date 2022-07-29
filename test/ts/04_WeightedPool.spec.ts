@@ -527,6 +527,7 @@ describe('WeightedPool-Test', () => {
 			123e13, //_fee = 1.23%
 			123e12, //_fee = 0.023111%
 			parseUnits('5', 17), //_admin_fee, 50%,
+			wallet.address,
 			wallet.address
 		)
 

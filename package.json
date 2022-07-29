@@ -80,6 +80,7 @@
     "@types/lodash": "^4.14.177",
     "decimal.js": "^10.3.1",
     "ethereum-waffle": "^3.0.0",
+    "ethereumjs-util": "^7.1.5",
     "hardhat-abi-exporter": "^2.2.1",
     "hardhat-deploy": "^0.11.4",
     "hardhat-deploy-ethers": "^0.3.0-beta.10",

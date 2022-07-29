@@ -14,33 +14,33 @@
 
 pragma solidity ^0.8.15;
 
-import "../libraries/math/FixedPoint.sol";
-import "../libraries/math/Math.sol";
+import "./FixedPoint.sol";
+import "./Math.sol";
 
-// These functions start with an underscore, as if they were part of a contract and not a library. At some point this
-// should be fixed.
+// These functions start with an underscore, as if they were part of a contract and not a library.
+
 // solhint-disable private-vars-leading-underscore
 
-library WeightedMathTest {
+library UniMath {
     using FixedPoint for uint256;
     // A minimum normalized weight imposes a maximum weight ratio. We need this due to limitations in the
     // implementation of the power function, as these ratios are often exponents.
-    uint256 public constant _MIN_WEIGHT = 0.01e18;
+    uint256 internal constant _MIN_WEIGHT = 0.01e18;
     // Having a minimum normalized weight imposes a limit on the maximum number of tokens;
     // i.e., the largest possible pool is one where all tokens have exactly the minimum weight.
-    uint256 public constant _MAX_WEIGHTED_TOKENS = 100;
+    uint256 internal constant _MAX_WEIGHTED_TOKENS = 100;
 
     // Pool limits that arise from limitations in the fixed point power function (and the imposed 1:100 maximum weight
     // ratio).
 
     // Swap limits: amounts swapped may not be larger than this percentage of total balance.
-    uint256 public constant _MAX_IN_RATIO = 0.3e18;
-    uint256 public constant _MAX_OUT_RATIO = 0.3e18;
+    uint256 internal constant _MAX_IN_RATIO = 0.3e18;
+    uint256 internal constant _MAX_OUT_RATIO = 0.3e18;
 
     // Invariant growth limit: non-proportional joins cannot cause the invariant to increase by more than this ratio.
-    uint256 public constant _MAX_INVARIANT_RATIO = 3e18;
+    uint256 internal constant _MAX_INVARIANT_RATIO = 3e18;
     // Invariant shrink limit: non-proportional exits cannot cause the invariant to decrease by less than this ratio.
-    uint256 public constant _MIN_INVARIANT_RATIO = 0.7e18;
+    uint256 internal constant _MIN_INVARIANT_RATIO = 0.7e18;
 
     // About swap fees on joins and exits:
     // Any join or exit that is not perfectly balanced (e.g. all single token joins or exits) is mathematically
@@ -52,7 +52,11 @@ library WeightedMathTest {
     // Invariant is used to collect protocol swap fees by comparing its value between two times.
     // So we can round always to the same direction. It is also used to initiate the BPT amount
     // and, because there is a minimum BPT, we round down the invariant.
-    function _calculateInvariant(uint256[] memory normalizedWeights, uint256[] memory balances) public pure returns (uint256 invariant) {
+    function _calculateInvariant(uint256[] memory normalizedWeights, uint256[] memory balances)
+        internal
+        pure
+        returns (uint256 invariant)
+    {
         /**********************************************************************************************
         // invariant               _____                                                             //
         // wi = weight index i      | |      wi                                                      //
@@ -68,10 +72,6 @@ library WeightedMathTest {
         require(invariant > 0, "ZERO_INVARIANT");
     }
 
-    function _calculateInvariantMultiplier(uint256 normalizedWeight, uint256 balanceToken) public pure returns (uint256 invMultiplier) {
-        invMultiplier = balanceToken.pow(normalizedWeight);
-    }
-    
 
     // Computes how many tokens can be taken out of a pool if `amountIn` are sent, given the
     // current balances and weights.
@@ -81,7 +81,7 @@ library WeightedMathTest {
         uint256 balanceOut,
         uint256 weightOut,
         uint256 amountIn
-    ) public pure returns (uint256) {
+    ) internal pure returns (uint256) {
         /**********************************************************************************************
         // outGivenIn                                                                                //
         // aO = amountOut                                                                            //
@@ -116,7 +116,7 @@ library WeightedMathTest {
         uint256 balanceOut,
         uint256 weightOut,
         uint256 amountOut
-    ) public pure returns (uint256) {
+    ) internal pure returns (uint256) {
         /**********************************************************************************************
         // inGivenOut                                                                                //
         // aO = amountOut                                                                            //
@@ -152,7 +152,7 @@ library WeightedMathTest {
         uint256[] memory amountsIn,
         uint256 lpTotalSupply,
         uint256 swapFeePercentage
-    ) public pure returns (uint256, uint256[] memory) {
+    ) internal pure returns (uint256, uint256[] memory) {
         // BPT out, so we round down overall.
 
         uint256[] memory balanceRatiosWithFee = new uint256[](amountsIn.length);
@@ -218,7 +218,7 @@ library WeightedMathTest {
         uint256 lpAmountOut,
         uint256 lpTotalSupply,
         uint256 swapFeePercentage
-    ) public pure returns (uint256 amountIn, uint256 swapFee) {
+    ) internal pure returns (uint256 amountIn, uint256 swapFee) {
         /******************************************************************************************
         // tokenInForExactLpOut                                                                 //
         // a = amountIn                                                                          //
@@ -255,7 +255,7 @@ library WeightedMathTest {
         uint256[] memory balances,
         uint256 lpAmountOut,
         uint256 totalBPT
-    ) public pure returns (uint256[] memory) {
+    ) internal pure returns (uint256[] memory) {
         /************************************************************************************
         // tokensInForExactLpOut                                                          //
         // (per token)                                                                     //
@@ -282,14 +282,14 @@ library WeightedMathTest {
         uint256[] memory amountsOut,
         uint256 lpTotalSupply,
         uint256 swapFeePercentage
-    ) public pure returns (uint256, uint256[] memory) {
+    ) internal pure returns (uint256, uint256[] memory) {
         // BPT in, so we round up overall.
 
         uint256[] memory balanceRatiosWithoutFee = new uint256[](amountsOut.length);
         uint256 invariantRatioWithoutFees = 0;
         for (uint256 i = 0; i < balances.length; i++) {
             balanceRatiosWithoutFee[i] = (balances[i] - amountsOut[i]).divUp(balances[i]);
-            invariantRatioWithoutFees = invariantRatioWithoutFees + (balanceRatiosWithoutFee[i].mulUp(normalizedWeights[i]));
+            invariantRatioWithoutFees += balanceRatiosWithoutFee[i].mulUp(normalizedWeights[i]);
         }
 
         (uint256 invariantRatio, uint256[] memory swapFees) = _computeExitExactTokensOutInvariantRatio(
@@ -347,7 +347,7 @@ library WeightedMathTest {
         uint256 lpAmountIn,
         uint256 lpTotalSupply,
         uint256 swapFeePercentage
-    ) public pure returns (uint256 amountOut, uint256 swapFee) {
+    ) internal pure returns (uint256 amountOut, uint256 swapFee) {
         /*****************************************************************************************
         // exactBPTInForTokenOut                                                                //
         // a = amountOut                                                                        //
@@ -387,7 +387,7 @@ library WeightedMathTest {
         uint256[] memory balances,
         uint256 lpAmountIn,
         uint256 totalBPT
-    ) public pure returns (uint256[] memory) {
+    ) internal pure returns (uint256[] memory) {
         /**********************************************************************************************
         // exactBPTInForTokensOut                                                                    //
         // (per token)                                                                               //
@@ -410,40 +410,5 @@ library WeightedMathTest {
         return amountsOut;
     }
 
-    function _calcDueTokenProtocolSwapFeeAmount(
-        uint256 balance,
-        uint256 normalizedWeight,
-        uint256 previousInvariant,
-        uint256 currentInvariant,
-        uint256 protocolSwapFeePercentage
-    ) public pure returns (uint256) {
-        /*********************************************************************************
-        /*  protocolSwapFeePercentage * balanceToken * ( 1 - (previousInvariant / currentInvariant) ^ (1 / weightToken))
-        *********************************************************************************/
-
-        if (currentInvariant <= previousInvariant) {
-            // This shouldn't happen outside of rounding errors, but have this safeguard nonetheless to prevent the Pool
-            // from entering a locked state in which joins and exits revert while computing accumulated swap fees.
-            return 0;
-        }
-
-        // We round down to prevent issues in the Pool's accounting, even if it means paying slightly less in protocol
-        // fees to the Vault.
-
-        // Fee percentage and balance multiplications round down, while the subtrahend (power) rounds up (as does the
-        // base). Because previousInvariant / currentInvariant <= 1, the exponent rounds down.
-
-        uint256 base = previousInvariant.divUp(currentInvariant);
-        uint256 exponent = FixedPoint.ONE.divDown(normalizedWeight);
-
-        // Because the exponent is larger than one, the base of the power function has a lower bound. We cap to this
-        // value to avoid numeric issues, which means in the extreme case (where the invariant growth is larger than
-        // 1 / min exponent) the Pool will pay less in protocol fees than it should.
-        base = Math.max(base, FixedPoint.MIN_POW_BASE_FREE_EXPONENT);
-
-        uint256 power = base.pow(exponent);
-
-        uint256 tokenAccruedFees = balance.mulDown(power.complement());
-        return tokenAccruedFees.mulDown(protocolSwapFeePercentage);
-    }
+    // function _esureConstantValue(uint256[] memory balancesPre, uint256[] memory balancesPost) internal returns (bool) {}
 }

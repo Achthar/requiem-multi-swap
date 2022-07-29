@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.12;
+pragma solidity >=0.8.12;
 
-import "../ERC20/IERC20.sol";
 
 interface IWeightedPoolFactory {
     event SwapCreated(address[] pooledTokens, address indexed swap, uint256 length);

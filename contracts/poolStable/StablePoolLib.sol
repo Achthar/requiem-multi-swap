@@ -13,6 +13,8 @@ import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 library StablePoolLib {
     using SafeERC20 for IERC20;
 
+    event TokenExchange(address indexed buyer, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
+
     event AddLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 invariant, uint256 token_supply);
 
     event RemoveLiquidity(address indexed provider, uint256[] token_amounts, uint256[] fees, uint256 token_supply);
@@ -153,9 +155,10 @@ library StablePoolLib {
         SwapStorage storage self,
         uint256 i,
         uint256 j,
-        uint256 inAmount,
         address to
     ) external returns (uint256 dy) {
+        uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
+        uint256 inAmount = balanceIn - self.balances[i];
         uint256[] memory normalizedBalances = _xp(self);
         uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
         uint256 y = _getY(self, i, j, x, normalizedBalances);
@@ -165,11 +168,6 @@ library StablePoolLib {
 
         dy -= dy_fee;
 
-        uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
-
-        // we check whether the balance has increased by the suggested inAmount
-        require(self.balances[i] + inAmount <= balanceIn, "insufficient in");
-
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= dy;
@@ -177,8 +175,7 @@ library StablePoolLib {
 
         self.pooledTokens[j].safeTransfer(to, dy);
 
-        // returns final output amount
-        return dy;
+        emit TokenExchange(to, i, inAmount, j, dy);
     }
 
     /**
@@ -192,7 +189,7 @@ library StablePoolLib {
         uint256 j,
         uint256 outAmount,
         address to
-    ) external returns (uint256 inAmount) {
+    ) external {
         uint256[] memory normalizedBalances = _xp(self);
 
         // calculate in balance based on desired output
@@ -203,7 +200,7 @@ library StablePoolLib {
         uint256 inAmountNormalized = inBalanceVirtual - normalizedBalances[i];
 
         // add fee to in Amount
-        inAmount = (inAmountNormalized * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / self.tokenMultipliers[i] + 1;
+        uint256 inAmount = (inAmountNormalized * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / self.tokenMultipliers[i] + 1;
 
         // get received amount
         uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
@@ -221,6 +218,8 @@ library StablePoolLib {
 
         // finally transfer the tokens
         self.pooledTokens[j].safeTransfer(to, outAmount);
+
+        emit TokenExchange(to, i, inAmount, j, outAmount);
     }
 
     /**  @notice Flash Loan using the stable swap balances*/

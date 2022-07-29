@@ -98,11 +98,11 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
-        uint256 amountIn,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
         require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
-        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+        uint256 amountIn;
+        (amountIn, amountOut) = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], to);
         emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
     }
 

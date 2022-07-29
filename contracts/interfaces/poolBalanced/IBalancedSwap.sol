@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.15;
 
-import "../ERC20/IERC20.sol";
-
 // solhint-disable var-name-mixedcase
 
 interface IBalancedSwap {

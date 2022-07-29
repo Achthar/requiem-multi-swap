@@ -154,7 +154,7 @@ library BalancedMath {
 
             uint256 balanceRatio = (balances[i] + amountInWithoutFee).divDown(balances[i]);
 
-            invariantRatio = invariantRatio.mulDown(balanceRatio.powDown(singleWeight));
+            invariantRatio = invariantRatio.mulDown(balanceRatio.pow(singleWeight));
         }
     }
 
@@ -181,7 +181,7 @@ library BalancedMath {
         require(invariantRatio <= _MAX_INVARIANT_RATIO, "MAX_OUT_LP");
 
         // Calculate by how much the token balance has to increase to match the invariantRatio
-        uint256 balanceRatio = invariantRatio.powUp(FixedPoint.ONE.divUp(normalizedWeight));
+        uint256 balanceRatio = invariantRatio.pow(FixedPoint.ONE.divUp(normalizedWeight));
 
         uint256 amountInWithoutFee = balance.mulUp(balanceRatio - FixedPoint.ONE);
 
@@ -283,7 +283,7 @@ library BalancedMath {
 
             uint256 balanceRatio = (balances[i] - amountOutWithFee).divDown(balances[i]);
 
-            invariantRatio = invariantRatio.mulDown(balanceRatio.powDown(singleWeight));
+            invariantRatio = invariantRatio.mulDown(balanceRatio.pow(singleWeight));
         }
     }
 
@@ -311,7 +311,7 @@ library BalancedMath {
         require(invariantRatio >= _MIN_INVARIANT_RATIO, "MIN_LP_IN");
 
         // Calculate by how much the token balance has to decrease to match invariantRatio
-        uint256 balanceRatio = invariantRatio.powUp(FixedPoint.ONE.divDown(normalizedWeight));
+        uint256 balanceRatio = invariantRatio.pow(FixedPoint.ONE.divDown(normalizedWeight));
 
         // Because of rounding up, balanceRatio can be greater than one. Using complement prevents reverts.
         uint256 amountOutWithoutFee = balance.mulDown(balanceRatio.complement());

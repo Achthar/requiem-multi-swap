@@ -14,7 +14,7 @@
 
 pragma solidity ^0.8.15;
 
-import "./ExpMath.sol";
+import "./LogExpMath.sol";
 
 /* solhint-disable private-vars-leading-underscore */
 
@@ -101,8 +101,26 @@ library FixedPoint {
      * @dev Returns x^y, assuming both are fixed point numbers, rounding down. The result is guaranteed to not be above
      * the true value (that is, the error function expected - actual is always positive).
      */
-    function pow(uint256 x, uint256 y) internal pure returns (uint256) {
-        return ExpMath.pow(x, y);
+    function powDown(uint256 x, uint256 y) internal pure returns (uint256) {
+        uint256 raw = LogExpMath.pow(x, y);
+        uint256 maxError = add(mulUp(raw, MAX_POW_RELATIVE_ERROR), 1);
+
+        if (raw < maxError) {
+            return 0;
+        } else {
+            return sub(raw, maxError);
+        }
+    }
+
+    /**
+     * @dev Returns x^y, assuming both are fixed point numbers, rounding up. The result is guaranteed to not be below
+     * the true value (that is, the error function expected - actual is always negative).
+     */
+    function powUp(uint256 x, uint256 y) internal pure returns (uint256) {
+        uint256 raw = LogExpMath.pow(x, y);
+        uint256 maxError = add(mulUp(raw, MAX_POW_RELATIVE_ERROR), 1);
+
+        return add(raw, maxError);
     }
 
     /**

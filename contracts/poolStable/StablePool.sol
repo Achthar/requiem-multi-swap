@@ -33,7 +33,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     address public feeDistributor;
     address public feeController;
     mapping(address => uint8) public tokenIndexes;
-    mapping(address => bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -67,13 +66,11 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         require(_feeController != address(0), "addressError");
         swapStorage.tokenMultipliers = new uint256[](_coins.length);
         swapStorage.pooledTokens = new IERC20[](_coins.length);
-        for (uint256 i = 0; i < _coins.length; i++) {
-            require(_coins[i] != address(0), "addressError");
+        for (uint8 i = 0; i < _coins.length; i++) {
             require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "decimalError");
             swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
-            tokenIndexes[_coins[i]] = uint8(i);
-            isToken[_coins[i]] = true;
+            tokenIndexes[address(_coins[i])] = i;
         }
 
         require(_A < MAX_A, "maxA");
@@ -97,6 +94,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         // assign creator and fee controller
         creator = _creator;
         feeController = _feeController;
+        feeDistributor = _feeController;
     }
 
     /// PUBLIC FUNCTIONS
@@ -116,30 +114,35 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         _mint(to, mintAmount);
     }
 
-    // expects amount alrady to be sent to this address
-    // calculates the output amount and sends it after deducting the fee
+    /**
+     * @notice calculates and executes the exact-in swap for an amount of token in tht has already been sent to this address.
+     * @param tokenIn token for which the amount has already sent to this address
+     * @param tokenOut token for which the calculated output amount will be sent
+     * @param to receiver for tokenOut amount
+     * @return amountOut calculated out amount
+     */
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
-        uint256 amountIn,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
-        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
-        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
-        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
+        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], to);
     }
 
-    // calculates the input amount from a given output amount
-    // will transfer amounts to itself as input is not yet known
+    /**
+     * @notice calculates and executes the exact-out swap for an amount of token in tht has already been sent to this address.
+     * @param tokenIn token for which the amount has already sent to this address
+     * @param tokenOut token for which the calculated output amount will be sent
+     * @param amountOut target amount which will be obtained if swap succeeds
+     * @param to receiver for tokenOut amount
+     */
     function onSwapGivenOut(
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
-        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
-        uint256 inAmount = swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
-        emit TokenExchange(to, tokenIn, inAmount, tokenOut, amountOut);
+        swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
     /**  @notice Flash loan using stable swap balances  */

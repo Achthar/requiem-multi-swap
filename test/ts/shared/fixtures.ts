@@ -28,7 +28,14 @@ import {
     ThiefRouter,
     ThiefRouter__factory,
     MockFlashLoanRecipient,
-    MockFlashLoanRecipient__factory
+    MockFlashLoanRecipient__factory,
+    WeightedPoolFactory,
+    WeightedPoolCreator,
+    WeightedPool,
+    WeightedPoolLib__factory,
+    WeightedPoolCreator__factory,
+    WeightedPoolFactory__factory,
+    WeightedPool__factory
     // TToken,
     // StakePoolCreator,
     // StakePoolEpochRewardCreator,
@@ -416,6 +423,61 @@ export async function balancerMathFixture(signer: SignerWithAddress): Promise<Mo
     const lib = await new MockStableMath__factory(signer).deploy()
     return {
         math: lib
+    }
+}
+
+
+export interface WeightedPoolFixture {
+    factory:WeightedPoolFactory
+    creator:WeightedPoolCreator
+    flashLoanRecipient: MockFlashLoanRecipient
+    pool:WeightedPool
+}
+
+export async function weightedPoolFixture(signer: SignerWithAddress, tokens: MockERC20[], weights:BigNumber[], fee: BigNumber, flashFee: BigNumber): Promise<WeightedPoolFixture> {
+    const lib = await new WeightedPoolLib__factory(signer).deploy()
+    const creator = await new WeightedPoolCreator__factory({ ["contracts/poolWeighted/WeightedPoolLib.sol:WeightedPoolLib"]: lib.address }, signer).deploy()
+    const factory = await new WeightedPoolFactory__factory(signer).deploy()
+
+    await factory.initialize(signer.address, creator.address)
+    await factory.setFeeAmount(
+        parseUnits('5', 17), // admin fee 50%
+    )
+
+    const decs: number[] = []
+
+    for (let i = 0; i < tokens.length; i++) {
+        const dec = await tokens[i].decimals()
+        decs.push(dec)
+    }
+
+
+    await factory.createPool(
+        tokens.map(t => t.address),
+        decs,
+        weights,
+        "WeightedPool",
+        "WP",
+        fee, // fee
+        flashFee, // flash fee
+    )
+
+    // const receipt = await tx.wait();
+    // const swapAddress = getAddress(receipt.logs[3].topics[1].slice(26)) ?? null;
+
+    const poolAddress = await factory.allPools(0)
+
+    const pool = WeightedPool__factory.connect(poolAddress, signer)
+
+    // await approveArray(tokens, pool.address)
+    const flashLoanRecipient = await new MockFlashLoanRecipient__factory(signer).deploy(pool.address)
+    // await pool.addLiquidity(amounts, 0, signer.address, maxUint256)
+
+    return {
+        pool,
+        factory,
+        creator,
+        flashLoanRecipient
     }
 }
 

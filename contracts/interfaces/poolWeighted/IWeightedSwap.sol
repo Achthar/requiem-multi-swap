@@ -10,8 +10,6 @@ interface IWeightedSwap {
     /// EVENTS
     event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
-    event TokenExchange(address indexed buyer, address soldId, uint256 tokensSold, address boughtId, uint256 tokensBought);
-
     event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);

@@ -52,7 +52,7 @@ contract SwapRouter is ISwapRouter {
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
-            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountLast, _to);
+            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
     }
@@ -68,7 +68,7 @@ contract SwapRouter is ISwapRouter {
         transferETHTo(msg.value, pools[0]);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? to : pools[i + 1];
-            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountLast, _to);
+            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
     }
@@ -85,7 +85,7 @@ contract SwapRouter is ISwapRouter {
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn);
         for (uint256 i = 0; i < pools.length; i++) {
             address _to = i == pools.length - 1 ? address(this) : pools[i + 1];
-            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], amountLast, _to);
+            amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
         transferAll(ETH_ADDRESS, to, amountLast);

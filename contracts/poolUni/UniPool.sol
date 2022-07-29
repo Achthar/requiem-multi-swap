@@ -10,13 +10,13 @@ import "../interfaces/poolWeighted/IWeightedSwap.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
-import "./WeightedPoolLib.sol";
-import "./WeightedERC20.sol";
+import "./UniPoolLib.sol";
+import "./UniERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap, WeightedERC20 {
-    using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage;
+contract UniPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap, WeightedERC20 {
+    using UniPoolLib for UniPoolLib.UniSwapStorage;
     using SafeERC20 for IERC20;
     /// constants
     uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
@@ -24,13 +24,16 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
-    WeightedPoolLib.WeightedSwapStorage public swapStorage;
+    UniPoolLib.UniSwapStorage public swapStorage;
     address public creator;
     address public feeDistributor;
     address public feeController;
 
     // indexes for tokens in array
     mapping(address => uint8) public tokenIndexes;
+
+    // used for validation as tokenIndexes defaults to zero if mapping does not exist
+    mapping(address => bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -61,32 +64,34 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         require(_coins.length == _decimals.length, "arrayError");
         require(_feeController != address(0), "addressError");
         swapStorage.nTokens = _coins.length;
-        swapStorage.tokenMultipliers = new uint256[](_coins.length);
-        swapStorage.pooledTokens = new IERC20[](_coins.length);
+        swapStorage.tokenMultipliers = new uint256[](swapStorage.nTokens);
+        swapStorage.pooledTokens = new IERC20[](swapStorage.nTokens);
         require(_fee <= MAX_TRANSACTION_FEE, "feeError");
         require(_adminFee <= MAX_ADMIN_FEE, "feeError");
 
-        // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
-        uint256 normalizedSum = 0;
-        for (uint8 i = 0; i < _coins.length; i++) {
-            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
-            swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
-            swapStorage.pooledTokens[i] = IERC20(_coins[i]);
-            tokenIndexes[_coins[i]] = i;
-            require(_normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
-            normalizedSum += _normalizedWeights[i];
+        {
+            // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
+            uint256 normalizedSum = 0;
+            for (uint8 i = 0; i < swapStorage.nTokens; i++) {
+                require(address(_coins[i]) != address(0), "addressError");
+                require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
+                swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
+                swapStorage.pooledTokens[i] = IERC20(_coins[i]);
+                tokenIndexes[address(_coins[i])] = uint8(i);
+                require(_normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
+                normalizedSum += _normalizedWeights[i];
+                isToken[address(_coins[i])] = true;
+            }
+
+            require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
         }
-
-        require(normalizedSum == FixedPoint.ONE, "NORMALIZED_WEIGHT_INVARIANT");
-
         swapStorage.normalizedWeights = _normalizedWeights;
-        // assign fees
+
+        swapStorage.balances = new uint256[](swapStorage.nTokens);
         swapStorage.fee = _fee;
         swapStorage.flashFee = _flashFee;
         swapStorage.adminFee = _adminFee;
-        swapStorage.collectedFees = new uint256[](_coins.length);
-
-        swapStorage.balances = new uint256[](_coins.length);
+        swapStorage.collectedFees = new uint256[](swapStorage.nTokens);
 
         // assign creator and fee controller
         creator = _creator;
@@ -96,34 +101,26 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
 
     /// PUBLIC MUTATIVE FUNCTIONS
 
-    /**
-     * @notice calculates and executes the exact-in swap for an amount of token in tht has already been sent to this address.
-     * @param tokenIn token for which the amount has already sent to this address
-     * @param tokenOut token for which the calculated output amount will be sent
-     * @param to receiver for tokenOut amount
-     * @return amountOut calculated out amount
-     */
+    // expects amount alrady to be sent to this address
+    // calculates the output amount and sends it after deducting the fee
     function onSwapGivenIn(
         address tokenIn,
         address tokenOut,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
-        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], to);
+        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
+        uint256  amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], to);
     }
 
-    /**
-     * @notice calculates and executes the exact-out swap for an amount of token in tht has already been sent to this address.
-     * @param tokenIn token for which the amount has already sent to this address
-     * @param tokenOut token for which the calculated output amount will be sent
-     * @param amountOut target amount which will be obtained if swap succeeds
-     * @param to receiver for tokenOut amount
-     */
+    // calculates the input amount from a given output amount
+    // expects that correct amount has been sent already
     function onSwapGivenOut(
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
+        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
         swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
