@@ -35,9 +35,11 @@ interface IStablePool {
     // pool data view functions
     function getVirtualPrice() external view returns (uint256);
 
-    function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
+    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view returns (uint256);
 
-    function calculateRemoveLiquidity(address account, uint256 amount) external view returns (uint256[] memory);
+    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view returns (uint256);
+
+    function calculateRemoveLiquidityExactIn(address account, uint256 amount) external view returns (uint256[] memory);
 
     function calculateRemoveLiquidityOneToken(
         address account,
@@ -47,27 +49,27 @@ interface IStablePool {
 
     function calculateCurrentWithdrawFee(address account) external view returns (uint256);
 
-    function addLiquidity(
+    function addLiquidityExactIn(
         uint256[] calldata amounts,
         uint256 minToMint,
         address to,
         uint256 deadline
     ) external returns (uint256);
 
-    function removeLiquidity(
+    function removeLiquidityExactIn(
         uint256 amount,
         uint256[] calldata minAmounts,
         uint256 deadline
     ) external returns (uint256[] memory);
 
-    function removeLiquidityOneToken(
+    function removeLiquidityOneTokenExactOut(
         uint256 tokenAmount,
         uint8 tokenIndex,
         uint256 minAmount,
         uint256 deadline
     ) external returns (uint256);
 
-    function removeLiquidityImbalance(
+    function removeLiquidityExactOut(
         uint256[] calldata amounts,
         uint256 maxBurnAmount,
         uint256 deadline

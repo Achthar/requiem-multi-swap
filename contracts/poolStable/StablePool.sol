@@ -99,7 +99,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     }
 
     /// PUBLIC FUNCTIONS
-    function addLiquidity(
+    function addLiquidityExactIn(
         uint256[] memory amounts,
         uint256 minMintAmount,
         address to,
@@ -110,7 +110,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
             require(msg.sender == creator, "can only be inititalized by creator");
             mintAmount = swapStorage.addLiquidityInit(amounts);
         } else {
-            mintAmount = swapStorage.addLiquidity(amounts, minMintAmount, totalSupply);
+            mintAmount = swapStorage.addLiquidityExactIn(amounts, minMintAmount, totalSupply);
         }
         _mint(to, mintAmount);
     }
@@ -155,26 +155,26 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.flashLoan(recipient, amounts, userData);
     }
 
-    function removeLiquidity(
+    function removeLiquidityExactIn(
         uint256 lpAmount,
         uint256[] memory minAmounts,
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory amounts) {
-        amounts = swapStorage.removeLiquidity(lpAmount, minAmounts, totalSupply);
+        amounts = swapStorage.removeLiquidityExactIn(lpAmount, minAmounts, totalSupply);
         _burn(msg.sender, lpAmount);
     }
 
-    function removeLiquidityOneToken(
+    function removeLiquidityOneTokenExactOut(
         uint256 lpAmount,
         uint8 index,
         uint256 minAmount,
         uint256 deadline
     ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amount) {
-        amount = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, totalSupply);
+        amount = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, balanceOf[msg.sender], totalSupply);
         _burn(msg.sender, lpAmount);
     }
 
-    function removeLiquidityImbalance(
+    function removeLiquidityExactOut(
         uint256[] memory amounts,
         uint256 maxBurnAmount,
         uint256 deadline
@@ -189,8 +189,12 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.getVirtualPrice(totalSupply);
     }
 
-    function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view override returns (uint256) {
-        return swapStorage.calculateTokenAmount(amounts, totalSupply, deposit);
+    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view override returns (uint256) {
+        return swapStorage.calculateAddLiquidityExactIn(amounts, totalSupply);
+    }
+
+    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view override returns (uint256) {
+        return swapStorage.calculateRemoveLiquidityExactOut(amounts, totalSupply, account);
     }
 
     // calculates output amount for given input
@@ -211,8 +215,8 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
     }
 
-    function calculateRemoveLiquidity(address account, uint256 amount) external view override returns (uint256[] memory) {
-        return swapStorage.calculateRemoveLiquidity(account, amount, totalSupply);
+    function calculateRemoveLiquidityExactIn(address account, uint256 amount) external view override returns (uint256[] memory) {
+        return swapStorage.calculateRemoveLiquidityExactIn(account, amount, totalSupply);
     }
 
     function calculateRemoveLiquidityOneToken(
@@ -259,7 +263,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         emit NewTransactionFees(newSwapFee, newFlashFee);
     }
 
-
     /**
      * @notice Sets the admin fee - accessible only to the fee controller
      * @dev adminFee cannot be higher than 50% of the swap fee
@@ -271,7 +274,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / StablePoolLib.FEE_DENOMINATOR;
         emit NewAdminFee(newAdminFee);
     }
-
 
     /**
      * @notice Sets the duration for which the withdraw fee is applicable

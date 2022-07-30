@@ -28,11 +28,13 @@ interface IWeightedSwap {
 
     // pool data view functions
 
-    function calculateTokenAmount(uint256[] calldata amounts, bool deposit) external view returns (uint256);
+    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view returns (uint256);
 
-    function calculateRemoveLiquidityOneToken(uint256 tokenAmount, uint256 tokenIndex) external view returns (uint256, uint256);
+    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view returns (uint256);
 
-    function calculateRemoveLiquidityExactIn(uint256 amount) external view returns (uint256[] memory);
+    function calculateRemoveLiquidityOneToken(uint256 tokenAmount, uint256 tokenIndex, address account) external view returns (uint256, uint256);
+
+    function calculateRemoveLiquidityExactIn(uint256 amount, address account) external view returns (uint256[] memory);
 
     function addLiquidityExactIn(
         uint256[] calldata amounts,
@@ -53,7 +55,7 @@ interface IWeightedSwap {
         uint256 deadline
     ) external returns (uint256);
 
-    function removeLiquidityOneToken(
+    function removeLiquidityOneTokenExactOut(
         uint256 tokenAmount,
         uint8 tokenIndex,
         uint256 minAmount,

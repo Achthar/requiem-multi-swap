@@ -225,7 +225,7 @@ library BalancedPoolLib {
         }
     }
 
-    function removeLiquidityOneToken(
+    function removeLiquidityOneTokenExactOut(
         BalancedSwapStorage storage self,
         uint256 lpAmount,
         uint256 index,
@@ -280,33 +280,45 @@ library BalancedPoolLib {
         BalancedSwapStorage storage self,
         uint256 outIndex,
         uint256 lpAmount,
-        uint256 totalSupply
-    ) external view returns (uint256, uint256) {
-        return BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, totalSupply, self.fee);
+        uint256 totalSupply,
+        address account
+    ) external view returns (uint256 amountOut, uint256 swapFee) {
+        (amountOut, swapFee) = BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, totalSupply, self.fee);
+        amountOut = (amountOut * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
     }
 
     function calculateRemoveLiquidityExactIn(
         BalancedSwapStorage storage self,
-        uint256 lpAmount,
-        uint256 totalSupply
+        uint256 lpTokenAmount,
+        uint256 totalSupply,
+        address account
     ) external view returns (uint256[] memory amounts) {
-        amounts = BalancedMath._calcAllTokensInGivenExactLpOut(_xp(self), lpAmount, totalSupply);
+        lpTokenAmount = (lpTokenAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
+        amounts = BalancedMath._calcAllTokensInGivenExactLpOut(_xp(self), lpTokenAmount, totalSupply);
     }
 
     /**
-     * Estimate amount of LP token minted or burned at deposit or withdrawal
+     * Estimate amount of LP token minted at deposit
      */
-    function calculateTokenAmount(
+    function calculateAddLiquidityExactIn(
+        BalancedSwapStorage storage self,
+        uint256[] memory amounts,
+        uint256 totalSupply
+    ) external view returns (uint256 lpTokenAmount) {
+        (lpTokenAmount, ) = BalancedMath._calcLpOutGivenExactTokensIn(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
+    }
+
+    /**
+     * Estimate amount of LP token burned at withdrawal
+     */
+    function calculateRemoveLiquidityExactOut(
         BalancedSwapStorage storage self,
         uint256[] memory amounts,
         uint256 totalSupply,
-        bool deposit
+        address account
     ) external view returns (uint256 lpTokenAmount) {
-        if (deposit) {
-            (lpTokenAmount, ) = BalancedMath._calcLpOutGivenExactTokensIn(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
-        } else {
-            (lpTokenAmount, ) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
-        }
+        (lpTokenAmount, ) = BalancedMath._calcLpInGivenExactTokensOut(_xp(self), _xp(amounts, self.tokenMultipliers), self.normalizedWeight, totalSupply, self.fee);
+        lpTokenAmount = (lpTokenAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
     }
 
     function calculateSwapGivenIn(

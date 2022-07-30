@@ -76,6 +76,7 @@ import SwapCreatorArtifact from "../../../artifacts/contracts/StablePool/SwapCre
 import StablePoolArtifact from "../../../artifacts/contracts/poolStable/StablePool.sol/StablePool.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { drop } from "lodash";
+import { expect } from "chai";
 
 interface FormulaFixture {
     formula: WeightedFormula
@@ -542,6 +543,26 @@ export async function balancedPoolFixture(signer: SignerWithAddress, tokens: Moc
         creator,
         flashLoanRecipient
     }
+}
+
+export async function getTokenBalances(tokens: MockERC20[], address: string): Promise<BigNumber[]> {
+    let bals: BigNumber[] = []
+    for (let i = 0; i < tokens.length; i++) {
+        const bal = await tokens[i].balanceOf(address)
+        bals.push(bal)
+    }
+    return bals
+}
+
+export async function validatePoolBals(signer: SignerWithAddress, pool: StablePool | WeightedPool | BalancedPool) {
+    const tokens = await pool.getPooledTokens()
+    const poolBals = await pool.getTokenBalances()
+    for (let i = 0; i < tokens.length; i++) {
+        const tok = MockERC20__factory.connect(tokens[i], signer)
+        const bal = await tok.balanceOf(pool.address)
+        expect(bal).to.equal(poolBals[i])
+    }
+
 }
 
 // interface StakePoolFixture {

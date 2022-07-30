@@ -1,7 +1,7 @@
 import { expect } from "./chai-setup";
 import { BigNumber, Contract } from "ethers";
 import { expandTo18Decimals, encodePrice, MaxUint256 } from "./shared/common";
-import { approveAll, balancerMathFixture, distributeTokens, ERC20Fixture, pairFixture, WeightedPoolFixture, weightedPoolFixture, swapRouterFixture, SwapRouterFixture, thiefRouterFixture, tokenFixture } from "./shared/fixtures";
+import { approveAll, balancerMathFixture, distributeTokens, ERC20Fixture, pairFixture, WeightedPoolFixture, weightedPoolFixture, swapRouterFixture, SwapRouterFixture, thiefRouterFixture, tokenFixture, validatePoolBals } from "./shared/fixtures";
 import {
     maxUint256,
     mineBlockTimeStamp,
@@ -21,7 +21,7 @@ describe("Weighted Pools", () => {
     let other: SignerWithAddress;
     let third: SignerWithAddress;
     let tokens: ERC20Fixture
-    let weightedFixture: WeightedPoolFixture
+    let fixture: WeightedPoolFixture
     let fee: BigNumber = parseUnits('1', 15) // fee
     let flashFee = parseUnits('1', 15) // flash fee
     let withdrawFee = parseUnits('1', 16) // withdraw fee
@@ -40,16 +40,16 @@ describe("Weighted Pools", () => {
         tokens = await tokenFixture(wallet)
         await distributeTokens(tokens, wallet.address, '10000000000000000000')
         await distributeTokens(tokens, other.address, '10000000000000000000')
-        weightedFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee, withdrawFee);
+        fixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee, withdrawFee);
         routerFixture = await swapRouterFixture(wallet)
         // swapValidator = await balancerMathFixture(wallet)
-        await approveAll(wallet, tokens, weightedFixture.pool.address)
-        await approveAll(other, tokens, weightedFixture.pool.address)
+        await approveAll(wallet, tokens, fixture.pool.address)
+        await approveAll(other, tokens, fixture.pool.address)
 
         await approveAll(wallet, tokens, routerFixture.router.address)
         await approveAll(other, tokens, routerFixture.router.address)
 
-        await weightedFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, wallet.address, maxUint256);
+        await fixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, wallet.address, maxUint256);
     });
 
     it("Rejects first liquidity supply from non-creator", async () => {
@@ -71,7 +71,7 @@ describe("Weighted Pools", () => {
         await approveAll(wallet, tokens, testFixture.pool.address)
         await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, wallet.address, maxUint256);
 
-        const expectedBal = await testFixture.pool.calculateTokenAmount(amounts, true)
+        const expectedBal = await testFixture.pool.calculateAddLiquidityExactIn(amounts)
         await testFixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256)
         userBalance = await testFixture.pool.balanceOf(other.address)
         expect(userBalance).to.equal(expectedBal)
@@ -114,8 +114,9 @@ describe("Weighted Pools", () => {
 
     // note that these are example cases in which the symmetry works that is not always the case due to the approximative way
     // the calculations are done - deviations sould be less than a basis point (expressed in token decimal)
+    // for the weighted pool, exponentiation is rounded up for exact out and rounded down for exact in
 
-    let dev = BigNumber.from(1e15)
+    let dev = BigNumber.from(1e9)
     let obtain: BigNumber
     let receive: BigNumber
     let baseAmount: BigNumber
@@ -124,21 +125,21 @@ describe("Weighted Pools", () => {
         it(`Allows consistent swap calculation ${i}`, async () => {
             baseAmount = parseUnits('10', 18).add(parseUnits(String(i), 18))
 
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
-            receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, obtain)
+            obtain = await fixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
+            receive = await fixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, obtain)
 
             expect(baseAmount.sub(receive).mul(dev).div(baseAmount)).to.equal(zero)
 
 
             baseAmount = parseUnits('10', 6).add(parseUnits(String(i), 6))
-            receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, receive)
+            receive = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
+            obtain = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, receive)
 
             expect(obtain).to.equal(baseAmount)
 
             baseAmount = parseUnits('10', 6).add(parseUnits(String(i), 6))
-            receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, baseAmount)
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, receive)
+            receive = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, baseAmount)
+            obtain = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, receive)
 
             expect(obtain).to.equal(baseAmount)
         })
@@ -151,21 +152,21 @@ describe("Weighted Pools", () => {
     //     it(`Allows consistent swap calculation small amounts ${i}`, async () => {
     //         baseAmount = parseUnits('10', 9).add(parseUnits(String(i), 9))
 
-    //         obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
-    //         receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, obtain)
+    //         obtain = await fixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
+    //         receive = await fixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, obtain)
 
     //         expect(baseAmount.sub(receive).mul(dev).div(baseAmount)).to.equal(zero)
 
 
     //         baseAmount = parseUnits('10', 3).add(parseUnits(String(i), 3))
-    //         receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
-    //         obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, receive)
+    //         receive = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
+    //         obtain = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, receive)
 
     //         expect(obtain).to.equal(baseAmount)
 
     //         baseAmount = parseUnits('10', 3).add(parseUnits(String(i), 3))
-    //         receive = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, baseAmount)
-    //         obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, receive)
+    //         receive = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, baseAmount)
+    //         obtain = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, receive)
 
     //         expect(obtain).to.equal(baseAmount)
     //     })
@@ -200,10 +201,10 @@ describe("Weighted Pools", () => {
         it(`Allows consistent swap calculation with execution exact out ${i}`, async () => {
 
             baseAmount = parseUnits('1', 10).add(parseUnits(String(i), 10))
-            obtain = await weightedFixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
+            obtain = await fixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
 
             balancePre = await tokens.token2.balanceOf(other.address)
-            await routerFixture.router.connect(other).onSwapTokensForExactTokens([weightedFixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, maxUint256, third.address, maxUint256)
+            await routerFixture.router.connect(other).onSwapTokensForExactTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, maxUint256, third.address, maxUint256)
             balancePost = await tokens.token2.balanceOf(other.address)
 
             received = await tokens.token1.balanceOf(third.address)
@@ -214,10 +215,10 @@ describe("Weighted Pools", () => {
         it(`Allows consistent swap calculation with execution exact in ${i}`, async () => {
 
             baseAmount = parseUnits('1', 10).add(parseUnits(String(i), 10))
-            obtain = await weightedFixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, baseAmount)
+            obtain = await fixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, baseAmount)
 
             balancePre = await tokens.token2.balanceOf(other.address)
-            await routerFixture.router.connect(other).onSwapExactTokensForTokens([weightedFixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, zero, third.address, maxUint256)
+            await routerFixture.router.connect(other).onSwapExactTokensForTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, zero, third.address, maxUint256)
             balancePost = await tokens.token2.balanceOf(other.address)
 
             received = await tokens.token1.balanceOf(third.address)
@@ -235,9 +236,9 @@ describe("Weighted Pools", () => {
 
         let tokenArray = [tokens.token0.address, tokens.token1.address]
 
-        let pools = [weightedFixture.pool.address]
+        let pools = [fixture.pool.address]
         let amountIn = parseUnits("1", 6)
-        let target = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, amountIn)
+        let target = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, amountIn)
 
         await expect(thiefRouter.onSwapExactTokensForTokens(
             pools,
@@ -250,7 +251,7 @@ describe("Weighted Pools", () => {
 
 
         let __amountOut = parseUnits("13214", 14)
-        target = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, __amountOut)
+        target = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, __amountOut)
         await expect(thiefRouter.onSwapTokensForExactTokens(
             pools,
             tokenArray,
@@ -264,9 +265,9 @@ describe("Weighted Pools", () => {
         // switch - low decimals first
 
         tokenArray = [tokens.token0.address, tokens.token2.address]
-        pools = [weightedFixture.pool.address]
+        pools = [fixture.pool.address]
         amountIn = BigNumber.from('12345012')
-        target = await weightedFixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, amountIn)
+        target = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, amountIn)
         await expect(thiefRouter.onSwapExactTokensForTokens(
             pools,
             tokenArray,
@@ -278,7 +279,7 @@ describe("Weighted Pools", () => {
 
 
         __amountOut = BigNumber.from(2133122)
-        target = await weightedFixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, __amountOut)
+        target = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token2.address, __amountOut)
         await expect(thiefRouter.onSwapTokensForExactTokens(
             pools,
             tokenArray,
@@ -292,26 +293,66 @@ describe("Weighted Pools", () => {
 
     it('FlashLoan: valid, insufficient fee and reentrant', async () => {
 
-        await weightedFixture.flashLoanRecipient.setRepayInExcess(true)
+        await fixture.flashLoanRecipient.setRepayInExcess(true)
         // repay loan = true 
-        await weightedFixture.flashLoanRecipient.setRepayLoan(true)
-        await weightedFixture.pool.flashLoan(weightedFixture.flashLoanRecipient.address,
+        await fixture.flashLoanRecipient.setRepayLoan(true)
+        await fixture.pool.flashLoan(fixture.flashLoanRecipient.address,
             [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
             '0x')
         // repay loan = true 
-        await weightedFixture.flashLoanRecipient.setRepayLoan(false)
+        await fixture.flashLoanRecipient.setRepayLoan(false)
         await expect(
-            weightedFixture.pool.flashLoan(weightedFixture.flashLoanRecipient.address,
+            fixture.pool.flashLoan(fixture.flashLoanRecipient.address,
                 [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
                 '0x')
         ).to.be.revertedWith("insufficient loan fee")
 
         // repay loan = true & reentrant
-        await weightedFixture.flashLoanRecipient.setReenter(true)
+        await fixture.flashLoanRecipient.setReenter(true)
         await expect(
-            weightedFixture.pool.flashLoan(weightedFixture.flashLoanRecipient.address,
+            fixture.pool.flashLoan(fixture.flashLoanRecipient.address,
                 [BigNumber.from(12332131), BigNumber.from(12332131), BigNumber.from(12332131)],
                 '0x')
         ).to.be.revertedWith("ReentrancyGuard: reentrant call")
     })
+
+
+    it("Allows admin fee withdrawl", async () => {
+        // execute some swaps
+        for (let i = 0; i < 6; i++) {
+            baseAmount = parseUnits('1', 10).add(parseUnits(String(i), 10))
+            obtain = await fixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, baseAmount)
+            await routerFixture.router.connect(wallet).onSwapExactTokensForTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, zero, third.address, maxUint256)
+
+            receive = await fixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, obtain)
+            await routerFixture.router.connect(wallet).onSwapTokensForExactTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], receive, maxUint256, third.address, maxUint256)
+
+            baseAmount = parseUnits('1', 6).add(parseUnits(String(i), 6))
+            obtain = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token1.address, baseAmount)
+            await routerFixture.router.connect(wallet).onSwapExactTokensForTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, zero, third.address, maxUint256)
+
+            receive = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, obtain)
+            await routerFixture.router.connect(wallet).onSwapTokensForExactTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], receive, maxUint256, third.address, maxUint256)
+
+        }
+        const feesAccumulated = await fixture.pool.getCollectedFees()
+        await validatePoolBals(wallet, fixture.pool)
+
+        const bal0Pre = await tokens.token0.balanceOf(wallet.address)
+        const bal1Pre = await tokens.token1.balanceOf(wallet.address)
+        const bal2Pre = await tokens.token2.balanceOf(wallet.address)
+
+        await fixture.pool.connect(wallet).withdrawAdminFee()
+
+        const bal0Post = await tokens.token0.balanceOf(wallet.address)
+        const bal1Post = await tokens.token1.balanceOf(wallet.address)
+        const bal2Post = await tokens.token2.balanceOf(wallet.address)
+
+        expect(bal0Post.sub(bal0Pre)).to.equal(feesAccumulated[0])
+        expect(bal1Post.sub(bal1Pre)).to.equal(feesAccumulated[1])
+        expect(bal2Post.sub(bal2Pre)).to.equal(feesAccumulated[2])
+        await validatePoolBals(wallet, fixture.pool)
+    })
+
+    
 });
