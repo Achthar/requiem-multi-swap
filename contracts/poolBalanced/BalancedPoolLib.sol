@@ -16,6 +16,8 @@ library BalancedPoolLib {
 
     event CollectProtocolFee(address token, uint256 amount);
 
+    event TokenExchange(address indexed buyer, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
+
     uint256 public constant FEE_DENOMINATOR = 1e18; // = 100%
 
     struct BalancedSwapStorage {
@@ -110,12 +112,12 @@ library BalancedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         address to
-    ) external returns (uint256 outAmount, uint256 inAmount) {
+    ) external returns (uint256 outAmount) {
         // fetch in balance
         uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
 
         // calculate amount sent
-        inAmount = (balanceIn - self.balances[inIndex]);
+        uint256 inAmount = (balanceIn - self.balances[inIndex]);
 
         uint256 amountInWithFee = inAmount * (FEE_DENOMINATOR - self.fee);
         outAmount = (self.balances[outIndex] * amountInWithFee) / (self.balances[inIndex] * FEE_DENOMINATOR + amountInWithFee);
@@ -126,6 +128,8 @@ library BalancedPoolLib {
         self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
         // transfer amount
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
+
+        emit TokenExchange(to, inIndex, inAmount, outIndex, outAmount);
     }
 
     /**
@@ -163,6 +167,8 @@ library BalancedPoolLib {
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
+
+        emit TokenExchange(to, inIndex, inAmount, outIndex, outAmount);
     }
 
     /**
@@ -282,8 +288,8 @@ library BalancedPoolLib {
         uint256 lpAmount,
         uint256 totalSupply,
         address account
-    ) external view returns (uint256 amountOut, uint256 swapFee) {
-        (amountOut, swapFee) = BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, totalSupply, self.fee);
+    ) external view returns (uint256 amountOut) {
+        (amountOut, ) = BalancedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeight, lpAmount, totalSupply, self.fee);
         amountOut = (amountOut * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
     }
 

@@ -7,7 +7,7 @@ import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "../interfaces/poolStable/IStablePool.sol";
+import "../interfaces/poolBase/IMultiPool.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/ISwap.sol";
@@ -16,9 +16,13 @@ import "./StableERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IStablePool, StableERC20 {
+contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, StableERC20 {
     using StablePoolLib for StablePoolLib.SwapStorage;
     using SafeERC20 for IERC20;
+
+    event RampA(uint256 oldA, uint256 newA, uint256 initialTime, uint256 futureTime);
+
+    event StopRampA(uint256 A, uint256 timestamp);
 
     /// constants
     uint256 internal constant MIN_RAMP_TIME = 1 days;
@@ -185,7 +189,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
 
     /// VIEW FUNCTIONS
 
-    function getVirtualPrice() external view override returns (uint256) {
+    function getVirtualPrice() external view returns (uint256) {
         return swapStorage.getVirtualPrice(totalSupply);
     }
 
@@ -215,14 +219,14 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
     }
 
-    function calculateRemoveLiquidityExactIn(address account, uint256 amount) external view override returns (uint256[] memory) {
+    function calculateRemoveLiquidityExactIn(uint256 amount, address account) external view override returns (uint256[] memory) {
         return swapStorage.calculateRemoveLiquidityExactIn(account, amount, totalSupply);
     }
 
-    function calculateRemoveLiquidityOneToken(
-        address account,
+    function calculateRemoveLiquidityOneTokenExactOut(
         uint256 amount,
-        uint8 index
+        uint256 index,
+        address account
     ) external view override returns (uint256) {
         return swapStorage.calculateRemoveLiquidityOneToken(account, amount, index, totalSupply);
     }

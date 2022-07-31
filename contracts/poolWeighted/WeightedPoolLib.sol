@@ -312,8 +312,8 @@ library WeightedPoolLib {
         uint256 lpAmount,
         uint256 totalSupply,
         address account
-    ) external view returns (uint256 amountOut, uint256 swapFee) {
-        (amountOut, swapFee) = WeightedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeights[outIndex], lpAmount, totalSupply, self.fee);
+    ) external view returns (uint256 amountOut) {
+        (amountOut, ) = WeightedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeights[outIndex], lpAmount, totalSupply, self.fee);
         amountOut = (amountOut * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
     }
 

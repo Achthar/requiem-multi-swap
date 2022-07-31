@@ -2,17 +2,19 @@
 
 pragma solidity 0.8.15;
 
+import "../ERC20/IERC20.sol";
+
 // solhint-disable var-name-mixedcase
 
-interface IBalancedSwap {
+interface IMultiPool {
     /// EVENTS
-    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
+    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
 
-    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 invariant, uint256 tokenSupply);
+    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     event NewTransactionFees(uint256 swapFee, uint256 flashFee);
 
@@ -30,10 +32,15 @@ interface IBalancedSwap {
 
     function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view returns (uint256);
 
-    function calculateRemoveLiquidityOneTokenExactOut(uint256 tokenAmount, uint256 tokenIndex, address account) external view returns (uint256, uint256);
+    function calculateRemoveLiquidityOneTokenExactOut(
+        uint256 tokenAmount,
+        uint256 tokenIndex,
+        address account
+    ) external view returns (uint256);
 
     function calculateRemoveLiquidityExactIn(uint256 amount, address account) external view returns (uint256[] memory);
 
+    // Liquidity functions
     function addLiquidityExactIn(
         uint256[] calldata amounts,
         uint256 minToMint,
@@ -61,4 +68,6 @@ interface IBalancedSwap {
     ) external returns (uint256);
 
     function getTokenBalances() external view returns (uint256[] memory);
+
+    function calculateCurrentWithdrawFee(address account) external view returns (uint256);
 }

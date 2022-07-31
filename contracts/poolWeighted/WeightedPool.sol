@@ -6,7 +6,7 @@ import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "../interfaces/poolWeighted/IWeightedSwap.sol";
+import "../interfaces/poolBase/IMultiPool.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
@@ -15,7 +15,7 @@ import "./WeightedERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IWeightedSwap, WeightedERC20 {
+contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, WeightedERC20 {
     using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage;
     using SafeERC20 for IERC20;
     /// constants
@@ -238,12 +238,12 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.calculateRemoveLiquidityExactIn(amount, totalSupply, account);
     }
 
-    function calculateRemoveLiquidityOneToken(
+    function calculateRemoveLiquidityOneTokenExactOut(
         uint256 amount,
         uint256 index,
         address account
-    ) external view override returns (uint256 amountOut, uint256 fee) {
-        (amountOut, fee) = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount, totalSupply, account);
+    ) external view override returns (uint256 amountOut) {
+        amountOut = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount, totalSupply, account);
     }
 
     /**

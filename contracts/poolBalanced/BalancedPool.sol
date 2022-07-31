@@ -7,7 +7,7 @@ import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../base/OwnerPausable.sol";
-import "../interfaces/poolBalanced/IBalancedSwap.sol";
+import "../interfaces/poolBase/IMultiPool.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
@@ -16,7 +16,7 @@ import "./BalancedERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IBalancedSwap, BalancedERC20 {
+contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, BalancedERC20 {
     using BalancedPoolLib for BalancedPoolLib.BalancedSwapStorage;
     using SafeERC20 for IERC20;
     /// constants
@@ -32,9 +32,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
 
     // indexes for tokens in array
     mapping(address => uint8) public tokenIndexes;
-
-    // used for validation as tokenIndexes defaults to zero if mapping does not exist
-    mapping(address => bool) internal isToken;
 
     modifier deadlineCheck(uint256 _deadline) {
         require(block.timestamp <= _deadline, "timeout");
@@ -77,7 +74,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
             swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[_coins[i]] = uint8(i);
-            isToken[_coins[i]] = true;
         }
 
         // single weight used for mint and burn amount calculation
@@ -106,10 +102,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         address tokenOut,
         address to
     ) external override whenNotPaused nonReentrant returns (uint256 amountOut) {
-        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
-        uint256 amountIn;
-        (amountIn, amountOut) = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], to);
-        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
+        amountOut = swapStorage.onSwapGivenIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], to);
     }
 
     // calculates the input amount from a given output amount
@@ -120,9 +113,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 amountOut,
         address to
     ) external override whenNotPaused nonReentrant {
-        require(isToken[tokenIn] && isToken[tokenOut] && tokenIn != tokenOut, "invalid tokens");
-        uint256 amountIn = swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
-        emit TokenExchange(to, tokenIn, amountIn, tokenOut, amountOut);
+        swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
     /**  @notice Flash loan using pool balances  */
@@ -155,7 +146,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
             mintAmount = swapStorage.addLiquidityExactTokensIn(amounts, minMintAmount, totalSupply);
         }
         _mint(to, mintAmount);
-        emit AddLiquidity(to, amounts, swapStorage.lastInvariant, mintAmount);
+        emit AddLiquidity(to, amounts, mintAmount);
     }
 
     function removeLiquidityExactIn(
@@ -177,7 +168,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         burnAmount = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn, totalSupply);
         require(this.balanceOf(msg.sender) >= burnAmount, "Insufficient burn amount");
         _burn(msg.sender, burnAmount);
-        emit RemoveLiquidityImbalance(msg.sender, amounts, swapStorage.lastInvariant, totalSupply);
+        emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
 
     function removeLiquidityOneTokenExactOut(
@@ -224,8 +215,16 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.calculateRemoveLiquidityExactIn(amount, totalSupply, account);
     }
 
-    function calculateRemoveLiquidityOneToken(uint256 amount, uint256 index, address account) external view override returns (uint256 amountOut, uint256 fee) {
-        (amountOut, fee) = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount, totalSupply, account);
+    function calculateRemoveLiquidityOneTokenExactOut(
+        uint256 amount,
+        uint256 index,
+        address account
+    ) external view override returns (uint256 amountOut) {
+        amountOut = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount, totalSupply, account);
+    }
+
+    function calculateCurrentWithdrawFee(address account) external view override returns (uint256) {
+        return swapStorage._calculateCurrentWithdrawFee(account);
     }
 
     /**
