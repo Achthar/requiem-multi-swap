@@ -246,13 +246,17 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         amountOut = swapStorage.calculateRemoveLiquidityOneTokenExactIn(index, amount, totalSupply, account);
     }
 
+    function calculateCurrentWithdrawFee(address account) external view override returns (uint256) {
+        return swapStorage._calculateCurrentWithdrawFee(account);
+    }
+
     /**
      * @notice Sets the all applicable transaction fees
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
      * @param newFlashFee new flash lash loan fee
      */
-    function setFee(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
+    function setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
         require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
         require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
         swapStorage.fee = newSwapFee;
