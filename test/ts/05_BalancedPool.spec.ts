@@ -1302,7 +1302,7 @@ describe('WeightedPool-Test', () => {
 									})
 								})
 								describe('Weighted Pool-Post transactions', () => {
-									it('Fee withdrawl', async () => {
+									it('Fee withdrawal', async () => {
 
 										let balancesPre = [
 											await tokenUSDC.balanceOf(wallet.address),
@@ -1323,7 +1323,7 @@ describe('WeightedPool-Test', () => {
 										console.log("Fee", postBalances.map((post: any, index: number) => post.sub(balancesPre[index])))
 									})
 
-									it('Liquidity withdrawl', async () => {
+									it('Liquidity withdrawal', async () => {
 										const lpToken = await ethers.getContractAt('ERC20', swapNew.address)
 										const lpBal = await lpToken.balanceOf(wallet.address)
 

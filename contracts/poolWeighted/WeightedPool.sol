@@ -177,7 +177,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256[] memory minAmounts,
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory amounts) {
-        require(this.balanceOf(msg.sender) >= lpAmount, "Insufficient burn amount");
+        require(balanceOf[msg.sender] >= lpAmount, "Insufficient LP balance");
         amounts = swapStorage.removeLiquidityExactIn(lpAmount, minAmounts, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidity(msg.sender, amounts, totalSupply);
@@ -189,7 +189,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256 burnAmount) {
         burnAmount = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn, totalSupply);
-        require(balanceOf[msg.sender] >= burnAmount, "Insufficient burn amount");
+        require(balanceOf[msg.sender] >= burnAmount, "Insufficient LP balance");
         _burn(msg.sender, burnAmount);
         emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
@@ -200,7 +200,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 minAmount,
         uint256 deadline
     ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amountReceived) {
-        require(balanceOf[msg.sender] >= lpAmount, "Insufficient burn amount");
+        require(balanceOf[msg.sender] >= lpAmount, "Insufficient LP balance");
         amountReceived = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountReceived);

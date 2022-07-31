@@ -1332,7 +1332,7 @@ describe('WeightedPool-Test', () => {
 									console.log("Fee", postBalances.map((post: any, index: number) => post.sub(balancesPre[index])))
 								})
 
-								it('Liquidity withdrawl', async () => {
+								it('Liquidity withdrawal', async () => {
 									const lpToken = await ethers.getContractAt('ERC20', swapNew.address)
 									const lpBal = await lpToken.balanceOf(wallet.address)
 

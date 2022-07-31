@@ -59,13 +59,7 @@ library WeightedPoolLib {
     ) external returns (uint256 mintAmount) {
         uint256[] memory swapFees;
 
-        (mintAmount, swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(
-            _xp(self.balances, self.tokenMultipliers),
-            self.normalizedWeights,
-            _xp(amounts, self.tokenMultipliers),
-            tokenSupply,
-            self.fee
-        );
+        (mintAmount, swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), tokenSupply, self.fee);
 
         // Note that swapFees is already upscaled
         _processSwapFeeAmounts(self, swapFees);
@@ -240,12 +234,13 @@ library WeightedPoolLib {
         uint256 totalSupply
     ) external returns (uint256[] memory amounts) {
         require(lpAmount <= totalSupply);
-
-        amounts = WeightedMath._calcTokensOutGivenExactLpIn(_xp(self), lpAmount, totalSupply);
+        uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender))) / FEE_DENOMINATOR;
+        // use unnormalized balances as we use just the balance ratios for calculations
+        amounts = WeightedMath._calcTokensOutGivenExactLpIn(self.balances, feeAdjustedAmount, totalSupply);
 
         for (uint256 i = 0; i < amounts.length; i++) {
             require(amounts[i] >= minAmounts[i], "s");
-            uint256 amount = amounts[i] / self.tokenMultipliers[i];
+            uint256 amount = amounts[i];
             self.balances[i] = self.balances[i] - amount;
             self.pooledTokens[i].safeTransfer(msg.sender, amount);
         }
@@ -258,11 +253,11 @@ library WeightedPoolLib {
         uint256 minAmount,
         uint256 totalSupply
     ) external returns (uint256 amountOut) {
+        require(totalSupply > 0, "supply=0");
+        require(lpAmount <= totalSupply, "supply");
         uint256 swapFee;
-        uint256 multiplier = self.tokenMultipliers[index];
-        uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR + _calculateCurrentWithdrawFee(self, msg.sender))) / FEE_DENOMINATOR;
-        require(feeAdjustedAmount <= totalSupply, "supply");
-        (amountOut, swapFee) = WeightedMath._calcTokenOutGivenExactLpIn(self.balances[index] * multiplier, self.normalizedWeights[index], feeAdjustedAmount, totalSupply, self.fee);
+        uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender))) / FEE_DENOMINATOR;
+        (amountOut, swapFee) = WeightedMath._calcTokenOutGivenExactLpIn(self.balances[index], self.normalizedWeights[index], feeAdjustedAmount, totalSupply, self.fee);
 
         // This is an exceptional situation in which the fee is charged on a token out instead of a token in.
         // Note that swapFee is already upscaled.
@@ -270,7 +265,7 @@ library WeightedPoolLib {
 
         require(amountOut >= minAmount, "s");
 
-        uint256 amountOutFinal = amountOut / multiplier;
+        uint256 amountOutFinal = amountOut;
         self.pooledTokens[index].safeTransfer(msg.sender, amountOutFinal);
         uint256[] memory amounts = new uint256[](self.nTokens);
         amounts[index] = amountOut;
@@ -285,8 +280,9 @@ library WeightedPoolLib {
         uint256 totalSupply
     ) external returns (uint256 burnAmount) {
         require(amounts.length == self.nTokens, "array");
-        require(totalSupply != 0, "supply");
+        require(totalSupply > 0, "supply");
         uint256[] memory swapFees;
+        // use normalized balances due to use of invariant calculations
         (burnAmount, swapFees) = WeightedMath._calcLpInGivenExactTokensOut(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), totalSupply, self.fee);
 
         // This is an exceptional situation in which the fee is charged on a token out instead of a token in.
@@ -294,7 +290,7 @@ library WeightedPoolLib {
         _processSwapFeeAmounts(self, swapFees);
 
         // adjust for withdraw fee
-        burnAmount = (burnAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender))) / FEE_DENOMINATOR;
+        burnAmount = ((burnAmount + 1) * FEE_DENOMINATOR) / (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender));
 
         require(burnAmount <= maxBurnAmount, "b exceeded");
 
@@ -313,8 +309,8 @@ library WeightedPoolLib {
         uint256 totalSupply,
         address account
     ) external view returns (uint256 amountOut) {
-        (amountOut, ) = WeightedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeights[outIndex], lpAmount, totalSupply, self.fee);
-        amountOut = (amountOut * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
+        uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
+        (amountOut, ) = WeightedMath._calcTokenOutGivenExactLpIn(self.balances[outIndex] * self.tokenMultipliers[outIndex], self.normalizedWeights[outIndex], feeAdjustedAmount, totalSupply, self.fee);
     }
 
     function calculateRemoveLiquidityExactIn(
@@ -323,8 +319,8 @@ library WeightedPoolLib {
         uint256 totalSupply,
         address account
     ) external view returns (uint256[] memory amounts) {
-        uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR + _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
-        amounts = WeightedMath._calcAllTokensInGivenExactLpOut(_xp(self), feeAdjustedAmount, totalSupply);
+        uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
+        amounts = WeightedMath._calcTokensOutGivenExactLpIn(self.balances, feeAdjustedAmount, totalSupply);
     }
 
     /**
@@ -347,8 +343,9 @@ library WeightedPoolLib {
         uint256 totalSupply,
         address account
     ) external view returns (uint256 lpTokenAmount) {
+        // normalized balances used here
         (lpTokenAmount, ) = WeightedMath._calcLpInGivenExactTokensOut(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), totalSupply, self.fee);
-        lpTokenAmount = (lpTokenAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
+        lpTokenAmount = ((lpTokenAmount + 1) * FEE_DENOMINATOR) / (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account));
     }
 
     function calculateSwapGivenIn(
@@ -363,7 +360,7 @@ library WeightedPoolLib {
         uint256 amountInWithFee = (amountIn * inMultiplier * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
         // calculate out amount
         amountOut = WeightedMath._calcOutGivenIn(
-            self.balances[inIndex] * self.tokenMultipliers[inIndex],
+            self.balances[inIndex] * inMultiplier,
             self.normalizedWeights[inIndex],
             self.balances[outIndex] * outMultiplier,
             self.normalizedWeights[outIndex],

@@ -140,7 +140,7 @@ describe("Weighted Pools", () => {
         const bal2 = await tokens.token2.balanceOf(other.address)
 
         let userLP = await testFixture.pool.balanceOf(other.address)
-        const toReceive = amounts.map(a => a.div(2))
+        const toReceive = amounts.map(a => a.div(4))
         await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
         const expBurn = await testFixture.pool.calculateRemoveLiquidityExactOut(toReceive, other.address)
         await testFixture.pool.connect(other).removeLiquidityExactOut(toReceive, maxUint256, maxUint256)
@@ -188,7 +188,7 @@ describe("Weighted Pools", () => {
         const bal1 = await tokens.token1.balanceOf(other.address)
 
         let userLP = await testFixture.pool.balanceOf(other.address)
-        let lpToWithdraw = userLP.div(2)
+        let lpToWithdraw = userLP.div(4)
         await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
         // const tokenToWithdrawAmount = parseUnits('10', 18)
         const expAmount = await testFixture.pool.calculateRemoveLiquidityOneTokenExactIn(lpToWithdraw, 1, other.address)
@@ -272,7 +272,7 @@ describe("Weighted Pools", () => {
         const bal2 = await tokens.token2.balanceOf(other.address)
 
         let userLP = await testFixture.pool.balanceOf(other.address)
-        const toReceive = amounts.map(a => a.div(2))
+        const toReceive = amounts.map(a => a.div(4))
         await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
         const expBurn = await testFixture.pool.calculateRemoveLiquidityExactOut(toReceive, other.address)
         await testFixture.pool.connect(other).removeLiquidityExactOut(toReceive, maxUint256, maxUint256)
@@ -320,7 +320,7 @@ describe("Weighted Pools", () => {
         const bal1 = await tokens.token1.balanceOf(other.address)
 
         let userLP = await testFixture.pool.balanceOf(other.address)
-        let lpToWithdraw = userLP.div(2)
+        let lpToWithdraw = userLP.div(4)
         await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
         // const tokenToWithdrawAmount = parseUnits('10', 18)
         const expAmount = await testFixture.pool.calculateRemoveLiquidityOneTokenExactIn(lpToWithdraw, 1, other.address)
@@ -369,11 +369,12 @@ describe("Weighted Pools", () => {
 
         let userLP = await fixture.pool.balanceOf(other.address)
         await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
-        const expectedReceive = await fixture.pool.calculateRemoveLiquidityExactIn(userLP.div(2), other.address)
-        await fixture.pool.connect(other).removeLiquidityExactIn(userLP.div(2), [0, 0, 0], maxUint256)
+        const toBurn = userLP.div(4)
+        const expectedReceive = await fixture.pool.calculateRemoveLiquidityExactIn(toBurn, other.address)
+        await fixture.pool.connect(other).removeLiquidityExactIn(toBurn, [0, 0, 0], maxUint256)
         let userLPAfter = await fixture.pool.balanceOf(other.address)
 
-        expect(userLP.sub(userLPAfter)).to.equal(userLP.div(2))
+        expect(userLP.sub(userLPAfter)).to.equal(toBurn)
 
         const bal0After = await tokens.token0.balanceOf(other.address)
         const bal1After = await tokens.token1.balanceOf(other.address)
@@ -382,6 +383,7 @@ describe("Weighted Pools", () => {
         let diff0 = bal0After.sub(bal0)
         let diff1 = bal1After.sub(bal1)
         let diff2 = bal2After.sub(bal2)
+        
         expect(bnAbs(diff0.sub(expectedReceive[0]).mul(precision).div(diff0))).to.be.equal(zero)
         expect(bnAbs(diff1.sub(expectedReceive[1]).mul(precision).div(diff1))).to.be.equal(zero)
         expect(bnAbs(diff2.sub(expectedReceive[2]).mul(precision).div(diff2))).to.be.equal(zero)
@@ -414,7 +416,7 @@ describe("Weighted Pools", () => {
         const bal2 = await tokens.token2.balanceOf(other.address)
 
         let userLP = await fixture.pool.balanceOf(other.address)
-        const toReceive = amounts.map(a => a.div(2))
+        const toReceive = amounts.map(a => a.div(4))
         await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
         const expBurn = await fixture.pool.calculateRemoveLiquidityExactOut(toReceive, other.address)
         await fixture.pool.connect(other).removeLiquidityExactOut(toReceive, maxUint256, maxUint256)
@@ -458,12 +460,10 @@ describe("Weighted Pools", () => {
         await network.provider.send("evm_increaseTime", [interval / 4]);
         await network.provider.send("evm_mine")
 
-        const bal0 = await tokens.token0.balanceOf(other.address)
         const bal1 = await tokens.token1.balanceOf(other.address)
-        const bal2 = await tokens.token2.balanceOf(other.address)
 
         let userLP = await fixture.pool.balanceOf(other.address)
-        let lpToWithdraw = userLP.div(2)
+        let lpToWithdraw = userLP.div(4)
         await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
         // const tokenToWithdrawAmount = parseUnits('10', 18)
         const expAmount = await fixture.pool.calculateRemoveLiquidityOneTokenExactIn(lpToWithdraw, 1, other.address)
@@ -689,7 +689,7 @@ describe("Weighted Pools", () => {
     })
 
 
-    it("Allows admin fee withdrawl", async () => {
+    it("Allows admin fee withdrawal", async () => {
         // execute some swaps
         for (let i = 0; i < 6; i++) {
             baseAmount = parseUnits('1', 10).add(parseUnits(String(i), 10))
