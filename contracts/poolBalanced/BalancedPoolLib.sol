@@ -231,7 +231,7 @@ library BalancedPoolLib {
         }
     }
 
-    function removeLiquidityOneTokenExactOut(
+    function removeLiquidityOneTokenExactIn(
         BalancedSwapStorage storage self,
         uint256 lpAmount,
         uint256 index,

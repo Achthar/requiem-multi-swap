@@ -1,7 +1,7 @@
 import { expect } from "./chai-setup";
 import { BigNumber, Contract } from "ethers";
 import { expandTo18Decimals, encodePrice, MaxUint256 } from "./shared/common";
-import { approveAll, balancerMathFixture, distributeTokens, ERC20Fixture, MockStableMathFixture, pairFixture, StablePoolFixture, stablePoolFixture, swapRouterFixture, SwapRouterFixture, thiefRouterFixture, tokenFixture, validatePoolBals } from "./shared/fixtures";
+import { approveAll, balancerMathFixture, bnAbs, distributeTokens, ERC20Fixture, MockStableMathFixture, pairFixture, StablePoolFixture, stablePoolFixture, swapRouterFixture, SwapRouterFixture, thiefRouterFixture, tokenFixture, validatePoolBals } from "./shared/fixtures";
 import {
     maxUint256,
     mineBlockTimeStamp,
@@ -78,12 +78,12 @@ describe("Stable Pools", () => {
         expect(userBalance).to.equal(expectedBal)
     });
 
-    it("Allows liquidity removal with no fees after period", async () => {
+    it("Allows liquidity removal with no fees  exact LP in", async () => {
         const bal0 = await tokens.token0.balanceOf(other.address)
         const bal1 = await tokens.token1.balanceOf(other.address)
         const bal2 = await tokens.token2.balanceOf(other.address)
 
-        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], zero, zero, withdrawFee);
+        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], fee, flashFee, zero);
         await approveAll(other, tokens, testFixture.pool.address)
         await approveAll(wallet, tokens, testFixture.pool.address)
         await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
@@ -91,7 +91,7 @@ describe("Stable Pools", () => {
 
         await validatePoolBals(wallet, fixture.pool)
 
-        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_increaseTime", [interval / 4]);
         await network.provider.send("evm_mine")
 
         const currentFee = await testFixture.pool.calculateCurrentWithdrawFee(other.address)
@@ -114,7 +114,376 @@ describe("Stable Pools", () => {
         await validatePoolBals(wallet, testFixture.pool)
     });
 
+    it("Consistent liquidity removal with no fees exact Tokens out", async () => {
 
+        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], fee, flashFee, zero);
+
+        await approveAll(other, tokens, testFixture.pool.address)
+        await approveAll(wallet, tokens, testFixture.pool.address)
+        // add some liquidity
+        await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, testFixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+        // user adds LP
+        await testFixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval / 4]);
+        await network.provider.send("evm_mine")
+
+        const bal0 = await tokens.token0.balanceOf(other.address)
+        const bal1 = await tokens.token1.balanceOf(other.address)
+        const bal2 = await tokens.token2.balanceOf(other.address)
+
+        let userLP = await testFixture.pool.balanceOf(other.address)
+        const toReceive = amounts.map(a => a.div(2))
+        await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        const expBurn = await testFixture.pool.calculateRemoveLiquidityExactOut(toReceive, other.address)
+        await testFixture.pool.connect(other).removeLiquidityExactOut(toReceive, maxUint256, maxUint256)
+        let userLPAfter = await testFixture.pool.balanceOf(other.address)
+        const balDiff = userLP.sub(userLPAfter)
+        expect(balDiff).to.equal(expBurn)
+        // await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        // await testFixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        // userBalance = await testFixture.pool.balanceOf(other.address)
+        // expect(userBalance).to.equal(zero)
+
+        const bal0After = await tokens.token0.balanceOf(other.address)
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const bal2After = await tokens.token2.balanceOf(other.address)
+
+        expect(bal0After.sub(bal0)).to.be.equal(toReceive[0])
+        expect(bal1After.sub(bal1)).to.be.equal(toReceive[1])
+        expect(bal2After.sub(bal2)).to.be.equal(toReceive[2])
+
+        await validatePoolBals(wallet, testFixture.pool)
+    });
+
+
+    it("Consistent liquidity removal with no fees exact in one Token out", async () => {
+
+        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], fee, flashFee, zero);
+        await approveAll(other, tokens, testFixture.pool.address)
+        await approveAll(wallet, tokens, testFixture.pool.address)
+        // add some liquidity
+        await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, testFixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+        // user adds LP
+        await testFixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval / 4]);
+        await network.provider.send("evm_mine")
+
+        const bal1 = await tokens.token1.balanceOf(other.address)
+
+        let userLP = await testFixture.pool.balanceOf(other.address)
+        let lpToWithdraw = userLP.div(2)
+        await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        // const tokenToWithdrawAmount = parseUnits('10', 18)
+        const expAmount = await testFixture.pool.calculateRemoveLiquidityOneTokenExactIn(lpToWithdraw, 1, other.address)
+        await testFixture.pool.connect(other).removeLiquidityOneTokenExactIn(lpToWithdraw, 1, 0, maxUint256)
+        let userLPAfter = await testFixture.pool.balanceOf(other.address)
+        const balDiff = userLP.sub(userLPAfter)
+        expect(balDiff).to.equal(lpToWithdraw)
+        // await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        // await testFixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        // userBalance = await testFixture.pool.balanceOf(other.address)
+        // expect(userBalance).to.equal(zero)
+
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const balDiffToken = bal1After.sub(bal1)
+
+        expect(balDiffToken).to.be.equal(expAmount)
+
+        await validatePoolBals(wallet, testFixture.pool)
+    });
+
+    it("Allows liquidity removal with fees after period expired exact LP in", async () => {
+        const bal0 = await tokens.token0.balanceOf(other.address)
+        const bal1 = await tokens.token1.balanceOf(other.address)
+        const bal2 = await tokens.token2.balanceOf(other.address)
+
+        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], fee, flashFee, withdrawFee);
+        await approveAll(other, tokens, testFixture.pool.address)
+        await approveAll(wallet, tokens, testFixture.pool.address)
+        await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+        await testFixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, fixture.pool)
+
+        await network.provider.send("evm_increaseTime", [interval + 1]);
+        await network.provider.send("evm_mine")
+
+        const currentFee = await testFixture.pool.calculateCurrentWithdrawFee(other.address)
+        expect(currentFee).to.equal(zero)
+        const userLP = await testFixture.pool.balanceOf(other.address)
+
+        await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        await testFixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        userBalance = await testFixture.pool.balanceOf(other.address)
+        expect(userBalance).to.equal(zero)
+
+        const bal0After = await tokens.token0.balanceOf(other.address)
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const bal2After = await tokens.token2.balanceOf(other.address)
+
+        expect(bal0.lte(bal0After)).to.be.equal(true)
+        expect(bal1.lte(bal1After)).to.be.equal(true)
+        expect(bal2.lte(bal2After)).to.be.equal(true)
+
+        await validatePoolBals(wallet, testFixture.pool)
+    });
+
+    it("Consistent liquidity removal with after period expired exact Tokens out", async () => {
+
+        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], fee, flashFee, withdrawFee);
+
+        await approveAll(other, tokens, testFixture.pool.address)
+        await approveAll(wallet, tokens, testFixture.pool.address)
+        // add some liquidity
+        await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, testFixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+        // user adds LP
+        await testFixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval + 1]);
+        await network.provider.send("evm_mine")
+
+        const bal0 = await tokens.token0.balanceOf(other.address)
+        const bal1 = await tokens.token1.balanceOf(other.address)
+        const bal2 = await tokens.token2.balanceOf(other.address)
+
+        let userLP = await testFixture.pool.balanceOf(other.address)
+        const toReceive = amounts.map(a => a.div(2))
+        await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        const expBurn = await testFixture.pool.calculateRemoveLiquidityExactOut(toReceive, other.address)
+        await testFixture.pool.connect(other).removeLiquidityExactOut(toReceive, maxUint256, maxUint256)
+        let userLPAfter = await testFixture.pool.balanceOf(other.address)
+        const balDiff = userLP.sub(userLPAfter)
+        expect(balDiff).to.equal(expBurn)
+        // await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        // await testFixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        // userBalance = await testFixture.pool.balanceOf(other.address)
+        // expect(userBalance).to.equal(zero)
+
+        const bal0After = await tokens.token0.balanceOf(other.address)
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const bal2After = await tokens.token2.balanceOf(other.address)
+
+        expect(bal0After.sub(bal0)).to.be.equal(toReceive[0])
+        expect(bal1After.sub(bal1)).to.be.equal(toReceive[1])
+        expect(bal2After.sub(bal2)).to.be.equal(toReceive[2])
+
+        await validatePoolBals(wallet, testFixture.pool)
+    });
+
+
+    it("Consistent liquidity removal after expiry exact in one Token out", async () => {
+
+        const testFixture = await stablePoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], fee, flashFee, withdrawFee);
+        await approveAll(other, tokens, testFixture.pool.address)
+        await approveAll(wallet, tokens, testFixture.pool.address)
+        // add some liquidity
+        await testFixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, testFixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+        // user adds LP
+        await testFixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval + 1]);
+        await network.provider.send("evm_mine")
+
+        const bal1 = await tokens.token1.balanceOf(other.address)
+
+        let userLP = await testFixture.pool.balanceOf(other.address)
+        let lpToWithdraw = userLP.div(2)
+        await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        // const tokenToWithdrawAmount = parseUnits('10', 18)
+        const expAmount = await testFixture.pool.calculateRemoveLiquidityOneTokenExactIn(lpToWithdraw, 1, other.address)
+        await testFixture.pool.connect(other).removeLiquidityOneTokenExactIn(lpToWithdraw, 1, 0, maxUint256)
+        let userLPAfter = await testFixture.pool.balanceOf(other.address)
+        const balDiff = userLP.sub(userLPAfter)
+        expect(balDiff).to.equal(lpToWithdraw)
+        // await testFixture.pool.connect(other).approve(testFixture.pool.address, maxUint256)
+        // await testFixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        // userBalance = await testFixture.pool.balanceOf(other.address)
+        // expect(userBalance).to.equal(zero)
+
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const balDiffToken = bal1After.sub(bal1)
+
+        expect(balDiffToken).to.be.equal(expAmount)
+
+        await validatePoolBals(wallet, testFixture.pool)
+    });
+
+    // time dependent test due to withdraw fee
+    let precision = BigNumber.from(1e10)
+    it("Consistent liquidity removal considering fees exact LP in", async () => {
+
+        await approveAll(other, tokens, fixture.pool.address)
+        await approveAll(wallet, tokens, fixture.pool.address)
+        // add some liquidity
+        await fixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, fixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+
+        await fixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval / 4]);
+        await network.provider.send("evm_mine")
+
+        const bal0 = await tokens.token0.balanceOf(other.address)
+        const bal1 = await tokens.token1.balanceOf(other.address)
+        const bal2 = await tokens.token2.balanceOf(other.address)
+
+        let userLP = await fixture.pool.balanceOf(other.address)
+        await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
+        const expectedReceive = await fixture.pool.calculateRemoveLiquidityExactIn(userLP.div(2), other.address)
+        await fixture.pool.connect(other).removeLiquidityExactIn(userLP.div(2), [0, 0, 0], maxUint256)
+        let userLPAfter = await fixture.pool.balanceOf(other.address)
+
+        expect(userLP.sub(userLPAfter)).to.equal(userLP.div(2))
+
+        const bal0After = await tokens.token0.balanceOf(other.address)
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const bal2After = await tokens.token2.balanceOf(other.address)
+
+        let diff0 = bal0After.sub(bal0)
+        let diff1 = bal1After.sub(bal1)
+        let diff2 = bal2After.sub(bal2)
+        expect(bnAbs(diff0.sub(expectedReceive[0]).mul(precision).div(diff0))).to.be.equal(zero)
+        expect(bnAbs(diff1.sub(expectedReceive[1]).mul(precision).div(diff1))).to.be.equal(zero)
+        expect(bnAbs(diff2.sub(expectedReceive[2]).mul(precision).div(diff2))).to.be.equal(zero)
+
+        await validatePoolBals(wallet, fixture.pool)
+    });
+
+    it("Consistent liquidity removal considering fees exact Tokens out", async () => {
+
+        await approveAll(other, tokens, fixture.pool.address)
+        await approveAll(wallet, tokens, fixture.pool.address)
+        // add some liquidity
+        await fixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, fixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+        // user adds LP
+        await fixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval / 4]);
+        await network.provider.send("evm_mine")
+
+        const bal0 = await tokens.token0.balanceOf(other.address)
+        const bal1 = await tokens.token1.balanceOf(other.address)
+        const bal2 = await tokens.token2.balanceOf(other.address)
+
+        let userLP = await fixture.pool.balanceOf(other.address)
+        const toReceive = amounts.map(a => a.div(2))
+        await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
+        const expBurn = await fixture.pool.calculateRemoveLiquidityExactOut(toReceive, other.address)
+        await fixture.pool.connect(other).removeLiquidityExactOut(toReceive, maxUint256, maxUint256)
+        let userLPAfter = await fixture.pool.balanceOf(other.address)
+        const balDiff = userLP.sub(userLPAfter)
+        expect(bnAbs(balDiff.sub(expBurn).mul(precision).div(balDiff))).to.equal(zero)
+        // await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
+        // await fixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        // userBalance = await fixture.pool.balanceOf(other.address)
+        // expect(userBalance).to.equal(zero)
+
+        const bal0After = await tokens.token0.balanceOf(other.address)
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const bal2After = await tokens.token2.balanceOf(other.address)
+
+        expect(bal0After.sub(bal0).sub(toReceive[0])).to.be.lte(precision)
+        expect(bal1After.sub(bal1).sub(toReceive[1])).to.be.lte(precision)
+        expect(bal2After.sub(bal2).sub(toReceive[2])).to.be.lte(precision)
+
+        await validatePoolBals(wallet, fixture.pool)
+    });
+
+
+    it("Consistent liquidity removal considering fees exact one Token out", async () => {
+
+        await approveAll(other, tokens, fixture.pool.address)
+        await approveAll(wallet, tokens, fixture.pool.address)
+        // add some liquidity
+        await fixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256);
+
+        await validatePoolBals(wallet, fixture.pool)
+
+        // add some time to the clock
+        await network.provider.send("evm_increaseTime", [interval]);
+        await network.provider.send("evm_mine")
+
+        // user adds LP
+        await fixture.pool.connect(other).addLiquidityExactIn(amounts, 1, other.address, maxUint256);
+
+
+        await network.provider.send("evm_increaseTime", [interval / 4]);
+        await network.provider.send("evm_mine")
+
+        const bal0 = await tokens.token0.balanceOf(other.address)
+        const bal1 = await tokens.token1.balanceOf(other.address)
+        const bal2 = await tokens.token2.balanceOf(other.address)
+
+        let userLP = await fixture.pool.balanceOf(other.address)
+        let lpToWithdraw = userLP.div(2)
+        await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
+        // const tokenToWithdrawAmount = parseUnits('10', 18)
+        const expAmount = await fixture.pool.calculateRemoveLiquidityOneTokenExactIn(lpToWithdraw, 1, other.address)
+        await fixture.pool.connect(other).removeLiquidityOneTokenExactIn(lpToWithdraw, 1, 0, maxUint256)
+        let userLPAfter = await fixture.pool.balanceOf(other.address)
+        const balDiff = userLP.sub(userLPAfter)
+        expect(balDiff.sub(lpToWithdraw)).to.equal(zero)
+        // await fixture.pool.connect(other).approve(fixture.pool.address, maxUint256)
+        // await fixture.pool.connect(other).removeLiquidityExactIn(userLP, [0, 0, 0], maxUint256)
+        // userBalance = await fixture.pool.balanceOf(other.address)
+        // expect(userBalance).to.equal(zero)
+
+        const bal1After = await tokens.token1.balanceOf(other.address)
+        const balDiffToken = bal1After.sub(bal1)
+
+        expect(bnAbs(balDiffToken.sub(expAmount).mul(precision).div(balDiffToken))).to.be.lte(zero)
+
+        await validatePoolBals(wallet, fixture.pool)
+    });
 
 
     // note that these are example cases in which the symmetry works that is not always the case due to the approximative way
@@ -329,7 +698,4 @@ describe("Stable Pools", () => {
         expect(bal2Post.sub(bal2Pre)).to.equal(feesAccumulated[2])
         await validatePoolBals(wallet, fixture.pool)
     })
-
-
-
 });

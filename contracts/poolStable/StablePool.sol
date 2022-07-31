@@ -168,7 +168,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         _burn(msg.sender, lpAmount);
     }
 
-    function removeLiquidityOneTokenExactOut(
+    function removeLiquidityOneTokenExactIn(
         uint256 lpAmount,
         uint8 index,
         uint256 minAmount,
@@ -223,7 +223,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.calculateRemoveLiquidityExactIn(account, amount, totalSupply);
     }
 
-    function calculateRemoveLiquidityOneTokenExactOut(
+    function calculateRemoveLiquidityOneTokenExactIn(
         uint256 amount,
         uint256 index,
         address account

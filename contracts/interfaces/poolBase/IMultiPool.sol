@@ -32,8 +32,8 @@ interface IMultiPool {
 
     function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view returns (uint256);
 
-    function calculateRemoveLiquidityOneTokenExactOut(
-        uint256 tokenAmount,
+    function calculateRemoveLiquidityOneTokenExactIn(
+        uint256 lpAmount,
         uint256 tokenIndex,
         address account
     ) external view returns (uint256);
@@ -60,8 +60,8 @@ interface IMultiPool {
         uint256 deadline
     ) external returns (uint256);
 
-    function removeLiquidityOneTokenExactOut(
-        uint256 tokenAmount,
+    function removeLiquidityOneTokenExactIn(
+        uint256 lpAmount,
         uint8 tokenIndex,
         uint256 minAmount,
         uint256 deadline

@@ -194,7 +194,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
 
-    function removeLiquidityOneTokenExactOut(
+    function removeLiquidityOneTokenExactIn(
         uint256 lpAmount,
         uint8 index,
         uint256 minAmount,
@@ -238,7 +238,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.calculateRemoveLiquidityExactIn(amount, totalSupply, account);
     }
 
-    function calculateRemoveLiquidityOneTokenExactOut(
+    function calculateRemoveLiquidityOneTokenExactIn(
         uint256 amount,
         uint256 index,
         address account

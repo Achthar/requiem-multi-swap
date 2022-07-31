@@ -171,14 +171,14 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
 
-    function removeLiquidityOneTokenExactOut(
+    function removeLiquidityOneTokenExactIn(
         uint256 lpAmount,
         uint8 index,
         uint256 minAmount,
         uint256 deadline
     ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amountReceived) {
         require(this.balanceOf(msg.sender) >= lpAmount, "Insufficient burn amount");
-        amountReceived = swapStorage.removeLiquidityOneTokenExactOut(lpAmount, index, minAmount, totalSupply);
+        amountReceived = swapStorage.removeLiquidityOneTokenExactIn(lpAmount, index, minAmount, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountReceived);
     }
@@ -215,7 +215,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.calculateRemoveLiquidityExactIn(amount, totalSupply, account);
     }
 
-    function calculateRemoveLiquidityOneTokenExactOut(
+    function calculateRemoveLiquidityOneTokenExactIn(
         uint256 amount,
         uint256 index,
         address account

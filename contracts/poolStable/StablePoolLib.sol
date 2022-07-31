@@ -295,7 +295,7 @@ library StablePoolLib {
         uint256 totalSupply
     ) external returns (uint256 dy) {
         uint256 numTokens = self.pooledTokens.length;
-        require(lpAmount >= userBalance, "balanceError");
+        require(lpAmount <= userBalance, "balanceError");
         require(lpAmount <= totalSupply, "supplyError");
         require(index < numTokens, "tokenError");
 
@@ -310,7 +310,6 @@ library StablePoolLib {
         self.pooledTokens[index].safeTransfer(msg.sender, dy);
 
         emit RemoveLiquidityOne(msg.sender, index, lpAmount, dy);
-
     }
 
     function removeLiquidityImbalance(
@@ -444,14 +443,13 @@ library StablePoolLib {
 
         for (uint256 i = 0; i < self.nTokens; i++) {
             uint256 idealBalance = (D1 * self.balances[i]) / D0;
-            newBalances[i] -= amounts[i] - (_fee * _distance(newBalances[i], idealBalance)) / FEE_DENOMINATOR;
+            newBalances[i] -= (_fee * _distance(newBalances[i], idealBalance)) / FEE_DENOMINATOR;
         }
 
         // recalculate invariant with fee charged balances
         D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
         burnAmount = ((D0 - D1) * totalSupply) / D0;
-        assert(burnAmount > 0);
-        burnAmount = (burnAmount + 1) * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account));
+        burnAmount = ((burnAmount + 1) * FEE_DENOMINATOR) / (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account));
     }
 
     function getA(SwapStorage storage self) external view returns (uint256) {
@@ -664,7 +662,7 @@ library StablePoolLib {
         uint256[] memory amounts = new uint256[](self.pooledTokens.length);
 
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
-            amounts[i] = (self.balances[i] * (feeAdjustedAmount)) / (totalSupply);
+            amounts[i] = (self.balances[i] * feeAdjustedAmount) / totalSupply;
         }
         return amounts;
     }

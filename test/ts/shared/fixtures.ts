@@ -89,6 +89,10 @@ interface FactoryFixture {
 
 const overrides = {}
 
+export const bnAbs = (bn: BigNumber): BigNumber => {
+    return bn.lte(0) ? bn.mul(-1) : bn
+}
+
 export async function formulaFixture(signer: SignerWithAddress): Promise<FormulaFixture> {
     return await deployments.createFixture(async () => {
         const formula = await new WeightedFormula__factory(signer).deploy()
