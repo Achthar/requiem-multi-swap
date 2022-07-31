@@ -291,12 +291,9 @@ library StablePoolLib {
         uint256 lpAmount,
         uint256 index,
         uint256 minAmount,
-        uint256 userBalance,
         uint256 totalSupply
     ) external returns (uint256 dy) {
         uint256 numTokens = self.pooledTokens.length;
-        require(lpAmount <= userBalance, "balanceError");
-        require(lpAmount <= totalSupply, "supplyError");
         require(index < numTokens, "tokenError");
 
         uint256 dyFee;

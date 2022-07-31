@@ -39,7 +39,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     mapping(address => uint8) public tokenIndexes;
 
     modifier deadlineCheck(uint256 _deadline) {
-        require(block.timestamp <= _deadline, "timeout");
+        require(block.timestamp <= _deadline, "Timeout");
         _;
     }
 
@@ -66,21 +66,21 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         // initialize pool token data
         _poolTokenInit(_name, _symbol);
 
-        require(_coins.length == _decimals.length, "arrayError");
-        require(_feeController != address(0), "addressError");
+        require(_coins.length == _decimals.length, "ArrayError");
+        require(_feeController != address(0), "AddressError");
         swapStorage.tokenMultipliers = new uint256[](_coins.length);
         swapStorage.pooledTokens = new IERC20[](_coins.length);
         for (uint8 i = 0; i < _coins.length; i++) {
-            require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "decimalError");
+            require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "DecimalError");
             swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[address(_coins[i])] = i;
         }
 
-        require(_A < MAX_A, "maxA");
-        require(_fee <= MAX_TRANSACTION_FEE, "maxSwapFee");
-        require(_adminFee <= MAX_ADMIN_FEE, "maxAdminFee");
-        require(_withdrawFee <= MAX_TRANSACTION_FEE, "maxWithdrawFee");
+        require(_A < MAX_A, "MaxA");
+        require(_fee <= MAX_TRANSACTION_FEE, "MaxSwapFee");
+        require(_adminFee <= MAX_ADMIN_FEE, "MaxAdminFee");
+        require(_withdrawFee <= MAX_TRANSACTION_FEE, "MaxWithdrawFee");
 
         swapStorage.balances = new uint256[](_coins.length);
         swapStorage.initialA = _A * StablePoolLib.A_PRECISION;
@@ -174,7 +174,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 minAmount,
         uint256 deadline
     ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amount) {
-        amount = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, balanceOf[msg.sender], totalSupply);
+        amount = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, totalSupply);
         _burn(msg.sender, lpAmount);
     }
 
@@ -249,7 +249,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         address to,
         uint256 amount
     ) internal override(StableERC20) {
-        swapStorage.updateUserWithdrawFee(to, this.balanceOf(to), amount);
+        swapStorage.updateUserWithdrawFee(to, balanceOf[to], amount);
     }
 
     /**
@@ -300,17 +300,17 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
      * @param futureATime timestamp when the new A should be reached
      */
     function rampA(uint256 futureA, uint256 futureATime) external onlyOwner {
-        require(block.timestamp >= swapStorage.initialATime + (1 days), "ramp period"); // please wait 1 days before start a new ramping
-        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "paramError");
-        require(0 < futureA && futureA < MAX_A, "arrayError");
+        require(block.timestamp >= swapStorage.initialATime + (1 days), "Ramp period"); // please wait 1 days before start a new ramping
+        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "Ramp too early");
+        require(0 < futureA && futureA < MAX_A, "AError");
 
         uint256 initialAPrecise = swapStorage.getAPrecise();
         uint256 futureAPrecise = futureA * StablePoolLib.A_PRECISION;
 
         if (futureAPrecise < initialAPrecise) {
-            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "paramError");
+            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "TooHigh");
         } else {
-            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "paramError");
+            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "TooLow");
         }
 
         swapStorage.initialA = initialAPrecise;
@@ -334,13 +334,13 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     }
 
     function setFeeController(address _feeController) external onlyFeeController {
-        require(_feeController != address(0), "addressError");
+        require(_feeController != address(0), "AddressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
     }
 
     function setFeeDistributor(address _feeDistributor) external onlyFeeController {
-        require(_feeDistributor != address(0), "addressError");
+        require(_feeDistributor != address(0), "AddressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
     }

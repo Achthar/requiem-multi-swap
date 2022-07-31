@@ -33,7 +33,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     mapping(address => uint8) public tokenIndexes;
 
     modifier deadlineCheck(uint256 _deadline) {
-        require(block.timestamp <= _deadline, "timeout");
+        require(block.timestamp <= _deadline, "Timeout");
         _;
     }
 
@@ -62,8 +62,8 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         // initialize arrays
         _assignArrays(_coins.length, _coins, _normalizedWeights, _decimals);
 
-        require(_fee <= MAX_TRANSACTION_FEE, "feeError");
-        require(_adminFee <= MAX_ADMIN_FEE, "feeError");
+        require(_fee <= MAX_TRANSACTION_FEE, "SwapFeeError");
+        require(_adminFee <= MAX_ADMIN_FEE, "AdminFeeError");
 
         swapStorage.normalizedWeights = _normalizedWeights;
         // assign fees
@@ -86,7 +86,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint8[] memory _decimals
     ) internal {
         swapStorage.nTokens = _length;
-        require(_length == _decimals.length, "arrayError");
+        require(_length == _decimals.length, "ArrayError");
         swapStorage.withdrawDuration = (4 weeks);
         swapStorage.collectedFees = new uint256[](_length);
         swapStorage.balances = new uint256[](_length);
@@ -95,7 +95,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
         uint256 normalizedSum = 0;
         for (uint8 i = 0; i < _length; i++) {
-            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
+            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "DecimalError");
             swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[_coins[i]] = i;
@@ -160,9 +160,9 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         address to,
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
-        require(to != address(0), "zero Address");
+        require(to != address(0), "Zero Address");
         if (totalSupply == 0) {
-            require(msg.sender == creator, "can only be inititalized by creator");
+            require(msg.sender == creator, "Can only be inititalized by creator");
             // add the first liquidity
             mintAmount = swapStorage.initialize(amounts);
         } else {
@@ -177,7 +177,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256[] memory minAmounts,
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory amounts) {
-        require(balanceOf[msg.sender] >= lpAmount, "Insufficient LP balance");
         amounts = swapStorage.removeLiquidityExactIn(lpAmount, minAmounts, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidity(msg.sender, amounts, totalSupply);
@@ -189,7 +188,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256 burnAmount) {
         burnAmount = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn, totalSupply);
-        require(balanceOf[msg.sender] >= burnAmount, "Insufficient LP balance");
         _burn(msg.sender, burnAmount);
         emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
@@ -200,7 +198,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 minAmount,
         uint256 deadline
     ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amountReceived) {
-        require(balanceOf[msg.sender] >= lpAmount, "Insufficient LP balance");
         amountReceived = swapStorage.removeLiquidityOneToken(lpAmount, index, minAmount, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountReceived);
@@ -257,8 +254,8 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
      * @param newFlashFee new flash lash loan fee
      */
     function setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
-        require(newSwapFee <= MAX_TRANSACTION_FEE, "feeError");
-        require(newFlashFee <= MAX_TRANSACTION_FEE, "feeError");
+        require(newSwapFee <= MAX_TRANSACTION_FEE, "SwapFeeError");
+        require(newFlashFee <= MAX_TRANSACTION_FEE, "FlashFeeError");
         swapStorage.fee = newSwapFee;
         swapStorage.adminSwapFee = (newSwapFee * swapStorage.adminFee) / WeightedPoolLib.FEE_DENOMINATOR;
         swapStorage.flashFee = newFlashFee;
@@ -272,20 +269,20 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
      * @param newAdminFee new admin fee to be applied on future transactions
      */
     function setAdminFee(uint256 newAdminFee) external onlyFeeController {
-        require(newAdminFee <= MAX_ADMIN_FEE, "feeError");
+        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
         swapStorage.adminFee = newAdminFee;
         swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / WeightedPoolLib.FEE_DENOMINATOR;
         emit NewAdminFee(newAdminFee);
     }
 
     function setFeeController(address _feeController) external onlyFeeController {
-        require(_feeController != address(0), "addressError");
+        require(_feeController != address(0), "AddressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
     }
 
     function setFeeDistributor(address _feeDistributor) external onlyFeeController {
-        require(_feeDistributor != address(0), "addressError");
+        require(_feeDistributor != address(0), "AddressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
     }

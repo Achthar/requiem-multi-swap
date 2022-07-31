@@ -237,7 +237,6 @@ library BalancedPoolLib {
         uint256 minAmount,
         uint256 totalSupply
     ) external returns (uint256 amountOut) {
-        require(totalSupply > 0, "supply=0");
         require(lpAmount <= totalSupply, "supply");
         uint256 swapFee;
         uint256 feeAdjustedAmount = (lpAmount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, msg.sender))) / FEE_DENOMINATOR;

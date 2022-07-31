@@ -60,17 +60,17 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         // init LP token description
         _poolTokenInit(_name, _symbol);
 
-        require(_coins.length == _decimals.length, "arrayError");
-        require(_feeController != address(0), "addressError");
+        require(_coins.length == _decimals.length, "ArrayError");
+        require(_feeController != address(0), "AddressError");
         swapStorage.nTokens = _coins.length;
         swapStorage.tokenMultipliers = new uint256[](swapStorage.nTokens);
         swapStorage.pooledTokens = new IERC20[](swapStorage.nTokens);
-        require(_fee <= MAX_TRANSACTION_FEE, "feeError");
-        require(_adminFee <= MAX_ADMIN_FEE, "feeError");
+        require(_fee <= MAX_TRANSACTION_FEE, "swapFeeError");
+        require(_adminFee <= MAX_ADMIN_FEE, "AdminFeeError");
 
         for (uint8 i = 0; i < swapStorage.nTokens; i++) {
-            require(_coins[i] != address(0), "addressError");
-            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "paramError");
+            require(_coins[i] != address(0), "TokenError");
+            require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "DecimalsError");
             swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[_coins[i]] = uint8(i);
@@ -139,7 +139,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
         if (totalSupply == 0) {
-            require(msg.sender == creator, "can only be inititalized by creator");
+            require(msg.sender == creator, "Can only be inititalized by creator");
             // add the first liquidity
             mintAmount = swapStorage.initialize(amounts);
         } else {
@@ -154,7 +154,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256[] memory minAmounts,
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256[] memory amounts) {
-        require(this.balanceOf(msg.sender) >= lpAmount, "Insufficient burn amount");
         amounts = swapStorage.removeLiquidityExactIn(lpAmount, minAmounts, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidity(msg.sender, amounts, totalSupply);
@@ -166,7 +165,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 deadline
     ) external override nonReentrant deadlineCheck(deadline) returns (uint256 burnAmount) {
         burnAmount = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn, totalSupply);
-        require(this.balanceOf(msg.sender) >= burnAmount, "Insufficient burn amount");
         _burn(msg.sender, burnAmount);
         emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
@@ -177,7 +175,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 minAmount,
         uint256 deadline
     ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 amountReceived) {
-        require(this.balanceOf(msg.sender) >= lpAmount, "Insufficient burn amount");
         amountReceived = swapStorage.removeLiquidityOneTokenExactIn(lpAmount, index, minAmount, totalSupply);
         _burn(msg.sender, lpAmount);
         emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountReceived);
@@ -268,13 +265,13 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     }
 
     function setFeeController(address _feeController) external onlyFeeController {
-        require(_feeController != address(0), "addressError");
+        require(_feeController != address(0), "AddressError");
         feeController = _feeController;
         emit FeeControllerChanged(_feeController);
     }
 
     function setFeeDistributor(address _feeDistributor) external onlyFeeController {
-        require(_feeDistributor != address(0), "addressError");
+        require(_feeDistributor != address(0), "AddressError");
         feeDistributor = _feeDistributor;
         emit FeeDistributorChanged(_feeDistributor);
     }
