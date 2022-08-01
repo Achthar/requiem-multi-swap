@@ -12,11 +12,11 @@ import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "./BalancedPoolLib.sol";
-import "./BalancedERC20.sol";
+import "../poolBase/PoolERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, BalancedERC20 {
+contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, PoolERC20 {
     using BalancedPoolLib for BalancedPoolLib.BalancedSwapStorage;
     using SafeERC20 for IERC20;
     /// constants
@@ -287,7 +287,7 @@ contract BalancedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         address,
         address to,
         uint256 amount
-    ) internal override(BalancedERC20) {
+    ) internal override(PoolERC20) {
         swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 

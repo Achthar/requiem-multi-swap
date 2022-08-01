@@ -11,11 +11,11 @@ import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "./WeightedPoolLib.sol";
-import "./WeightedERC20.sol";
+import "../poolBase/PoolERC20.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, WeightedERC20 {
+contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, PoolERC20 {
     using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage;
     using SafeERC20 for IERC20;
     /// constants
@@ -298,7 +298,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         address,
         address to,
         uint256 amount
-    ) internal override(WeightedERC20) {
+    ) internal override(PoolERC20) {
         swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 

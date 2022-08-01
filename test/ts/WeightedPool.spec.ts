@@ -56,7 +56,7 @@ describe("Weighted Pools", () => {
         const testFixture = await weightedPoolFixture(wallet, [tokens.token0, tokens.token1, tokens.token2], weights, fee, flashFee, withdrawFee);
         await approveAll(other, tokens, testFixture.pool.address)
         await expect(testFixture.pool.connect(other).addLiquidityExactIn(initialAmounts, 1, other.address, maxUint256)).
-            to.be.revertedWith('can only be inititalized by creator');
+            to.be.revertedWith('Can only be inititalized by creator');
     });
 
     it("Allows first liquidity supply from creator", async () => {

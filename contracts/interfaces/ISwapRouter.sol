@@ -1,27 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-import "./IWeightedPairManager.sol";
-
 pragma solidity ^0.8.15;
 
 // solhint-disable func-name-mixedcase
 
-interface ISwapRouter is IWeightedPairManager {
+interface ISwapRouter {
     event Exchange(address pair, uint256 amountOut, address output);
-    struct Swap {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount; // tokenInAmount / tokenOutAmount
-        uint256 limitReturnAmount; // minAmountOut / maxAmountIn
-        uint256 maxPrice;
-    }
-
-    function factory() external view returns (address);
-
-    function formula() external view returns (address);
-
-    function WETH() external view returns (address);
 
     function onSwapExactTokensForTokens(
         address[] memory pools,

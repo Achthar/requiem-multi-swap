@@ -9,7 +9,7 @@ import "./../interfaces/poolPair/IWeightedPairManager.sol";
 import "./../interfaces/ISwap.sol";
 import "./../libraries/TransferHelper.sol";
 import "./../interfaces/ERC20/IERC20.sol";
-import "./../interfaces/poolPair/ISwapRouter.sol";
+import "./../interfaces/ISwapRouter.sol";
 import "./../interfaces/IWETH.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string

@@ -2,13 +2,12 @@
 
 pragma solidity ^0.8.15;
 
-import "../interfaces/poolStable/IStableERC20.sol";
+import "../interfaces/poolBase/IMultiPoolERC20.sol";
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-abstract contract StableERC20 is IStableERC20 {
+abstract contract PoolERC20 is IMultiPoolERC20 {
     uint8 public constant decimals = 18;
-    bool private initialized;
     uint256 public totalSupply;
 
     string public name;

@@ -7,7 +7,7 @@ import "./libraries/SafeERC20.sol";
 import "./libraries/SafeMath.sol";
 import "./interfaces/IWETH.sol";
 import "./interfaces/IUniswapV2Router.sol";
-import "./interfaces/poolPair/ISwapRouter.sol";
+import "./interfaces/IRouter.sol";
 import "./interfaces/poolPair/IWeightedPairFactory.sol";
 import "./interfaces/poolPair/IWeightedPair.sol";
 import "./interfaces/poolPair/IWeightedFormula.sol";
@@ -25,7 +25,7 @@ contract Zap is ReentrancyGuard {
     address private constant ETH_ADDRESS = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
     IUniswapV2Router public uniRouter;
-    ISwapRouter public requiemRouter;
+    IRouter public requiemRouter;
     IWeightedPairFactory public requiemWeightedPairFactory;
     IWeightedFormula public requiemFormula;
 
@@ -47,7 +47,7 @@ contract Zap is ReentrancyGuard {
         _;
     }
 
-    constructor(IUniswapV2Router _uniRouter, ISwapRouter _requiemRouter) {
+    constructor(IUniswapV2Router _uniRouter, IRouter _requiemRouter) {
         governance = msg.sender;
         uniRouter = _uniRouter;
         requiemRouter = _requiemRouter;

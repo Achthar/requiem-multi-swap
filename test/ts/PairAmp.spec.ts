@@ -4,7 +4,7 @@ import { expandTo18Decimals, encodePrice } from "./shared/common";
 import { pairDifferentWeightAndAmpFixture, pairDifferentWeightFixture } from "./shared/fixtures";
 import { getLatestBlock, mineBlockTimeStamp } from "./shared/utilities";
 import { ethers } from "hardhat";
-import { WeightedFormula, WeightedERC20, RequiemPairFactory, RequiemPair } from "../../types";
+import { WeightedFormula, WeightedPairERC20, RequiemPairFactory, RequiemPair } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const overrides = {};
 
@@ -15,12 +15,12 @@ describe("RequiemPairWeightAmp", () => {
     let other: SignerWithAddress;
 
     let factory: RequiemPairFactory;
-    let token0: WeightedERC20;
-    let tokenA: WeightedERC20;
+    let token0: WeightedPairERC20;
+    let tokenA: WeightedPairERC20;
     let formula: WeightedFormula;
     let tokenWeight0: number;
-    let token1: WeightedERC20;
-    let tokenB: WeightedERC20;
+    let token1: WeightedPairERC20;
+    let tokenB: WeightedPairERC20;
     let tokenWeight1: number;
     let pair: RequiemPair;
 

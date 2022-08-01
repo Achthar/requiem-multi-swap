@@ -2,8 +2,6 @@ import {
     WeightedFormula,
     WeightedFormula__factory,
     TestERC20__factory,
-
-    // Swap,
     WeightedPairERC20,
     RequiemPairFactory,
     RequiemPairFactory__factory,
@@ -13,7 +11,6 @@ import {
     WETH9__factory,
     SwapRouter,
     WETH9,
-    RouterEventEmitter,
     MockERC20__factory,
     StablePool,
     MockERC20,
@@ -43,39 +40,16 @@ import {
     BalancedPoolCreator__factory,
     BalancedPoolFactory__factory,
     BalancedPool__factory
-    // TToken,
-    // StakePoolCreator,
-    // StakePoolEpochRewardCreator,
-    // StakePoolController,
-    // RequiemPairFactoryMock,
-    // TTokenFactory,
-    // StakePoolCreatorFactory,
-    // StakePoolEpochRewardCreatorFactory,
-    // StakePoolControllerFactory,
-    // RequiemPairFactoryMockFactory,
-    // LpTokenFactory,
-    // SwapFactory,
-    // SwapUtils,
-    // MathUtilsFactory,
-    // StablePoolRouterFactory, SwapCreator, StablePoolFactory, LpToken, StablePoolRouter, Swap, StablePoolFactoryFactory,
 } from "../../../types";
 import {
-    getAddress,
     keccak256,
     parseUnits
 } from "ethers/lib/utils";
 
 import { maxUint256, toWei } from "./utilities";
-import { BigNumber, Contract, Signer } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { deployments } from 'hardhat';
-import { deployContractWithLibraries } from "./common";
-// @ts-ignore
-import SwapUtilsArtifact from "../../../artifacts/contracts/StablePool/SwapUtils.sol/SwapUtils.json";
-// @ts-ignore
-import SwapCreatorArtifact from "../../../artifacts/contracts/StablePool/SwapCreator.sol/SwapCreator.json";
-import StablePoolArtifact from "../../../artifacts/contracts/poolStable/StablePool.sol/StablePool.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { drop } from "lodash";
 import { expect } from "chai";
 
 interface FormulaFixture {

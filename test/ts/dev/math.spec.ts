@@ -1,4 +1,4 @@
-import { expect } from "./chai-setup";
+import { expect } from "../chai-setup";
 import { BigNumber, Contract } from 'ethers'
 import { ecsign } from 'ethereumjs-util'
 
@@ -14,8 +14,8 @@ import { ethers, network } from "hardhat";
 
 
 
-import { getApprovalDigest } from './shared/common'
-import { maxUint256, toWei } from './shared/utilities'
+import { getApprovalDigest } from '../shared/common'
+import { maxUint256, toWei } from '../shared/utilities'
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
 	RequiemPairFactory__factory,
@@ -28,13 +28,13 @@ import {
 	WETH9__factory,
 	MathMock__factory,
 	MathMock
-} from "../../types";
+} from "../../../types";
 
 
 const TOTAL_SUPPLY = BigNumber.from('1000000000000000000')
 const TEST_AMOUNT = BigNumber.from(1e9)
 
-describe('RequiemPair-Test', () => {
+describe('Math-Comp', () => {
 	let signers: SignerWithAddress[];
 	let wallet: SignerWithAddress;
 	let other: SignerWithAddress;
