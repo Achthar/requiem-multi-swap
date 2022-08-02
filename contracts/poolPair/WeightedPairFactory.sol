@@ -122,7 +122,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
     }
 
     /**
-     * @notice Function to get  all deployed configs for a token pair
+     * @notice Function to get all deployed configs for a token pair
      * @param token0 first token
      * @param token1 second token
      * @return _tokenPairs array of deployed pairs

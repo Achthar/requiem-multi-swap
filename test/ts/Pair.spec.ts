@@ -386,8 +386,8 @@ describe('RequiemPair', () => {
 
         const receipt = await tx.wait()
         // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(81415) // the special function takes slihgtly more gas than the usual weighted pair
-
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(81264) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log(Number(receipt.gasUsed.toString()))
         const bal = await token0.balanceOf(wallet.address)
         expect(bal.sub(balPre)).to.equal(expectedOutputAmount)
     })

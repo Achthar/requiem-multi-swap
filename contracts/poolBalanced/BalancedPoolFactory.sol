@@ -4,35 +4,19 @@ pragma solidity ^0.8.15;
 
 import "../interfaces/poolBalanced/IBalancedPoolFactory.sol";
 import "../interfaces/poolBalanced/IBalancedPoolCreator.sol";
-import "../libraries/SafeERC20.sol";
+import "../poolBase/PoolFactoryManagement.sol";
 
 // solhint-disable max-line-length
 
-contract BalancedPoolFactory is IBalancedPoolFactory {
-    using SafeERC20 for IERC20;
-
-    address public override feeTo;
-    address public override feeToSetter;
-    uint256 public feeAmount;
-
-    address[] public override allPools;
-    mapping(address => bool) private _pools;
+contract BalancedPoolFactory is IBalancedPoolFactory, PoolFactoryManagement {
     IBalancedPoolCreator public swapCreator;
     bool private _initialized = false;
 
     function initialize(address _feeToSetter, IBalancedPoolCreator _swapCreator) public {
         require(_initialized == false, "BalancedPoolFactory: initialized");
-        feeToSetter = _feeToSetter;
+        _poolFactoryInit(_feeToSetter, msg.sender);
         swapCreator = _swapCreator;
         _initialized = true;
-    }
-
-    function isPool(address b) external view override returns (bool) {
-        return _pools[b];
-    }
-
-    function allPoolsLength() external view override returns (uint256) {
-        return allPools.length;
     }
 
     function createPool(
@@ -43,10 +27,8 @@ contract BalancedPoolFactory is IBalancedPoolFactory {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _withdrawFee
-    ) external override returns (address) {
-        address swap = createPoolInternal(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, _withdrawFee);
-
-        return swap;
+    ) external override onlyCreator returns (address swap) {
+        swap = createPoolInternal(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, _withdrawFee);
     }
 
     function createPoolInternal(
@@ -57,34 +39,9 @@ contract BalancedPoolFactory is IBalancedPoolFactory {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _withdrawFee
-    ) public returns (address) {
-        address swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, _withdrawFee, feeToSetter, msg.sender);
-
-        allPools.push(swap);
-        _pools[swap] = true;
+    ) public returns (address swap) {
+        swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, _withdrawFee, feeToSetter, msg.sender);
+        _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);
-        return swap;
-    }
-
-    function setSwapCreator(IBalancedPoolCreator _swapCreator) external {
-        require(msg.sender == feeToSetter, "REQ: FORBIDDEN");
-        swapCreator = _swapCreator;
-    }
-
-    function setFeeTo(address _feeTo) external override {
-        require(msg.sender == feeToSetter, "REQ: FORBIDDEN");
-        feeTo = _feeTo;
-        emit SetFeeTo(_feeTo);
-    }
-
-    function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, "REQ: FORBIDDEN");
-        feeToSetter = _feeToSetter;
-    }
-
-    function setFeeAmount(uint256 _feeAmount) external override {
-        require(msg.sender == feeToSetter, "REQ: FORBIDDEN");
-        feeAmount = _feeAmount;
-        emit SetFeeAmount(_feeAmount);
     }
 }

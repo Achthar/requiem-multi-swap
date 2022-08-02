@@ -5,18 +5,17 @@ pragma solidity ^0.8.15;
 import "../libraries/ReentrancyGuard.sol";
 import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
-import "../libraries/SafeERC20.sol";
-import "../base/OwnerPausable.sol";
 import "../interfaces/poolBase/IMultiPool.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/ISwap.sol";
 import "./StablePoolLib.sol";
 import "../poolBase/PoolERC20.sol";
+import "../poolBase/PoolFeeManagement.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, PoolERC20 {
+contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IMultiPool, PoolERC20, PoolFeeManagement {
     using StablePoolLib for StablePoolLib.SwapStorage;
     using SafeERC20 for IERC20;
 
@@ -28,14 +27,10 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
     uint256 internal constant MIN_RAMP_TIME = 1 days;
     uint256 internal constant MAX_A = 1e7;
     uint256 internal constant MAX_A_CHANGE = 100;
-    uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
-    uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
 
     /// STATE VARS
     StablePoolLib.SwapStorage public swapStorage;
     address public creator;
-    address public feeDistributor;
-    address public feeController;
     mapping(address => uint8) public tokenIndexes;
 
     modifier deadlineCheck(uint256 _deadline) {
@@ -43,12 +38,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         _;
     }
 
-    modifier onlyFeeController() {
-        require(msg.sender == feeController, "!feeController");
-        _;
-    }
-
-    constructor() OwnerPausable() ReentrancyGuard() {}
+    constructor() ReentrancyGuard() PoolFeeManagement() {}
 
     function initialize(
         address[] memory _coins,
@@ -62,7 +52,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         uint256 _withdrawFee,
         address _feeController,
         address _creator
-    ) external onlyOwner initializer {
+    ) external initializer {
         // initialize pool token data
         _poolTokenInit(_name, _symbol);
 
@@ -189,18 +179,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
 
     /// VIEW FUNCTIONS
 
-    function getVirtualPrice() external view returns (uint256) {
-        return swapStorage.getVirtualPrice(totalSupply);
-    }
-
-    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view override returns (uint256) {
-        return swapStorage.calculateAddLiquidityExactIn(amounts, totalSupply);
-    }
-
-    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view override returns (uint256) {
-        return swapStorage.calculateRemoveLiquidityExactOut(amounts, totalSupply, account);
-    }
-
     // calculates output amount for given input
     function calculateSwapGivenIn(
         address tokenIn,
@@ -219,6 +197,18 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
     }
 
+    function getVirtualPrice() external view returns (uint256) {
+        return swapStorage.getVirtualPrice(totalSupply);
+    }
+
+    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view override returns (uint256) {
+        return swapStorage.calculateAddLiquidityExactIn(amounts, totalSupply);
+    }
+
+    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view override returns (uint256) {
+        return swapStorage.calculateRemoveLiquidityExactOut(amounts, totalSupply, account);
+    }
+
     function calculateRemoveLiquidityExactIn(uint256 amount, address account) external view override returns (uint256[] memory) {
         return swapStorage.calculateRemoveLiquidityExactIn(account, amount, totalSupply);
     }
@@ -235,63 +225,6 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         return swapStorage._calculateCurrentWithdrawFee(account);
     }
 
-    /// RESTRICTED FUNCTION
-
-    /**
-     * @notice Updates the user withdraw fee
-     * Transferring your pool token will reset the withdraw durtion. If the recipient is already
-     * holding some pool tokens, the withdraw fee will be discounted
-     * @dev Overrides ERC20._beforeTokenTransfer() which get called on
-     * minting and burning. This ensures that swap.updateUserWithdrawFees are called everytime.
-     */
-    function _beforeTokenTransfer(
-        address,
-        address to,
-        uint256 amount
-    ) internal override(PoolERC20) {
-        swapStorage.updateUserWithdrawFee(to, balanceOf[to], amount);
-    }
-
-    /**
-     * @notice Sets the all applicable transaction fees
-     * swap fee cannot be higher than 1% of each swap
-     * @param newSwapFee new swap fee to be applied on future transactions
-     * @param newFlashFee new flash loan fee
-     */
-    function setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
-        require(newSwapFee <= MAX_TRANSACTION_FEE, "SwapFeeError");
-        require(newFlashFee <= MAX_TRANSACTION_FEE, "FlashFeeError");
-        swapStorage.fee = newSwapFee;
-        swapStorage.flashFee = newFlashFee;
-        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / StablePoolLib.FEE_DENOMINATOR;
-        emit NewTransactionFees(newSwapFee, newFlashFee);
-    }
-
-    /**
-     * @notice Sets the admin fee - accessible only to the fee controller
-     * @dev adminFee cannot be higher than 50% of the swap fee
-     * @param newAdminFee new admin fee to be applied on future transactions
-     */
-    function setAdminFee(uint256 newAdminFee) external onlyFeeController {
-        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
-        swapStorage.adminFee = newAdminFee;
-        swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / StablePoolLib.FEE_DENOMINATOR;
-        emit NewAdminFee(newAdminFee);
-    }
-
-    /**
-     * @notice Sets the duration for which the withdraw fee is applicable
-     * and the fee itself
-     * @param newWithdrawDuration new flash loan fee
-     * @param newDefaultWithdrawFee new default witdraw fee
-     */
-    function setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) external onlyOwner {
-        require(newWithdrawDuration <= (4 weeks), "WithdrawDurationError");
-        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
-        swapStorage.withdrawDuration = newWithdrawDuration;
-        emit NewWithdrawFee(newWithdrawDuration, newDefaultWithdrawFee);
-    }
-
     /**
      * @notice Start ramping up or down A parameter towards given futureA_ and futureTime_
      * Checks if the change is too rapid, and commits the new A value only when it falls under
@@ -299,7 +232,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
      * @param futureA the new A to ramp towards
      * @param futureATime timestamp when the new A should be reached
      */
-    function rampA(uint256 futureA, uint256 futureATime) external onlyOwner {
+    function rampA(uint256 futureA, uint256 futureATime) external onlyGovernance {
         require(block.timestamp >= swapStorage.initialATime + (1 days), "Ramp period"); // please wait 1 days before start a new ramping
         require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "Ramp too early");
         require(0 < futureA && futureA < MAX_A, "AError");
@@ -321,7 +254,7 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         emit RampA(initialAPrecise, futureAPrecise, block.timestamp, futureATime);
     }
 
-    function stopRampA() external onlyOwner {
+    function stopRampA() external onlyGovernance {
         require(swapStorage.futureATime > block.timestamp, "alreadyStopped");
         uint256 currentA = swapStorage.getAPrecise();
 
@@ -333,20 +266,60 @@ contract StablePool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, In
         emit StopRampA(currentA, block.timestamp);
     }
 
-    function setFeeController(address _feeController) external onlyFeeController {
-        require(_feeController != address(0), "AddressError");
-        feeController = _feeController;
-        emit FeeControllerChanged(_feeController);
+    /// FEE INTERNALS
+
+    /**
+     * @notice Sets the all applicable transaction fees
+     * swap fee cannot be higher than 1% of each swap
+     * @param newSwapFee new swap fee to be applied on future transactions
+     * @param newFlashFee new flash loan fee
+     */
+    function _setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) internal override {
+        swapStorage.fee = newSwapFee;
+        swapStorage.flashFee = newFlashFee;
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / StablePoolLib.FEE_DENOMINATOR;
     }
 
-    function setFeeDistributor(address _feeDistributor) external onlyFeeController {
-        require(_feeDistributor != address(0), "AddressError");
-        feeDistributor = _feeDistributor;
-        emit FeeDistributorChanged(_feeDistributor);
+    /**
+     * @notice Sets the admin fee - accessible only to the fee controller
+     * @dev adminFee cannot be higher than 50% of the swap fee
+     * @param newAdminFee new admin fee to be applied on future transactions
+     */
+    function _setAdminFee(uint256 newAdminFee) internal override {
+        swapStorage.adminFee = newAdminFee;
+        swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / StablePoolLib.FEE_DENOMINATOR;
     }
 
-    function withdrawAdminFee() external onlyFeeController {
+    /**
+     * @notice Sets the duration for which the withdraw fee is applicable
+     * and the fee itself
+     * @param newWithdrawDuration new flash loan fee
+     * @param newDefaultWithdrawFee new default witdraw fee
+     */
+    function _setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) internal override {
+        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
+        swapStorage.withdrawDuration = newWithdrawDuration;
+    }
+
+    function withdrawAdminFee() external override onlyFeeController {
         swapStorage.sync(feeDistributor);
+    }
+
+    /// ERC20 ADDITION FOR FEE CONSIDERATION
+
+    /**
+     * @notice Updates the user withdraw fee
+     * Transferring your pool token will reset the withdraw durtion. If the recipient is already
+     * holding some pool tokens, the withdraw fee will be discounted
+     * @dev Overrides ERC20._beforeTokenTransfer() which get called on
+     * minting and burning. This ensures that swap.updateUserWithdrawFees are called everytime.
+     */
+    function _beforeTokenTransfer(
+        address,
+        address to,
+        uint256 amount
+    ) internal override(PoolERC20) {
+        swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 
     function getTokenBalances() external view override returns (uint256[] memory) {

@@ -383,7 +383,7 @@ describe("Weighted Pools", () => {
         let diff0 = bal0After.sub(bal0)
         let diff1 = bal1After.sub(bal1)
         let diff2 = bal2After.sub(bal2)
-        
+
         expect(bnAbs(diff0.sub(expectedReceive[0]).mul(precision).div(diff0))).to.be.equal(zero)
         expect(bnAbs(diff1.sub(expectedReceive[1]).mul(precision).div(diff1))).to.be.equal(zero)
         expect(bnAbs(diff2.sub(expectedReceive[2]).mul(precision).div(diff2))).to.be.equal(zero)
@@ -569,6 +569,9 @@ describe("Weighted Pools", () => {
     let balancePre: BigNumber
     let balancePost: BigNumber
     let received: BigNumber
+    let txOut: any
+    let txIn: any
+    let receipt: any
     for (let i = 0; i < 5; i++) {
         it(`Allows consistent swap calculation with execution exact out ${i}`, async () => {
 
@@ -576,12 +579,15 @@ describe("Weighted Pools", () => {
             obtain = await fixture.pool.calculateSwapGivenOut(tokens.token2.address, tokens.token1.address, baseAmount)
 
             balancePre = await tokens.token2.balanceOf(other.address)
-            await routerFixture.router.connect(other).onSwapTokensForExactTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, maxUint256, third.address, maxUint256)
+            txOut = await routerFixture.router.connect(other).onSwapTokensForExactTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, maxUint256, third.address, maxUint256)
             balancePost = await tokens.token2.balanceOf(other.address)
 
             received = await tokens.token1.balanceOf(third.address)
             expect(balancePre.sub(balancePost)).to.equal(obtain)
             expect(received).to.equal(baseAmount)
+            receipt = await txOut.wait();
+            if (i === 4)
+                console.log('exactOut-' + String(i), receipt.gasUsed)
         })
 
         it(`Allows consistent swap calculation with execution exact in ${i}`, async () => {
@@ -590,12 +596,16 @@ describe("Weighted Pools", () => {
             obtain = await fixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token1.address, baseAmount)
 
             balancePre = await tokens.token2.balanceOf(other.address)
-            await routerFixture.router.connect(other).onSwapExactTokensForTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, zero, third.address, maxUint256)
+            txIn = await routerFixture.router.connect(other).onSwapExactTokensForTokens([fixture.pool.address], [tokens.token2.address, tokens.token1.address], baseAmount, zero, third.address, maxUint256)
             balancePost = await tokens.token2.balanceOf(other.address)
 
             received = await tokens.token1.balanceOf(third.address)
             expect(balancePre.sub(balancePost)).to.equal(baseAmount)
             expect(received).to.equal(obtain)
+            receipt = await txIn.wait();
+            if (i === 4)
+                console.log('exactIn-' + String(i), receipt.gasUsed)
+
 
         })
 
@@ -726,5 +736,5 @@ describe("Weighted Pools", () => {
         await validatePoolBals(wallet, fixture.pool)
     })
 
-    
+
 });

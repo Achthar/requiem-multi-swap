@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.15;
 
-import "../ERC20/IERC20.sol";
-
 // solhint-disable var-name-mixedcase
 
 interface IMultiPool {
@@ -15,16 +13,6 @@ interface IMultiPool {
     event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
 
     event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
-
-    event NewTransactionFees(uint256 swapFee, uint256 flashFee);
-
-    event NewAdminFee(uint256 adminFee);
-
-    event NewWithdrawFee(uint256 withdrawDuration, uint256 defaultWithdrawFee);
-
-    event FeeControllerChanged(address newController);
-
-    event FeeDistributorChanged(address newController);
 
     // pool data view functions
 

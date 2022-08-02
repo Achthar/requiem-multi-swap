@@ -4,31 +4,25 @@ pragma solidity ^0.8.15;
 import "../libraries/ReentrancyGuard.sol";
 import "../libraries/Initializable.sol";
 import "../interfaces/ERC20/IERC20.sol";
-import "../libraries/SafeERC20.sol";
-import "../base/OwnerPausable.sol";
 import "../interfaces/poolBase/IMultiPool.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "./WeightedPoolLib.sol";
 import "../poolBase/PoolERC20.sol";
+import "../poolBase/PoolFeeManagement.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, Initializable, IMultiPool, PoolERC20 {
+contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IMultiPool, PoolERC20, PoolFeeManagement {
     using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage;
     using SafeERC20 for IERC20;
     /// constants
-    uint256 internal constant MAX_ADMIN_FEE = 5e17; // 50%
-    uint256 internal constant MAX_TRANSACTION_FEE = 1e16; // 1%
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
     WeightedPoolLib.WeightedSwapStorage public swapStorage;
     address public creator;
-    address public feeDistributor;
-    address public feeController;
-
     // indexes for tokens in array
     mapping(address => uint8) public tokenIndexes;
 
@@ -37,12 +31,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         _;
     }
 
-    modifier onlyFeeController() {
-        require(msg.sender == feeController, "!feeController");
-        _;
-    }
-
-    constructor() OwnerPausable() ReentrancyGuard() {}
+    constructor() ReentrancyGuard() PoolFeeManagement() {}
 
     function initialize(
         address[] memory _coins,
@@ -56,7 +45,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 _withdrawFee,
         address _feeController,
         address _creator
-    ) external onlyOwner initializer {
+    ) external initializer {
         // initialize token
         _poolTokenInit(_name, _symbol);
         // initialize arrays
@@ -186,7 +175,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256[] memory amounts,
         uint256 maxLpBurn,
         uint256 deadline
-    ) external override nonReentrant deadlineCheck(deadline) returns (uint256 burnAmount) {
+    ) external override nonReentrant whenNotPaused deadlineCheck(deadline) returns (uint256 burnAmount) {
         burnAmount = swapStorage.removeLiquidityExactOut(amounts, maxLpBurn, totalSupply);
         _burn(msg.sender, burnAmount);
         emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
@@ -204,14 +193,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
     }
 
     /// VIEW FUNCTIONS
-
-    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view override returns (uint256) {
-        return swapStorage.calculateAddLiquidityExactIn(amounts, totalSupply);
-    }
-
-    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view override returns (uint256) {
-        return swapStorage.calculateRemoveLiquidityExactOut(amounts, totalSupply, account);
-    }
 
     // calculates output amount for given input
     function calculateSwapGivenIn(
@@ -231,6 +212,14 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
     }
 
+    function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view override returns (uint256) {
+        return swapStorage.calculateAddLiquidityExactIn(amounts, totalSupply);
+    }
+
+    function calculateRemoveLiquidityExactOut(uint256[] calldata amounts, address account) external view override returns (uint256) {
+        return swapStorage.calculateRemoveLiquidityExactOut(amounts, totalSupply, account);
+    }
+
     function calculateRemoveLiquidityExactIn(uint256 amount, address account) external view override returns (uint256[] memory) {
         return swapStorage.calculateRemoveLiquidityExactIn(amount, totalSupply, account);
     }
@@ -247,45 +236,46 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         return swapStorage._calculateCurrentWithdrawFee(account);
     }
 
+    /// FEE INTERNALS
+
     /**
      * @notice Sets the all applicable transaction fees
      * swap fee cannot be higher than 1% of each swap
      * @param newSwapFee new swap fee to be applied on future transactions
-     * @param newFlashFee new flash lash loan fee
+     * @param newFlashFee new flash loan fee
      */
-    function setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) external onlyOwner {
-        require(newSwapFee <= MAX_TRANSACTION_FEE, "SwapFeeError");
-        require(newFlashFee <= MAX_TRANSACTION_FEE, "FlashFeeError");
+    function _setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) internal override {
         swapStorage.fee = newSwapFee;
-        swapStorage.adminSwapFee = (newSwapFee * swapStorage.adminFee) / WeightedPoolLib.FEE_DENOMINATOR;
         swapStorage.flashFee = newFlashFee;
-
-        emit NewTransactionFees(newSwapFee, newFlashFee);
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / WeightedPoolLib.FEE_DENOMINATOR;
     }
 
     /**
-     * @notice Sets the all applicable fees
+     * @notice Sets the admin fee - accessible only to the fee controller
      * @dev adminFee cannot be higher than 50% of the swap fee
      * @param newAdminFee new admin fee to be applied on future transactions
      */
-    function setAdminFee(uint256 newAdminFee) external onlyFeeController {
-        require(newAdminFee <= MAX_ADMIN_FEE, "AdminFeeError");
+    function _setAdminFee(uint256 newAdminFee) internal override {
         swapStorage.adminFee = newAdminFee;
         swapStorage.adminSwapFee = (newAdminFee * swapStorage.fee) / WeightedPoolLib.FEE_DENOMINATOR;
-        emit NewAdminFee(newAdminFee);
     }
 
-    function setFeeController(address _feeController) external onlyFeeController {
-        require(_feeController != address(0), "AddressError");
-        feeController = _feeController;
-        emit FeeControllerChanged(_feeController);
+    /**
+     * @notice Sets the duration for which the withdraw fee is applicable
+     * and the fee itself
+     * @param newWithdrawDuration new flash loan fee
+     * @param newDefaultWithdrawFee new default witdraw fee
+     */
+    function _setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) internal override {
+        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
+        swapStorage.withdrawDuration = newWithdrawDuration;
     }
 
-    function setFeeDistributor(address _feeDistributor) external onlyFeeController {
-        require(_feeDistributor != address(0), "AddressError");
-        feeDistributor = _feeDistributor;
-        emit FeeDistributorChanged(_feeDistributor);
+    function withdrawAdminFee() external override onlyFeeController {
+        swapStorage.sync(feeDistributor);
     }
+
+    /// ERC20 ADDITION FOR FEE CONSIDERATION
 
     /**
      * @notice Updates the user withdraw fee
@@ -300,23 +290,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, OwnerPausable, ReentrancyGuard, 
         uint256 amount
     ) internal override(PoolERC20) {
         swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
-    }
-
-    /**
-     * @notice Sets the duration for which the withdraw fee is applicable
-     * and the fee itself
-     * @param newWithdrawDuration new flash loan fee
-     * @param newDefaultWithdrawFee new default witdraw fee
-     */
-    function setWithdrawFee(uint256 newWithdrawDuration, uint256 newDefaultWithdrawFee) external onlyOwner {
-        require(newWithdrawDuration <= (4 weeks), "WithdrawDurationError");
-        swapStorage.defaultWithdrawFee = newDefaultWithdrawFee;
-        swapStorage.withdrawDuration = newWithdrawDuration;
-        emit NewWithdrawFee(newWithdrawDuration, newDefaultWithdrawFee);
-    }
-
-    function withdrawAdminFee() external onlyFeeController {
-        swapStorage.sync(feeDistributor);
     }
 
     /// VIEWS FOR ARRAYS IN SWAPSTORAGE
