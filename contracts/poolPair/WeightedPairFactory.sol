@@ -14,7 +14,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
     address public feeTo;
     address public formula;
     uint256 public protocolFee;
-    address public feeToSetter;
+    address public pairAdmin;
     address public pairGovernance;
 
     mapping(bytes32 => address) private _pairSalts;
@@ -24,11 +24,11 @@ contract RequiemPairFactory is IWeightedPairFactory {
     mapping(address => mapping(address => EnumerableSetLite.AddressSet)) private tokenPairs;
 
     constructor(
-        address _feeToSetter,
+        address _admin,
         address _formula,
         address _pairGovernance
     ) {
-        feeToSetter = _feeToSetter;
+        pairAdmin = _admin;
         formula = _formula;
         pairGovernance = _pairGovernance;
     }
@@ -80,8 +80,11 @@ contract RequiemPairFactory is IWeightedPairFactory {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
+        IWeightedPair(pair).switchAdmin(pairAdmin);
+        
         require(initialFee <= 500 && initialAmp >= 10000, "RLP: ISP");
-        IWeightedPair(pair).setSwapParams(formula, initialFee, initialAmp);
+        IWeightedPairAdmin(pairAdmin).inititalizePairAdministration(pair, formula, pairGovernance, protocolFee, initialFee, initialAmp);
+
 
         tokenPairs[token0][token1].add(pair);
         tokenPairs[token1][token0].add(pair);
@@ -90,22 +93,6 @@ contract RequiemPairFactory is IWeightedPairFactory {
         _pairCount += 1;
         _pairs[address(pair)] = true;
         emit PairCreated(token0, token1, pair, tokenWeight0, _pairCount);
-    }
-
-    /**
-     * @notice Sets the protocol fee
-     * @param _protocolFee new protocol fee
-     */
-    function setFeeParameters(
-        address _feeToSetter,
-        address _feeTo,
-        uint256 _protocolFee
-    ) external {
-        require(msg.sender == feeToSetter, "RLP: F");
-        require(_protocolFee <= 10**5, "RLP: IPF");
-        protocolFee = _protocolFee;
-        feeToSetter = _feeToSetter;
-        feeTo = _feeTo;
     }
 
     function getParameters(address pair)
@@ -133,26 +120,6 @@ contract RequiemPairFactory is IWeightedPairFactory {
         for (uint256 i = 0; i < length; i++) {
             _tokenPairs[i] = tokenPairs[token0][token1].at(i);
         }
-    }
-
-    /**
-     * @notice sets the crucial swap parameters for the pair
-     * @param _pair pair to change
-     * @param _newSwapFee new seleted swap fee
-     * @param _amp new amplification parameter
-     * @param _formula new
-     */
-    function setSwapParams(
-        address _pair,
-        address _formula,
-        uint32 _newSwapFee,
-        uint32 _amp
-    ) external {
-        require(msg.sender == pairGovernance, "auth");
-        // 0.01% - 5% fee range for swapFee and amplification parameter has to be >=0.5
-        require(_newSwapFee <= 500 && _amp >= 5000, "RLP: ISF");
-        IWeightedPair(_pair).setSwapParams(_formula, _newSwapFee, _amp);
-        IWeightedPair(_pair).sync();
     }
 
     function setGovernance(address _newGov) external {

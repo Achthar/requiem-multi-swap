@@ -11,8 +11,6 @@ interface IWeightedPairFactory {
 
     function protocolFee() external view returns (uint256);
 
-    function feeToSetter() external view returns (address);
-
     function getPair(
         address tokenA,
         address tokenB,
@@ -40,10 +38,4 @@ interface IWeightedPairFactory {
             uint32 swapFee,
             uint32 amp
         );
-
-    function setFeeParameters(
-        address,
-        address,
-        uint256
-    ) external;
 }

@@ -11,14 +11,15 @@ import {
     TestERC20,
     RequiemPairFactory,
     RequiemPair,
-    WeightedFormula
+    WeightedFormula,
+    WeightedPairAdmin
 } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3)
 const overrides = {}
 
-describe('RequiemPair', () => {
+describe('Requiem Pair Base Equal Weight', () => {
     let signers: SignerWithAddress[];
 
     let wallet: SignerWithAddress;
@@ -30,6 +31,7 @@ describe('RequiemPair', () => {
     let token1: TestERC20
     let pair: RequiemPair
     let formula: WeightedFormula
+    let admin: WeightedPairAdmin
     beforeEach(async () => {
         signers = await ethers.getSigners();
         wallet = signers[0];
@@ -41,6 +43,7 @@ describe('RequiemPair', () => {
         token1 = fixture.token1
         formula = fixture.formula
         pair = fixture.pair
+        admin = fixture.admin
     })
 
     it('mint', async () => {
@@ -170,7 +173,7 @@ describe('RequiemPair', () => {
     }
 
     it('swap:sync,skim:withProtocolFee', async () => {
-        await factory.setFeeParameters(factory.address, factory.address, 50000)
+        await admin.setProtocolFee(pair.address, 50000)
         // await factory.setProtocolFee(50000)
 
         const token0Amount = expandTo18Decimals(5)
@@ -223,7 +226,7 @@ describe('RequiemPair', () => {
         await checkBalanceReserves();
     })
     it('swap:sync,skim', async () => {
-        await factory.setFeeParameters(factory.address, factory.address, 0)
+        await admin.setProtocolFee(pair.address, 0)
         // await factory.setProtocolFee(0)
 
         const token0Amount = expandTo18Decimals(5)
@@ -276,11 +279,11 @@ describe('RequiemPair', () => {
         await addLiquidity(token0Amount, token1Amount)
 
         const swapAmount = expandTo18Decimals(1)
-        await factory.setFeeParameters(factory.address, factory.address, 50000)
+        await admin.setProtocolFee(pair.address, 50000)
         // await factory.setProtocolFee(50000)
         const fee = await pair.getParameters()
         let swapFee = swapAmount.mul(fee._swapFee);
-        const protocolFeeAmount = swapFee.div(await factory.protocolFee())
+        // const protocolFeeAmount = swapFee.div(await factory.protocolFee())
         const expectedOutputAmount = BigNumber.from('1662497915624478906')
         await token0.transfer(pair.address, swapAmount)
         await expect(pair.swap(0, expectedOutputAmount, wallet.address, '0x', overrides))
@@ -337,7 +340,7 @@ describe('RequiemPair', () => {
         const token1Amount = expandTo18Decimals(10)
         await addLiquidity(token0Amount, token1Amount)
         const swapAmount = expandTo18Decimals(1)
-        await factory.setFeeParameters(factory.address, factory.address, 50000)
+        await admin.setProtocolFee(pair.address, 50000)
         // await factory.setProtocolFee(50000)
         const fees = await pair.getParameters()
         let swapFee = swapAmount.mul(fees._swapFee);
@@ -366,7 +369,7 @@ describe('RequiemPair', () => {
     })
 
     it('swap:gas', async () => {
-        await factory.setFeeParameters(other.address, other.address, 50000)
+        await admin.setProtocolFee(pair.address, 50000)
         // await factory.setProtocolFee(50000)
         const token0Amount = expandTo18Decimals(5)
         const token1Amount = expandTo18Decimals(10)
@@ -498,7 +501,8 @@ describe('RequiemPair', () => {
         expect(await pair.totalSupply()).to.eq(MINIMUM_LIQUIDITY)
     })
     it('feeTo:on', async () => {
-        await factory.setFeeParameters(other.address, other.address, 60000)
+        await admin.setProtocolFee(pair.address, 60000)
+        await admin.setFeeTo(other.address)
         // await factory.setProtocolFee(60000)
 
         const token0Amount = expandTo18Decimals(1000)

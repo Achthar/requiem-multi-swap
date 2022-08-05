@@ -4,7 +4,7 @@ import { expandTo18Decimals, encodePrice } from "./shared/common";
 import { pairDifferentWeightFixture } from "./shared/fixtures";
 import { getLatestBlock, mineBlockTimeStamp } from "./shared/utilities";
 import { ethers } from "hardhat";
-import { WeightedFormula, WeightedPairERC20, RequiemPairFactory, RequiemPair } from "../../types";
+import { WeightedFormula, WeightedPairERC20, RequiemPairFactory, RequiemPair, WeightedPairAdmin } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const overrides = {};
 
@@ -23,6 +23,7 @@ describe("RequiemPairWeight", () => {
     let tokenB: WeightedPairERC20;
     let tokenWeight1: number;
     let pair: RequiemPair;
+    let admin : WeightedPairAdmin
 
     beforeEach(async () => {
         signers = await ethers.getSigners();
@@ -38,6 +39,7 @@ describe("RequiemPairWeight", () => {
         tokenWeight1 = fixture.tokenWeight1;
         pair = fixture.pair;
         formula = fixture.formula;
+        admin = fixture.admin
     });
 
     async function addLiquidity(token0Amount: BigNumber, token1Amount: BigNumber) {
@@ -180,7 +182,7 @@ describe("RequiemPairWeight", () => {
     it('swap:gas', async () => {
         // await factory.setFeeTo(other.address)
         // await factory.setProtocolFee(50000)
-        await factory.setFeeParameters(other.address, other.address, 50000)
+        await admin.setProtocolFee(pair.address, 50000)
         const token0Amount = expandTo18Decimals(5)
         const token1Amount = expandTo18Decimals(10)
         await addWeightLiquidity(token0Amount, token1Amount)
@@ -246,7 +248,7 @@ describe("RequiemPairWeight", () => {
     it('swap:sync,skim', async () => {
         // await factory.setFeeTo(factory.address)
         // await factory.setProtocolFee(0)
-        await factory.setFeeParameters(factory.address, factory.address, 0)
+        await admin.setProtocolFee(pair.address, 0)
         const token0Amount = expandTo18Decimals(5)
         const token1Amount = expandTo18Decimals(10)
         await addLiquidity(token0Amount, token1Amount)
@@ -303,7 +305,7 @@ describe("RequiemPairWeight", () => {
         await addLiquidity(token0Amount, token1Amount)
 
         const swapAmount = expandTo18Decimals(1)
-        await factory.setFeeParameters(factory.address, factory.address, 50000)
+        await admin.setProtocolFee(pair.address, 50000)
         // await factory.setFeeTo(factory.address)
         // await factory.setProtocolFee(50000)
         // let swapFee = swapAmount.mul(await pair.getSwapFee());

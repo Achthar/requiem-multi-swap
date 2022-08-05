@@ -20,7 +20,7 @@ interface IWeightedPair is IWeightedPairERC20 {
 
     // function MINIMUM_LIQUIDITY() external pure returns (uint256);
 
-    function factory() external view returns (address);
+    function admin() external view returns (address);
 
     function token0() external view returns (address);
 
@@ -44,11 +44,13 @@ interface IWeightedPair is IWeightedPairERC20 {
 
     function burn(address to) external returns (uint256 amount0, uint256 amount1);
 
-    function setSwapParams(
-        address,
-        uint32,
-        uint32
-    ) external;
+    function setSwapFee(uint32 _newSwapFee) external;
+
+    function setAmplification(uint32 _newAmp) external;
+
+    function switchAdmin(address _newAdmin) external;
+
+    function setFormula(address _newFormula) external;
 
     function sync() external;
 

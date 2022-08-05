@@ -6,7 +6,7 @@ import "../interfaces/poolPair/IWeightedPair.sol";
 import "../interfaces/poolPair/IWeightedPairERC20.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/poolPair/IWeightedFormula.sol";
-import "../interfaces/poolPair/IWeightedPairFactory.sol";
+import "../interfaces/poolPair/IWeightedPairAdmin.sol";
 import "../interfaces/poolPair/IRequiemCallee.sol";
 import "../interfaces/poolPair/IUniswapV2TypeSwap.sol";
 import "./WeightedPairERC20.sol";
@@ -20,7 +20,7 @@ import "../interfaces/ERC20/IERC20Metadata.sol";
 contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairERC20 {
     using UQ112x112 for uint224;
 
-    address public factory;
+    address public admin;
     address public token0;
     address public token1;
     address public formula;
@@ -104,7 +104,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 
     constructor() {
-        factory = msg.sender;
+        admin = msg.sender;
     }
 
     /**
@@ -118,7 +118,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         address _token1,
         uint32 _tokenWeight0
     ) external {
-        require(msg.sender == factory, "REQLP: F");
+        require(msg.sender == admin, "REQLP: F");
         // sufficient check
         token0 = _token0;
         token1 = _token1;
@@ -143,10 +143,10 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @param reserveData reserve data in uint256
      */
     function _mintFee(ReserveData memory reserveData) private {
-        address feeTo = IWeightedPairFactory(factory).feeTo();
+        address feeTo = IWeightedPairAdmin(admin).feeTo();
 
         // one slot
-        uint112 protocolFee = uint112(IWeightedPairFactory(factory).protocolFee());
+        uint112 protocolFee = uint112(IWeightedPairAdmin(admin).protocolFee(address(this)));
         uint32 _tokenWeight0 = tokenWeight0;
 
         // one slot
@@ -428,7 +428,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             amountIn = IWeightedFormula(formula).getAmountIn(amountOut, v0, v1, tokenWeight0, tokenWeight1, swapFee);
 
             // handle fee
-            collectedFee0 = uint112(uint256(collectedFee0) +  ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn);
+            collectedFee0 = uint112(uint256(collectedFee0) + ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn);
 
             // transfer token amount
             _safeTransfer(token1, to, amountOut);
@@ -436,7 +436,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // update reserves
             newReserveData.reserve0 = balanceIn;
             newReserveData.reserve1 = IERC20(token1).balanceOf(address(this));
-            require(balanceIn >= amountIn + reserve0, "insufficient in");
+            require(balanceIn >= amountIn + reserve0);
 
             emit Swap(msg.sender, amountIn, 0, 0, amountOut, to);
         } else if (tokenIn == token1) {
@@ -455,7 +455,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             newReserveData.reserve1 = balanceIn;
             newReserveData.reserve0 = IERC20(token0).balanceOf(address(this));
 
-            require(balanceIn >= amountIn + reserve1, "insufficient in");
+            require(balanceIn >= amountIn + reserve1);
 
             emit Swap(msg.sender, 0, amountIn, amountOut, 0, to);
         } else {
@@ -487,21 +487,43 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 
     /**
-     * @notice Changes cruicial parameters - can only be called by factory - virtual reserves will be adjusted here, too
+     * @notice Changes cruicial parameters - can only be called by admin - virtual reserves will be adjusted here, too
      * @param _newSwapFee new swap fee to use
+     */
+    function setSwapFee(uint32 _newSwapFee) external {
+        require(msg.sender == admin);
+        require(_newSwapFee <= 60000); // 70% is the maximum
+        swapFee = _newSwapFee;
+    }
+
+    /**
+     * @notice Changes cruicial parameters - can only be called by admin - virtual reserves will be adjusted here, too
      * @param _newAmp new amplification parameter to scale virtual reserves
      */
-    function setSwapParams(
-        address _formula,
-        uint32 _newSwapFee,
-        uint32 _newAmp
-    ) external {
-        require(msg.sender == factory, "auth");
-        swapFee = _newSwapFee;
+    function setAmplification(uint32 _newAmp) external {
+        require(msg.sender == admin);
+        require(_newAmp >= 5000); // allows de-amplification
         vReserve0 = (vReserve0 * _newAmp) / BPS;
         vReserve1 = (vReserve1 * _newAmp) / BPS;
-        assert(vReserve0 >= reserve0 && vReserve1 >= reserve0);
         ampBps = (_newAmp * ampBps) / BPS;
-        formula = _formula;
+        require(vReserve0 >= reserve0 && vReserve1 >= reserve0 && ampBps >= BPS); // but new amp must still be larger tha one
+    }
+
+    /**
+     * @notice Allows admin to change the formula
+     * @param _newFormula new amplification parameter to scale virtual reserves
+     */
+    function setFormula(address _newFormula) external {
+        require(msg.sender == admin);
+        formula = _newFormula;
+    }
+
+    /**
+     * @notice Changes cruicial parameters - can only be called by admin - virtual reserves will be adjusted here, too
+     * @param _newAdmin new swap fee to use
+     */
+    function switchAdmin(address _newAdmin) external {
+        require(msg.sender == admin);
+        admin = _newAdmin;
     }
 }
