@@ -136,6 +136,25 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
+    /**
+     * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
+     * If data.length == 0, onSwapGivenOut should be used instead.
+     * @param tokenIn token for which the amount has already sent to this address
+     * @param tokenOut token for which the calculated output amount will be sent
+     * @param amountOut target amount which will be obtained if swap succeeds
+     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @return inAmount
+     */
+    function onFlashSwap(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address to,
+        bytes calldata data
+    ) external whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.flashSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, data);
+    }
+
     /**  @notice Flash loan using stable swap balances  */
     function flashLoan(
         IFlashLoanRecipient recipient,
@@ -191,10 +210,6 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         uint256 amountOut
     ) external view returns (uint256) {
         return swapStorage.calculateSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut);
-    }
-
-    function getVirtualPrice() external view returns (uint256) {
-        return swapStorage.getVirtualPrice(totalSupply);
     }
 
     function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view override returns (uint256) {
@@ -303,7 +318,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
     }
 
     function withdrawAdminFee(address _receiver) external override onlyAdmin {
-        swapStorage.sync(_receiver);
+        swapStorage.withdrawCollectedFees(_receiver);
     }
 
     /// ERC20 ADDITION FOR FEE CONSIDERATION

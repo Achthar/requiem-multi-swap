@@ -17,7 +17,7 @@ library BalancedPoolLib {
 
     event CollectProtocolFee(address token, uint256 amount);
 
-    event TokenExchange(address indexed buyer, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
+    event TokenExchange(address indexed origin, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought, address indexed repicient);
 
     uint256 public constant FEE_DENOMINATOR = 1e18; // = 100%
 
@@ -130,7 +130,7 @@ library BalancedPoolLib {
         // transfer amount
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
 
-        emit TokenExchange(to, inIndex, inAmount, outIndex, outAmount);
+        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
     }
 
     /**
@@ -147,18 +147,20 @@ library BalancedPoolLib {
         uint256 outAmount,
         address to
     ) external returns (uint256 inAmount) {
-        // get actual new in balance
-        uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
+        // get tracked in balance (before transfer in)
+        uint256 inBalanceVirtual = self.balances[inIndex];
 
-        uint256 numerator = balanceIn * outAmount * FEE_DENOMINATOR;
-        uint256 denominator = (self.balances[outIndex] - outAmount) * (FEE_DENOMINATOR - self.fee);
-        inAmount = numerator / denominator + 1;
+        // calculate in amount
+        inAmount = _calcInGivenOut(inBalanceVirtual, self.balances[outIndex], outAmount, self.fee);
 
         // collect admin fee
         self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
-        //validate trade
-        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
+        // get actual new in balance (after transfer in)
+        uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
+
+        // validate trade against actual amount sent
+        require(inAmount <= balanceIn - inBalanceVirtual, "insufficient in");
 
         //send tokens
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
@@ -167,50 +169,56 @@ library BalancedPoolLib {
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
 
-        emit TokenExchange(to, inIndex, inAmount, outIndex, outAmount);
+        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
     }
 
     /**
-     * @notice Swaps for provided amountOut - the calk
+     * @notice FlashSwap - sends target outAmount to token with outIndex. Validates that required inAmount has
+     * been sent durng or before the receiveSwapAmount function
      * @param inIndex token index in
      * @param outIndex token index out
+     * @param outAmount amount of token with outIndex to be sent
+     * @param to flash swap recipient
+     * @param data data that caller can provide to the flash call
      */
     function flashSwap(
         BalancedSwapStorage storage self,
         uint256 inIndex,
         uint256 outIndex,
         uint256 outAmount,
-        IFlashSwapRecipient to,
+        address to,
         bytes calldata data
     ) external returns (uint256 inAmount) {
-        // we fetch the token and provide it as input for the flash call
+        // get recorded in balance before trade
+        uint256 inBalanceVirtual = self.balances[inIndex];
+
+        // calculate in amount
+        inAmount = _calcInGivenOut(inBalanceVirtual, self.balances[outIndex], outAmount, self.fee);
+
+        // we fetch the tokens and provide it as input for the flash call
+        IERC20 tokenIn = self.pooledTokens[inIndex];
         IERC20 tokenOut = self.pooledTokens[outIndex];
-        address receiverAddress = address(to);
 
         // optimistic transfer
-        tokenOut.safeTransfer(receiverAddress, outAmount);
+        tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        if (data.length != 0) to.recieveSwapAmount(msg.sender, tokenOut, outAmount, data);
+        if (data.length != 0) IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
-        // get actual new in balance
-        uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
-
-        uint256 numerator = balanceIn * outAmount * FEE_DENOMINATOR;
-        uint256 denominator = (self.balances[outIndex] - outAmount) * (FEE_DENOMINATOR - self.fee);
-        inAmount = numerator / denominator + 1;
+        // get actual new in balance after flash swap call
+        uint256 balanceIn = tokenIn.balanceOf(address(this));
 
         // collect admin fee
         self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
-
-        //validate trade
-        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
+        // }
+        // validate trade against actual amount sent
+        require(inAmount <= balanceIn - inBalanceVirtual, "insufficient in");
 
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
 
-        emit TokenExchange(receiverAddress, inIndex, inAmount, outIndex, outAmount);
+        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
     }
 
     /**
@@ -241,17 +249,17 @@ library BalancedPoolLib {
         recipient.receiveFlashLoan(self.pooledTokens, amounts, feeAmounts, userData);
         for (uint256 i = 0; i < length; ++i) {
             uint256 preLoanBalance = preLoanBalances[i];
-
+            uint256 feeAmount = feeAmounts[i];
             // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
             // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
             uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
             require(postLoanBalance >= preLoanBalance, "post bal");
             self.balances[i] = postLoanBalance;
-            self.collectedFees[i] += (feeAmounts[i] * self.adminFee) / FEE_DENOMINATOR;
+            self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
             // No need for checked arithmetic since we know the loan was fully repaid.
             uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
 
-            require(receivedFeeAmount >= feeAmounts[i], "insufficient loan fee");
+            require(receivedFeeAmount >= feeAmount, "insufficient loan fee");
         }
     }
 
@@ -395,7 +403,7 @@ library BalancedPoolLib {
         amountIn = numerator / denominator + 1;
     }
 
-    function sync(BalancedSwapStorage storage self, address receiver) external {
+    function withdrawCollectedFees(BalancedSwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             IERC20 token = self.pooledTokens[i];
             uint256 fee = self.collectedFees[i];
@@ -410,10 +418,21 @@ library BalancedPoolLib {
 
     /// INTERNAL FUNCTIONS
 
+    function _calcInGivenOut(
+        uint256 inBalance,
+        uint256 outBalance,
+        uint256 outAmount,
+        uint256 fee
+    ) private pure returns (uint256 inAmount) {
+        uint256 numerator = inBalance * outAmount * FEE_DENOMINATOR;
+        uint256 denominator = (outBalance - outAmount) * (FEE_DENOMINATOR - fee);
+        inAmount = numerator / denominator + 1;
+    }
+
     /**
      * normalized balances of each tokens.
      */
-    function _xp(uint256[] memory balances, uint256[] memory rates) internal pure returns (uint256[] memory) {
+    function _xp(uint256[] memory balances, uint256[] memory rates) private pure returns (uint256[] memory) {
         for (uint256 i = 0; i < balances.length; i++) {
             rates[i] = (rates[i] * balances[i]);
         }
@@ -421,7 +440,7 @@ library BalancedPoolLib {
         return rates;
     }
 
-    function _xp(BalancedSwapStorage storage self) internal view returns (uint256[] memory) {
+    function _xp(BalancedSwapStorage storage self) private view returns (uint256[] memory) {
         return _xp(self.balances, self.tokenMultipliers);
     }
 
@@ -431,13 +450,13 @@ library BalancedPoolLib {
         BalancedSwapStorage storage self,
         uint256 index,
         uint256 amount
-    ) internal {
+    ) private {
         if (amount > 0) {
             self.collectedFees[index] += (amount * self.adminSwapFee) / FEE_DENOMINATOR / self.tokenMultipliers[index];
         }
     }
 
-    function _processSwapFeeAmounts(BalancedSwapStorage storage self, uint256[] memory amounts) internal {
+    function _processSwapFeeAmounts(BalancedSwapStorage storage self, uint256[] memory amounts) private {
         for (uint256 i = 0; i < amounts.length; ++i) {
             _processSwapFeeAmount(self, i, amounts[i]);
         }

@@ -5,8 +5,6 @@ pragma solidity >=0.8.15;
 interface IWeightedPairFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint32 tokenWeight0, uint256);
 
-    function feeTo() external view returns (address);
-
     function formula() external view returns (address);
 
     function protocolFee() external view returns (uint256);

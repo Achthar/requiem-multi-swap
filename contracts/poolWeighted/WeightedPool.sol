@@ -7,7 +7,6 @@ import "../interfaces/ERC20/IERC20.sol";
 import "../interfaces/poolBase/IMultiPool.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/flashLoan/IPoolFlashLoan.sol";
-import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "./WeightedPoolLib.sol";
 import "../poolBase/PoolERC20.sol";
 import "../poolBase/PoolFeeManagement.sol";
@@ -124,6 +123,25 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         address to
     ) external override whenNotPaused nonReentrant {
         swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
+    }
+
+    /**
+     * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
+     * If data.length == 0, onSwapGivenOut should be used instead.
+     * @param tokenIn token for which the amount has already sent to this address
+     * @param tokenOut token for which the calculated output amount will be sent
+     * @param amountOut target amount which will be obtained if swap succeeds
+     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @return inAmount
+     */
+    function onFlashSwap(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address to,
+        bytes calldata data
+    ) external whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.flashSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, data);
     }
 
     /**  @notice Flash loan using weighted pool balances  */
@@ -276,7 +294,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     }
 
     function withdrawAdminFee(address _receiver) external override onlyAdmin {
-        swapStorage.sync(_receiver);
+        swapStorage.withdrawCollectedFees(_receiver);
     }
 
     /// ERC20 ADDITION FOR FEE CONSIDERATION

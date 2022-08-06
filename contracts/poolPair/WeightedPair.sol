@@ -29,8 +29,8 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     uint112 private reserve1; // uses single storage slot, accessible via getReserves
     uint32 internal constant BPS = 10000;
 
-    uint112 private collectedFee0; // uses single storage slot, accessible via getReserves
-    uint112 private collectedFee1; // uses single storage slot, accessible via getReserves
+    uint112 private collectedFee0;
+    uint112 private collectedFee1;
     uint32 private tokenWeight0;
 
     // 1 slot
@@ -41,8 +41,8 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     bool private unlocked = true;
 
     // 1 slot
-    uint112 private vReserve0;
-    uint112 private vReserve1;
+    uint112 private vReserve0; // uses single storage slot, accessible via getReserves
+    uint112 private vReserve1; // uses single storage slot, accessible via getReserves
     uint32 private ampBps = 10000; // 10000 is equivalent to a scale of 1
 
     // ===== modifiers =====
@@ -343,7 +343,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 
     /**
-     * @notice swap function of pair - this low-level function should be called from a contract which performs important safety checks
+     * @notice uniswapV2 type swap function of pair - this low-level function should be called from a contract which performs important safety checks
      * - The function assumes that the correct amount (e.g. using calculateSwapGivenIn) has been sent to this pair already
      * - Amounts are sent to the user and sanity checks are done afterwards (e.g. to ensure that the invariant is unchanged)
      * @param amount0Out token0 output amount

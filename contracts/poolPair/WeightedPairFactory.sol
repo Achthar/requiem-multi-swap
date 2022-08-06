@@ -11,16 +11,26 @@ import "./WeightedPair.sol";
 contract RequiemPairFactory is IWeightedPairFactory {
     using EnumerableSetLite for EnumerableSetLite.AddressSet;
 
-    address public feeTo;
-    address public formula;
-    uint256 public protocolFee;
+    // admin that can set the default protocol fee and default governance
+    // the admin is a contract that assigns governance contracts to pairs
+    // these governance contracts then can make crucial changes to the pair
+    // e.g. change the formula, amplification and swap fee
     address public pairAdmin;
+
+    // default formula for swap calculation
+    address public formula;
+
+    // default governance and protocol fee on creation of pairs
     address public pairGovernance;
+    uint256 public protocolFee;
 
     mapping(bytes32 => address) private _pairSalts;
     uint256 private _pairCount;
+
+    // check whether pair was created by this contract
     mapping(address => bool) private _pairs;
 
+    // mapping that tracks existing pair configs for a token pair
     mapping(address => mapping(address => EnumerableSetLite.AddressSet)) private tokenPairs;
 
     constructor(
@@ -79,12 +89,15 @@ contract RequiemPairFactory is IWeightedPairFactory {
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
+
+        // initialize pair configuration
         IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
         IWeightedPair(pair).switchAdmin(pairAdmin);
-        
-        require(initialFee <= 500 && initialAmp >= 10000, "RLP: ISP");
-        IWeightedPairAdmin(pairAdmin).inititalizePairAdministration(pair, formula, pairGovernance, protocolFee, initialFee, initialAmp);
 
+        require(initialFee <= 500 && initialAmp >= 10000, "RLP: ISP");
+
+        // assign governance contract to pair
+        IWeightedPairAdmin(pairAdmin).inititalizePairAdministration(pair, formula, pairGovernance, protocolFee, initialFee, initialAmp);
 
         tokenPairs[token0][token1].add(pair);
         tokenPairs[token1][token0].add(pair);
@@ -125,5 +138,10 @@ contract RequiemPairFactory is IWeightedPairFactory {
     function setGovernance(address _newGov) external {
         require(msg.sender == pairGovernance, "auth");
         pairGovernance = _newGov;
+    }
+
+    function setDefaultProtocolFee(uint256 _newProtocolFee) external {
+        require(msg.sender == pairAdmin, "auth");
+        protocolFee = _newProtocolFee;
     }
 }
