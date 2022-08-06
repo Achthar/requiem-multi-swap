@@ -71,22 +71,22 @@ contract WeightedPairAdmin {
 
     /// Functions to set pair parameters
 
-    function switchPairAdmin(address _newAdmin, address _pair) external {
+    function switchPairAdmin(address _pair, address _newAdmin) external {
         require(msg.sender == controller, "Unauthorized: Caller has be controller");
         IWeightedPair(_pair).switchAdmin(_newAdmin);
     }
 
-    function setPairAmplification(uint32 _newAmp, address _pair) external {
+    function setPairAmplification(address _pair, uint32 _newAmp) external {
         require(msg.sender == pairGovernances[_pair], "Unauthorized: Caller has be pair governance");
         IWeightedPair(_pair).setAmplification(_newAmp);
     }
 
-    function setPairSwapFee(uint32 _newSwapFee, address _pair) external {
+    function setPairSwapFee(address _pair, uint32 _newSwapFee) external {
         require(msg.sender == pairGovernances[_pair], "Unauthorized: Caller has be pair governance");
         IWeightedPair(_pair).setSwapFee(_newSwapFee);
     }
 
-    function pushGovernance(address _governance, address _pair) external {
+    function pushGovernance(address _pair, address _governance) external {
         require(msg.sender == controller || msg.sender == factory || msg.sender == pairGovernances[_pair], "Unauthorized: Caller has be controller, pair governance or factory");
         pairGovernances[_pair] = _governance;
     }

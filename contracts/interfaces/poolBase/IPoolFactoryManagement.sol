@@ -7,19 +7,9 @@ interface IPoolFactoryManagement {
     event SetFeeToken(address indexed token);
     event SetFeeAmount(uint256 indexed amount);
 
-    function feeTo() external view returns (address);
-
-    function feeToSetter() external view returns (address);
-
     function allPools(uint256) external view returns (address pool);
 
     function isPool(address) external view returns (bool);
 
     function allPoolsLength() external view returns (uint256);
-
-    function setFeeTo(address) external;
-
-    function setFeeToSetter(address) external;
-
-    function setFeeAmount(uint256 _token) external;
 }

@@ -19,9 +19,9 @@ contract StablePoolFactory is IStablePoolFactory, PoolFactoryManagement {
 
     constructor() PoolFactoryManagement() {}
 
-    function initialize(address _feeToSetter, IStablePoolCreator _swapCreator) public {
+    function initialize(IStablePoolCreator _swapCreator, address _admin) public {
         require(_initialized == false, "StablePoolFactory: initialized");
-        feeToSetter = _feeToSetter;
+        _poolFactoryInit(_admin);
         swapCreator = _swapCreator;
         _initialized = true;
     }
@@ -35,7 +35,7 @@ contract StablePoolFactory is IStablePoolFactory, PoolFactoryManagement {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _withdrawFee
-    ) external override onlyCreator returns (address swap) {
+    ) external override onlyCreator whenNotPaused returns (address swap) {
         swap = createPoolInternal(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _withdrawFee);
     }
 
@@ -49,13 +49,12 @@ contract StablePoolFactory is IStablePoolFactory, PoolFactoryManagement {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address swap) {
-        swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, feeAmount, _withdrawFee, feeToSetter, msg.sender);
+        swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, adminFee, _withdrawFee, msg.sender);
         _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);
     }
 
-    function setSwapCreator(IStablePoolCreator _swapCreator) external {
-        require(msg.sender == feeToSetter, "REQ: FORBIDDEN");
+    function setSwapCreator(IStablePoolCreator _swapCreator) external onlyOwner {
         swapCreator = _swapCreator;
     }
 }

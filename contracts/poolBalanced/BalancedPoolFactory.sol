@@ -12,9 +12,9 @@ contract BalancedPoolFactory is IBalancedPoolFactory, PoolFactoryManagement {
     IBalancedPoolCreator public swapCreator;
     bool private _initialized = false;
 
-    function initialize(address _feeToSetter, IBalancedPoolCreator _swapCreator) public {
+    function initialize(IBalancedPoolCreator _swapCreator, address _admin) public {
         require(_initialized == false, "BalancedPoolFactory: initialized");
-        _poolFactoryInit(_feeToSetter, msg.sender);
+        _poolFactoryInit(_admin);
         swapCreator = _swapCreator;
         _initialized = true;
     }
@@ -27,7 +27,7 @@ contract BalancedPoolFactory is IBalancedPoolFactory, PoolFactoryManagement {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _withdrawFee
-    ) external override onlyCreator returns (address swap) {
+    ) external override onlyCreator whenNotPaused returns (address swap) {
         swap = createPoolInternal(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, _withdrawFee);
     }
 
@@ -40,8 +40,12 @@ contract BalancedPoolFactory is IBalancedPoolFactory, PoolFactoryManagement {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address swap) {
-        swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, feeAmount, _withdrawFee, feeToSetter, msg.sender);
+        swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, adminFee, _withdrawFee, msg.sender);
         _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);
+    }
+
+    function setSwapCreator(IBalancedPoolCreator _swapCreator) external onlyOwner {
+        swapCreator = _swapCreator;
     }
 }

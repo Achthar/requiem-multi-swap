@@ -8,6 +8,8 @@ pragma solidity ^0.8.15;
 
 import "../interfaces/ERC20/IERC20.sol";
 
+// solhint-disable no-inline-assembly, avoid-low-level-calls
+
 /**
  * @title SafeERC20
  * @dev Wrappers around ERC20 operations that throw on failure (when the token

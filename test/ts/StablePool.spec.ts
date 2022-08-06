@@ -700,7 +700,7 @@ describe("Stable Pools", () => {
         const bal1Pre = await tokens.token1.balanceOf(wallet.address)
         const bal2Pre = await tokens.token2.balanceOf(wallet.address)
 
-        await fixture.pool.connect(wallet).withdrawAdminFee()
+        await fixture.pool.connect(wallet).withdrawAdminFee(wallet.address)
 
         const bal0Post = await tokens.token0.balanceOf(wallet.address)
         const bal1Post = await tokens.token1.balanceOf(wallet.address)

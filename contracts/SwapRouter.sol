@@ -28,8 +28,9 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
     ) external virtual ensure(deadline) returns (uint256 amountLast) {
         amountLast = amountIn;
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn);
-        for (uint256 i = 0; i < pools.length; i++) {
-            address _to = i == pools.length - 1 ? to : pools[i + 1];
+        uint256 _length = pools.length;
+        for (uint256 i = 0; i < _length; i++) {
+            address _to = i == _length - 1 ? to : pools[i + 1];
             amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
@@ -44,8 +45,9 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
     ) external payable virtual ensure(deadline) returns (uint256 amountLast) {
         amountLast = msg.value;
         transferETHTo(msg.value, pools[0]);
-        for (uint256 i = 0; i < pools.length; i++) {
-            address _to = i == pools.length - 1 ? to : pools[i + 1];
+        uint256 _length = pools.length;
+        for (uint256 i = 0; i < _length; i++) {
+            address _to = i == _length - 1 ? to : pools[i + 1];
             amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
@@ -61,8 +63,9 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
     ) external virtual ensure(deadline) returns (uint256 amountLast) {
         amountLast = amountIn;
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amountIn);
-        for (uint256 i = 0; i < pools.length; i++) {
-            address _to = i == pools.length - 1 ? address(this) : pools[i + 1];
+        uint256 _length = pools.length;
+        for (uint256 i = 0; i < _length; i++) {
+            address _to = i == _length - 1 ? address(this) : pools[i + 1];
             amountLast = ISwap(pools[i]).onSwapGivenIn(tokens[i], tokens[i + 1], _to);
         }
         require(amountOutMin <= amountLast, "INSUFFICIENT_OUTPUT");
@@ -78,9 +81,10 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
         address to,
         uint256 deadline
     ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+        uint256 _length = pools.length;
         // set amount array
         amounts = new uint256[](tokens.length);
-        amounts[pools.length] = amountOut;
+        amounts[_length] = amountOut;
 
         // calculate all amounts to be sent and recieved
         for (uint256 i = amounts.length - 1; i > 0; i--) {
@@ -94,8 +98,8 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0]);
 
         // use general swap functions that do not execute the full calculation to save gas
-        for (uint256 i = 0; i < pools.length; i++) {
-            address _to = i == pools.length - 1 ? to : pools[i + 1];
+        for (uint256 i = 0; i < _length; i++) {
+            address _to = i == _length - 1 ? to : pools[i + 1];
             ISwap(pools[i]).onSwapGivenOut(tokens[i], tokens[i + 1], amounts[i + 1], _to);
         }
     }
@@ -107,8 +111,9 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
         address to,
         uint256 deadline
     ) external payable override ensure(deadline) returns (uint256[] memory amounts) {
+        uint256 _length = pools.length;
         amounts = new uint256[](tokens.length);
-        amounts[pools.length] = amountOut;
+        amounts[_length] = amountOut;
         for (uint256 i = amounts.length - 1; i > 0; i--) {
             amounts[i - 1] = ISwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
         }
@@ -116,8 +121,8 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
         require(amounts[0] <= msg.value, "EXCESSIVE_INPUT");
 
         transferETHTo(amounts[0], pools[0]);
-        for (uint256 i = 0; i < pools.length; i++) {
-            address _to = i == pools.length - 1 ? to : pools[i + 1];
+        for (uint256 i = 0; i < _length; i++) {
+            address _to = i == _length - 1 ? to : pools[i + 1];
             ISwap(pools[i]).onSwapGivenOut(tokens[i], tokens[i + 1], amounts[i + 1], _to);
         }
         // refund dust eth, if any
@@ -132,16 +137,17 @@ contract SwapRouter is ISwapRouter, PairLiquidityManager {
         address to,
         uint256 deadline
     ) external override ensure(deadline) returns (uint256[] memory amounts) {
+        uint256 _length = pools.length;
         amounts = new uint256[](tokens.length);
-        amounts[pools.length] = amountOut;
+        amounts[_length] = amountOut;
         for (uint256 i = amounts.length - 1; i > 0; i--) {
             amounts[i - 1] = ISwap(pools[i - 1]).calculateSwapGivenOut(tokens[i - 1], tokens[i], amounts[i]);
         }
 
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT");
         TransferHelper.safeTransferFrom(tokens[0], msg.sender, pools[0], amounts[0]);
-        for (uint256 i = 0; i < pools.length; i++) {
-            address _to = i == pools.length - 1 ? address(this) : pools[i + 1];
+        for (uint256 i = 0; i < _length; i++) {
+            address _to = i == _length - 1 ? address(this) : pools[i + 1];
             ISwap(pools[i]).onSwapGivenOut(tokens[i], tokens[i + 1], amounts[i + 1], _to);
         }
 

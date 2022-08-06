@@ -44,18 +44,16 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
-        address _feeController,
         address _creator
     ) external initializer {
         // init LP token description
         _poolTokenInit(_name, _symbol);
 
         require(_coins.length == _decimals.length, "ArrayError");
-        require(_feeController != address(0), "AddressError");
         swapStorage.nTokens = _coins.length;
         swapStorage.tokenMultipliers = new uint256[](swapStorage.nTokens);
         swapStorage.pooledTokens = new IERC20[](swapStorage.nTokens);
-        require(_fee <= MAX_TRANSACTION_FEE, "swapFeeError");
+        require(_fee <= MAX_TRANSACTION_FEE, "SwapFeeError");
         require(_adminFee <= MAX_ADMIN_FEE, "AdminFeeError");
 
         for (uint8 i = 0; i < swapStorage.nTokens; i++) {
@@ -77,8 +75,6 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
 
         swapStorage.defaultWithdrawFee = _withdrawFee;
         swapStorage.withdrawDuration = (4 weeks);
-        feeController = _feeController;
-        feeDistributor = _feeController;
         swapStorage.collectedFees = new uint256[](swapStorage.nTokens);
         creator = _creator;
     }
@@ -104,6 +100,18 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         address to
     ) external override whenNotPaused nonReentrant {
         swapStorage.onSwapGivenOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
+    }
+
+    // Very similar
+    // will transfer amounts to itself as input is not yet known
+    function onFlashSwap(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        IFlashSwapRecipient to,
+        bytes calldata data
+    ) external whenNotPaused nonReentrant {
+        swapStorage.flashSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, data);
     }
 
     /**  @notice Flash loan using pool balances  */
@@ -217,15 +225,20 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     /// FEE INTERNALS
 
     /**
-     * @notice Sets the all applicable transaction fees
-     * swap fee cannot be higher than 1% of each swap
+     * @notice Sets the swap fee
      * @param newSwapFee new swap fee to be applied on future transactions
+     */
+    function _setSwapFee(uint256 newSwapFee) internal override {
+        swapStorage.fee = newSwapFee;
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / BalancedPoolLib.FEE_DENOMINATOR;
+    }
+
+    /**
+     * @notice Sets the fee for flash loans
      * @param newFlashFee new flash loan fee
      */
-    function _setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) internal override {
-        swapStorage.fee = newSwapFee;
+    function _setFlashFee(uint256 newFlashFee) internal override {
         swapStorage.flashFee = newFlashFee;
-        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / BalancedPoolLib.FEE_DENOMINATOR;
     }
 
     /**
@@ -249,8 +262,8 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         swapStorage.withdrawDuration = newWithdrawDuration;
     }
 
-    function withdrawAdminFee() external override onlyFeeController {
-        swapStorage.sync(feeDistributor);
+    function withdrawAdminFee(address _receiver) external override onlyAdmin {
+        swapStorage.sync(_receiver);
     }
 
     /// ERC20 ADDITION FOR FEE CONSIDERATION

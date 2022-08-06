@@ -14,7 +14,6 @@ interface IStablePoolCreator {
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
-        address _feeController,
         address _creator
     ) external returns (address);
 }

@@ -50,14 +50,12 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
-        address _feeController,
         address _creator
     ) external initializer {
         // initialize pool token data
         _poolTokenInit(_name, _symbol);
 
         require(_coins.length == _decimals.length, "ArrayError");
-        require(_feeController != address(0), "AddressError");
         swapStorage.tokenMultipliers = new uint256[](_coins.length);
         swapStorage.pooledTokens = new IERC20[](_coins.length);
         for (uint8 i = 0; i < _coins.length; i++) {
@@ -88,8 +86,6 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
 
         // assign creator and fee controller
         creator = _creator;
-        feeController = _feeController;
-        feeDistributor = _feeController;
     }
 
     /// PUBLIC FUNCTIONS
@@ -232,7 +228,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param futureA the new A to ramp towards
      * @param futureATime timestamp when the new A should be reached
      */
-    function rampA(uint256 futureA, uint256 futureATime) external onlyGovernance {
+    function rampA(uint256 futureA, uint256 futureATime) external onlyAdmin {
         require(block.timestamp >= swapStorage.initialATime + (1 days), "Ramp period"); // please wait 1 days before start a new ramping
         require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "Ramp too early");
         require(0 < futureA && futureA < MAX_A, "AError");
@@ -254,7 +250,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         emit RampA(initialAPrecise, futureAPrecise, block.timestamp, futureATime);
     }
 
-    function stopRampA() external onlyGovernance {
+    function stopRampA() external onlyAdmin {
         require(swapStorage.futureATime > block.timestamp, "alreadyStopped");
         uint256 currentA = swapStorage.getAPrecise();
 
@@ -269,15 +265,20 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
     /// FEE INTERNALS
 
     /**
-     * @notice Sets the all applicable transaction fees
-     * swap fee cannot be higher than 1% of each swap
+     * @notice Sets the swap fee
      * @param newSwapFee new swap fee to be applied on future transactions
+     */
+    function _setSwapFee(uint256 newSwapFee) internal override {
+        swapStorage.fee = newSwapFee;
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / StablePoolLib.FEE_DENOMINATOR;
+    }
+
+    /**
+     * @notice Sets the fee for flash loans
      * @param newFlashFee new flash loan fee
      */
-    function _setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) internal override {
-        swapStorage.fee = newSwapFee;
+    function _setFlashFee(uint256 newFlashFee) internal override {
         swapStorage.flashFee = newFlashFee;
-        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / StablePoolLib.FEE_DENOMINATOR;
     }
 
     /**
@@ -301,8 +302,8 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         swapStorage.withdrawDuration = newWithdrawDuration;
     }
 
-    function withdrawAdminFee() external override onlyFeeController {
-        swapStorage.sync(feeDistributor);
+    function withdrawAdminFee(address _receiver) external override onlyAdmin {
+        swapStorage.sync(_receiver);
     }
 
     /// ERC20 ADDITION FOR FEE CONSIDERATION

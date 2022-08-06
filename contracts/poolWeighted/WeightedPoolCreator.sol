@@ -18,11 +18,10 @@ contract WeightedPoolCreator is IWeightedPoolCreator {
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
-        address _feeController,
         address _creator
     ) external override returns (address) {
         WeightedPool swap = new WeightedPool();
-        swap.initialize(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, _withdrawFee, _feeController, _creator);
+        swap.initialize(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, _adminFee, _withdrawFee, _creator);
         return address(swap);
     }
 }

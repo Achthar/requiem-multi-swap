@@ -5,6 +5,7 @@ import "../interfaces/ERC20/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "../libraries/math/BalancedMath.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
+import "../interfaces/poolBase/IFlashSwapRecipient.sol";
 
 // solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
 
@@ -167,6 +168,49 @@ library BalancedPoolLib {
         self.balances[outIndex] -= outAmount;
 
         emit TokenExchange(to, inIndex, inAmount, outIndex, outAmount);
+    }
+
+    /**
+     * @notice Swaps for provided amountOut - the calk
+     * @param inIndex token index in
+     * @param outIndex token index out
+     */
+    function flashSwap(
+        BalancedSwapStorage storage self,
+        uint256 inIndex,
+        uint256 outIndex,
+        uint256 outAmount,
+        IFlashSwapRecipient to,
+        bytes calldata data
+    ) external returns (uint256 inAmount) {
+        // we fetch the token and provide it as input for the flash call
+        IERC20 tokenOut = self.pooledTokens[outIndex];
+        address receiverAddress = address(to);
+
+        // optimistic transfer
+        tokenOut.safeTransfer(receiverAddress, outAmount);
+
+        // flash call of recipient
+        if (data.length != 0) to.recieveSwapAmount(msg.sender, tokenOut, outAmount, data);
+
+        // get actual new in balance
+        uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
+
+        uint256 numerator = balanceIn * outAmount * FEE_DENOMINATOR;
+        uint256 denominator = (self.balances[outIndex] - outAmount) * (FEE_DENOMINATOR - self.fee);
+        inAmount = numerator / denominator + 1;
+
+        // collect admin fee
+        self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
+
+        //validate trade
+        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
+
+        // update balances
+        self.balances[inIndex] = balanceIn;
+        self.balances[outIndex] -= outAmount;
+
+        emit TokenExchange(receiverAddress, inIndex, inAmount, outIndex, outAmount);
     }
 
     /**

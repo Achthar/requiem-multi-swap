@@ -55,6 +55,11 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         unlocked = true;
     }
 
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "REQLP: admin");
+        _;
+    }
+
     // ===== views =====
 
     /** @notice gets bot reserves and virtual reserves */
@@ -117,8 +122,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         address _token0,
         address _token1,
         uint32 _tokenWeight0
-    ) external {
-        require(msg.sender == admin, "REQLP: F");
+    ) external onlyAdmin {
         // sufficient check
         token0 = _token0;
         token1 = _token1;
@@ -363,9 +367,9 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             address _token0 = token0;
             address _token1 = token1;
             require(to != _token0 && to != _token1, "REQLP: IT");
-            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-            if (data.length > 0) IRequiemCallee(to).requiemCall(msg.sender, amount0Out, amount1Out, data); // flash swap
+            if (amount0Out != 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out != 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            if (data.length != 0) IRequiemCallee(to).requiemCall(msg.sender, amount0Out, amount1Out, data); // flash swap
             newReserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
             newReserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
 
@@ -375,18 +379,18 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 amount0In = newReserveData.reserve0 > reserveData.reserve0 - amount0Out ? newReserveData.reserve0 - (reserveData.reserve0 - amount0Out) : 0;
         uint256 amount1In = newReserveData.reserve1 > reserveData.reserve1 - amount1Out ? newReserveData.reserve1 - (reserveData.reserve1 - amount1Out) : 0;
 
-        require(amount0In > 0 || amount1In > 0, "REQLP: IIA");
+        require(amount0In != 0 || amount1In != 0, "REQLP: IIA");
 
         uint256 balance0Adjusted = newReserveData.vReserve0 * 10000;
         uint256 balance1Adjusted = newReserveData.vReserve1 * 10000;
 
         // fee handling
-        if (amount0In > 0) {
+        if (amount0In != 0) {
             uint256 amount0InFee = amount0In * swapFee;
             balance0Adjusted -= amount0InFee;
             collectedFee0 = uint112(uint256(collectedFee0) + amount0InFee);
         }
-        if (amount1In > 0) {
+        if (amount1In != 0) {
             uint256 amount1InFee = amount1In * swapFee;
             balance1Adjusted -= amount1InFee;
             collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
@@ -396,7 +400,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
 
         _update(newReserveData);
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
-        return amount0Out > 0 ? amount0Out : amount1Out;
+        return amount0Out != 0 ? amount0Out : amount1Out;
     }
 
     /**
@@ -455,7 +459,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             newReserveData.reserve1 = balanceIn;
             newReserveData.reserve0 = IERC20(token0).balanceOf(address(this));
 
-            require(balanceIn >= amountIn + reserve1);
+            require(balanceIn >= amountIn + reserve1, "insufficient in");
 
             emit Swap(msg.sender, 0, amountIn, amountOut, 0, to);
         } else {
@@ -490,9 +494,8 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @notice Changes cruicial parameters - can only be called by admin - virtual reserves will be adjusted here, too
      * @param _newSwapFee new swap fee to use
      */
-    function setSwapFee(uint32 _newSwapFee) external {
-        require(msg.sender == admin);
-        require(_newSwapFee <= 60000); // 70% is the maximum
+    function setSwapFee(uint32 _newSwapFee) external onlyAdmin {
+        require(_newSwapFee <= 1000); // 10% is the maximum
         swapFee = _newSwapFee;
     }
 
@@ -500,8 +503,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @notice Changes cruicial parameters - can only be called by admin - virtual reserves will be adjusted here, too
      * @param _newAmp new amplification parameter to scale virtual reserves
      */
-    function setAmplification(uint32 _newAmp) external {
-        require(msg.sender == admin);
+    function setAmplification(uint32 _newAmp) external onlyAdmin {
         require(_newAmp >= 5000); // allows de-amplification
         vReserve0 = (vReserve0 * _newAmp) / BPS;
         vReserve1 = (vReserve1 * _newAmp) / BPS;
@@ -513,8 +515,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @notice Allows admin to change the formula
      * @param _newFormula new amplification parameter to scale virtual reserves
      */
-    function setFormula(address _newFormula) external {
-        require(msg.sender == admin);
+    function setFormula(address _newFormula) external onlyAdmin {
         formula = _newFormula;
     }
 
@@ -522,8 +523,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @notice Changes cruicial parameters - can only be called by admin - virtual reserves will be adjusted here, too
      * @param _newAdmin new swap fee to use
      */
-    function switchAdmin(address _newAdmin) external {
-        require(msg.sender == admin);
+    function switchAdmin(address _newAdmin) external onlyAdmin {
         admin = _newAdmin;
     }
 }

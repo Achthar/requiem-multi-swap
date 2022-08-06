@@ -21,7 +21,9 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
     /// STATE VARS
+    // storage
     WeightedPoolLib.WeightedSwapStorage public swapStorage;
+    // creator of the pool
     address public creator;
     // indexes for tokens in array
     mapping(address => uint8) public tokenIndexes;
@@ -43,7 +45,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
-        address _feeController,
         address _creator
     ) external initializer {
         // initialize token
@@ -64,8 +65,6 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
 
         // assign creator and fee controller
         creator = _creator;
-        feeDistributor = _feeController;
-        feeController = _feeController;
     }
 
     function _assignArrays(
@@ -73,7 +72,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         address[] memory _coins,
         uint256[] memory _normalizedWeights,
         uint8[] memory _decimals
-    ) internal {
+    ) private {
         swapStorage.nTokens = _length;
         require(_length == _decimals.length, "ArrayError");
         swapStorage.withdrawDuration = (4 weeks);
@@ -239,15 +238,20 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     /// FEE INTERNALS
 
     /**
-     * @notice Sets the all applicable transaction fees
-     * swap fee cannot be higher than 1% of each swap
+     * @notice Sets the swap fee
      * @param newSwapFee new swap fee to be applied on future transactions
+     */
+    function _setSwapFee(uint256 newSwapFee) internal override {
+        swapStorage.fee = newSwapFee;
+        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / WeightedPoolLib.FEE_DENOMINATOR;
+    }
+
+    /**
+     * @notice Sets the fee for flash loans
      * @param newFlashFee new flash loan fee
      */
-    function _setTransactionFees(uint256 newSwapFee, uint256 newFlashFee) internal override {
-        swapStorage.fee = newSwapFee;
+    function _setFlashFee(uint256 newFlashFee) internal override {
         swapStorage.flashFee = newFlashFee;
-        swapStorage.adminSwapFee = (swapStorage.adminFee * newSwapFee) / WeightedPoolLib.FEE_DENOMINATOR;
     }
 
     /**
@@ -271,8 +275,8 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         swapStorage.withdrawDuration = newWithdrawDuration;
     }
 
-    function withdrawAdminFee() external override onlyFeeController {
-        swapStorage.sync(feeDistributor);
+    function withdrawAdminFee(address _receiver) external override onlyAdmin {
+        swapStorage.sync(_receiver);
     }
 
     /// ERC20 ADDITION FOR FEE CONSIDERATION

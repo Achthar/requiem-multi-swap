@@ -6,6 +6,8 @@ import "./interfaces/poolPair/IWeightedPair.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/ERC20/IERC20.sol";
 
+// solhint-disable reason-string
+
 contract ProtocolFeeRemover {
     address public receiver;
     address public governance;

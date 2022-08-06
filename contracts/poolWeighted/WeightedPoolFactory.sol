@@ -16,9 +16,9 @@ contract WeightedPoolFactory is IWeightedPoolFactory, PoolFactoryManagement {
     IWeightedPoolCreator public swapCreator;
     bool private _initialized = false;
 
-    function initialize(address _feeToSetter, IWeightedPoolCreator _swapCreator) public {
+    function initialize(IWeightedPoolCreator _swapCreator, address _admin) public {
         require(_initialized == false, "WeightedPoolFactory: initialized");
-        feeToSetter = _feeToSetter;
+        _poolFactoryInit(_admin);
         swapCreator = _swapCreator;
         _initialized = true;
     }
@@ -32,7 +32,7 @@ contract WeightedPoolFactory is IWeightedPoolFactory, PoolFactoryManagement {
         uint256 _fee,
         uint256 _flashFee,
         uint256 _withdrawFee
-    ) external override returns (address swap) {
+    ) external override onlyCreator whenNotPaused returns (address swap) {
         swap = createPoolInternal(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, _withdrawFee);
     }
 
@@ -46,26 +46,13 @@ contract WeightedPoolFactory is IWeightedPoolFactory, PoolFactoryManagement {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address swap) {
-        swap = IWeightedPoolCreator(swapCreator).create(
-            _pooledTokens,
-            decimals,
-            normalizedWeights,
-            lpTokenName,
-            lpTokenSymbol,
-            _fee,
-            _flashFee,
-            feeAmount,
-            _withdrawFee,
-            feeToSetter,
-            msg.sender
-        );
+        swap = IWeightedPoolCreator(swapCreator).create(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, adminFee, _withdrawFee, msg.sender);
 
         _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);
     }
 
-    function setSwapCreator(IWeightedPoolCreator _swapCreator) external {
-        require(msg.sender == feeToSetter, "REQ: FORBIDDEN");
+    function setSwapCreator(IWeightedPoolCreator _swapCreator) external onlyOwner {
         swapCreator = _swapCreator;
     }
 }

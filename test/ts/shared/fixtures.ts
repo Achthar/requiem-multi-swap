@@ -365,8 +365,8 @@ export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockE
     const creator = await new StablePoolCreator__factory({ ["contracts/poolStable/StablePoolLib.sol:StablePoolLib"]: lib.address }, signer).deploy()
     const factory = await new StablePoolFactory__factory(signer).deploy()
 
-    await factory.initialize(signer.address, creator.address)
-    await factory.setFeeAmount(
+    await factory.initialize(creator.address, signer.address)
+    await factory.setStandardAdminFee(
         parseUnits('5', 17), // admin fee 50%
     )
 
@@ -433,8 +433,8 @@ export async function weightedPoolFixture(signer: SignerWithAddress, tokens: Moc
     const creator = await new WeightedPoolCreator__factory({ ["contracts/poolWeighted/WeightedPoolLib.sol:WeightedPoolLib"]: lib.address }, signer).deploy()
     const factory = await new WeightedPoolFactory__factory(signer).deploy()
 
-    await factory.initialize(signer.address, creator.address)
-    await factory.setFeeAmount(
+    await factory.initialize(creator.address, signer.address)
+    await factory.setStandardAdminFee(
         parseUnits('5', 17), // admin fee 50%
     )
 
@@ -489,8 +489,8 @@ export async function balancedPoolFixture(signer: SignerWithAddress, tokens: Moc
     const creator = await new BalancedPoolCreator__factory({ ["contracts/poolBalanced/BalancedPoolLib.sol:BalancedPoolLib"]: lib.address }, signer).deploy()
     const factory = await new BalancedPoolFactory__factory(signer).deploy()
 
-    await factory.initialize(signer.address, creator.address)
-    await factory.setFeeAmount(
+    await factory.initialize(creator.address, signer.address)
+    await factory.setStandardAdminFee(
         parseUnits('5', 17), // admin fee 50%
     )
 
