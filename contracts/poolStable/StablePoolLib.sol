@@ -314,34 +314,42 @@ library StablePoolLib {
         bytes memory userData
     ) external {
         uint256 _count = amounts.length;
+        // array cannot be too long
+        require(_count <= self.nTokens, "invalid length");
         uint256[] memory feeAmounts = new uint256[](_count);
         uint256[] memory preLoanBalances = new uint256[](_count);
 
         for (uint256 i = 0; i < _count; ++i) {
-            IERC20 token = self.pooledTokens[i];
             uint256 amount = amounts[i];
+            if (amount != 0) {
+                // ignore zero amounts
+                IERC20 token = self.pooledTokens[i];
 
-            preLoanBalances[i] = token.balanceOf(address(this));
-            feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
+                preLoanBalances[i] = token.balanceOf(address(this));
+                feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
-            require(preLoanBalances[i] >= amount, "pre balances");
-            token.safeTransfer(address(recipient), amount);
+                require(preLoanBalances[i] >= amount, "pre balances");
+                token.safeTransfer(address(recipient), amount);
+            }
         }
 
         recipient.receiveFlashLoan(self.pooledTokens, amounts, feeAmounts, userData);
 
         for (uint256 i = 0; i < _count; ++i) {
-            uint256 preLoanBalance = preLoanBalances[i];
-            uint256 feeAmount = feeAmounts[i];
-            // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
-            // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
-            uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
-            require(postLoanBalance >= preLoanBalance, "post balances");
-            self.balances[i] = postLoanBalance;
-            self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
-            // No need for checked arithmetic since we know the loan was fully repaid.
-            uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
-            require(receivedFeeAmount >= feeAmount, "insufficient loan fee");
+            if (amounts[i] != 0) {
+                // ignore zero amounts
+                uint256 preLoanBalance = preLoanBalances[i];
+                uint256 feeAmount = feeAmounts[i];
+                // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
+                // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
+                uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
+                require(postLoanBalance >= preLoanBalance, "post balances");
+                self.balances[i] = postLoanBalance;
+                self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
+                // No need for checked arithmetic since we know the loan was fully repaid.
+                uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
+                require(receivedFeeAmount >= feeAmount, "insufficient loan fee");
+            }
         }
 
         emit FlashLoan(recipient, amounts, feeAmounts);

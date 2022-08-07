@@ -116,17 +116,16 @@ library WeightedPoolLib {
         // respect fee in amount sent
         uint256 amountInWithFee = (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
 
-        // get out amount
-        outAmount = WeightedMath._calcOutGivenIn(
-            self.balances[inIndex] * inMultiplier,
-            self.normalizedWeights[inIndex],
-            self.balances[outIndex] * outMultiplier,
-            self.normalizedWeights[outIndex],
-            amountInWithFee
-        );
-
-        // denormalize amount
-        outAmount = outAmount / outMultiplier;
+        // get out amount denormalized
+        outAmount =
+            WeightedMath._calcOutGivenIn(
+                self.balances[inIndex] * inMultiplier,
+                self.normalizedWeights[inIndex],
+                self.balances[outIndex] * outMultiplier,
+                self.normalizedWeights[outIndex],
+                amountInWithFee
+            ) /
+            outMultiplier;
 
         // update balances
         self.balances[inIndex] = balanceIn;
@@ -158,19 +157,22 @@ library WeightedPoolLib {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
 
-        // get out amount
-        outAmount = WeightedMath._calcOutGivenIn(
-            self.balances[inIndex] * inMultiplier,
-            self.normalizedWeights[inIndex],
-            self.balances[outIndex] * outMultiplier,
-            self.normalizedWeights[outIndex],
-            (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // amount in with fee
-        );
-        
-        // denormalize amounts
-        inAmount /= inMultiplier;
-        outAmount /= outMultiplier;
+        // get out amount denormalized
+        outAmount =
+            WeightedMath._calcOutGivenIn(
+                self.balances[inIndex] * inMultiplier,
+                self.normalizedWeights[inIndex],
+                self.balances[outIndex] * outMultiplier,
+                self.normalizedWeights[outIndex],
+                (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // amount in with fee
+            ) /
+            outMultiplier;
 
+        // denormalize amount in
+        inAmount /= inMultiplier;
+
+        // transfer amount optimistically
+        self.pooledTokens[outIndex].safeTransfer(to, outAmount);
         // reduce scope to avoid stack too deep errors
         uint256 balanceIn;
         {
@@ -191,9 +193,6 @@ library WeightedPoolLib {
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
-
-        // transfer amount
-        self.pooledTokens[outIndex].safeTransfer(to, outAmount);
 
         self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
         emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
@@ -316,31 +315,40 @@ library WeightedPoolLib {
         bytes memory userData
     ) external returns (uint256[] memory feeAmounts) {
         uint256 length = amounts.length;
+        // its no problem if the amounts array is too short, it shall be euqivalent of using zeros in the remaining entries
+        // it cannot be too long however
+        require(length <= self.nTokens, "invalid length");
         feeAmounts = new uint256[](length);
         uint256[] memory preLoanBalances = new uint256[](length);
         for (uint256 i = 0; i < length; ++i) {
             uint256 amount = amounts[i];
-            preLoanBalances[i] = self.pooledTokens[i].balanceOf(address(this));
-            feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
+            if (amount != 0) {
+                // zeros will be ignored
+                preLoanBalances[i] = self.pooledTokens[i].balanceOf(address(this));
+                feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
-            require(preLoanBalances[i] >= amount, "pre bals");
-            self.pooledTokens[i].safeTransfer(address(recipient), amount);
+                require(preLoanBalances[i] >= amount, "pre bals");
+                self.pooledTokens[i].safeTransfer(address(recipient), amount);
+            }
         }
 
         recipient.receiveFlashLoan(self.pooledTokens, amounts, feeAmounts, userData);
         for (uint256 i = 0; i < length; ++i) {
-            uint256 preLoanBalance = preLoanBalances[i];
-            uint256 feeAmount = feeAmounts[i];
-            // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
-            // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
-            uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
-            require(postLoanBalance >= preLoanBalance, "post bal");
-            self.balances[i] = postLoanBalance;
-            self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
-            // No need for checked arithmetic since we know the loan was fully repaid.
-            uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
+            if (amounts[i] != 0) {
+                // validation only for non-zero amounts
+                uint256 preLoanBalance = preLoanBalances[i];
+                uint256 feeAmount = feeAmounts[i];
+                // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
+                // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
+                uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
+                require(postLoanBalance >= preLoanBalance, "post bal");
+                self.balances[i] = postLoanBalance;
+                self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
+                // No need for checked arithmetic since we know the loan was fully repaid.
+                uint256 receivedFeeAmount = postLoanBalance - preLoanBalance;
 
-            require(receivedFeeAmount >= feeAmount, "insufficient loan fee");
+                require(receivedFeeAmount >= feeAmount, "insufficient loan fee");
+            }
         }
     }
 
