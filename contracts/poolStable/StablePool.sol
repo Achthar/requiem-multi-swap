@@ -19,15 +19,6 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
     using StablePoolLib for StablePoolLib.SwapStorage;
     using SafeERC20 for IERC20;
 
-    event RampA(uint256 oldA, uint256 newA, uint256 initialTime, uint256 futureTime);
-
-    event StopRampA(uint256 A, uint256 timestamp);
-
-    /// constants
-    uint256 internal constant MIN_RAMP_TIME = 1 days;
-    uint256 internal constant MAX_A = 1e7;
-    uint256 internal constant MAX_A_CHANGE = 100;
-
     /// STATE VARS
     StablePoolLib.SwapStorage public swapStorage;
     address public creator;
@@ -54,26 +45,26 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
     ) external initializer {
         // initialize pool token data
         _poolTokenInit(_name, _symbol);
-
-        require(_coins.length == _decimals.length, "ArrayError");
-        swapStorage.tokenMultipliers = new uint256[](_coins.length);
-        swapStorage.pooledTokens = new IERC20[](_coins.length);
-        for (uint8 i = 0; i < _coins.length; i++) {
+        uint256 length = _coins.length;
+        require(length == _decimals.length, "ArrayError");
+        swapStorage.tokenMultipliers = new uint256[](length);
+        swapStorage.pooledTokens = new IERC20[](length);
+        for (uint8 i = 0; i < length; i++) {
             require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "DecimalError");
             swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = IERC20(_coins[i]);
             tokenIndexes[address(_coins[i])] = i;
         }
 
-        require(_A < MAX_A, "MaxA");
+        require(_A < StablePoolLib.MAX_A, "MaxA");
         require(_fee <= MAX_TRANSACTION_FEE, "MaxSwapFee");
         require(_adminFee <= MAX_ADMIN_FEE, "MaxAdminFee");
         require(_withdrawFee <= MAX_TRANSACTION_FEE, "MaxWithdrawFee");
 
-        swapStorage.balances = new uint256[](_coins.length);
+        swapStorage.balances = new uint256[](length);
         swapStorage.initialA = _A * StablePoolLib.A_PRECISION;
         swapStorage.futureA = _A * StablePoolLib.A_PRECISION;
-        swapStorage.nTokens = _coins.length;
+        swapStorage.nTokens = length;
 
         // initialize fee data
         swapStorage.fee = _fee;
@@ -82,7 +73,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         swapStorage.adminSwapFee = (_adminFee * _fee) / StablePoolLib.FEE_DENOMINATOR;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         swapStorage.withdrawDuration = (4 weeks);
-        swapStorage.collectedFees = new uint256[](_coins.length);
+        swapStorage.collectedFees = new uint256[](length);
 
         // assign creator and fee controller
         creator = _creator;
@@ -95,8 +86,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         address to,
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
-        uint256 _totalSupply = totalSupply;
-        if (_totalSupply == 0) {
+        if (totalSupply == 0) {
             require(msg.sender == creator, "can only be inititalized by creator");
             mintAmount = swapStorage.addLiquidityInit(amounts);
         } else {
@@ -141,18 +131,35 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * If data.length == 0, onSwapGivenOut should be used instead.
      * @param tokenIn token for which the amount has already sent to this address
      * @param tokenOut token for which the calculated output amount will be sent
+     * @param amountIn target amount send to recipient will be calculated from this value
+     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @return inAmount
+     */
+    function onFlashSwapExactIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address to
+    ) external whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+    }
+
+    /**
+     * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
+     * If data.length == 0, onSwapGivenOut should be used instead.
+     * @param tokenIn token for which the amount has already sent to this address
+     * @param tokenOut token for which the calculated output amount will be sent
      * @param amountOut target amount which will be obtained if swap succeeds
      * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
      * @return inAmount
      */
-    function onFlashSwap(
+    function onFlashSwapExactOut(
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
-        address to,
-        bytes calldata data
+        address to
     ) external whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.flashSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, data);
+        return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
     /**  @notice Flash loan using stable swap balances  */
@@ -244,37 +251,11 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param futureATime timestamp when the new A should be reached
      */
     function rampA(uint256 futureA, uint256 futureATime) external onlyAdmin {
-        require(block.timestamp >= swapStorage.initialATime + (1 days), "Ramp period"); // please wait 1 days before start a new ramping
-        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "Ramp too early");
-        require(0 < futureA && futureA < MAX_A, "AError");
-
-        uint256 initialAPrecise = swapStorage.getAPrecise();
-        uint256 futureAPrecise = futureA * StablePoolLib.A_PRECISION;
-
-        if (futureAPrecise < initialAPrecise) {
-            require(futureAPrecise * (MAX_A_CHANGE) >= initialAPrecise, "TooHigh");
-        } else {
-            require(futureAPrecise <= initialAPrecise * (MAX_A_CHANGE), "TooLow");
-        }
-
-        swapStorage.initialA = initialAPrecise;
-        swapStorage.futureA = futureAPrecise;
-        swapStorage.initialATime = block.timestamp;
-        swapStorage.futureATime = futureATime;
-
-        emit RampA(initialAPrecise, futureAPrecise, block.timestamp, futureATime);
+        swapStorage.rampA(futureA, futureATime);
     }
 
     function stopRampA() external onlyAdmin {
-        require(swapStorage.futureATime > block.timestamp, "alreadyStopped");
-        uint256 currentA = swapStorage.getAPrecise();
-
-        swapStorage.initialA = currentA;
-        swapStorage.futureA = currentA;
-        swapStorage.initialATime = block.timestamp;
-        swapStorage.futureATime = block.timestamp;
-
-        emit StopRampA(currentA, block.timestamp);
+        swapStorage.stopRampA();
     }
 
     /// FEE INTERNALS

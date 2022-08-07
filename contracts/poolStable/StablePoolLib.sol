@@ -25,6 +25,11 @@ library StablePoolLib {
     event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 invariant, uint256 token_supply);
 
     event CollectProtocolFee(address token, uint256 amount);
+
+    event RampA(uint256 oldA, uint256 newA, uint256 initialTime, uint256 futureTime);
+
+    event StopRampA(uint256 A, uint256 timestamp);
+
     /**
      * @dev Emitted for each individual flash loan performed by `flashLoan`.
      */
@@ -35,6 +40,9 @@ library StablePoolLib {
     /// @dev protect from division loss when run approximation loop. We cannot divide at the end because of overflow,
     /// so we add some (small) PRECISION when divide in each iteration
     uint256 public constant A_PRECISION = 1e3;
+    uint256 internal constant MIN_RAMP_TIME = 1 days;
+    uint256 internal constant MAX_A = 1e7;
+    uint256 internal constant MAX_A_CHANGE = 100;
     /// @dev max iteration of converge calccuate
     uint256 internal constant MAX_ITERATION = 256;
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
@@ -81,7 +89,7 @@ library StablePoolLib {
         uint256 minMintAmount,
         uint256 tokenSupply
     ) external returns (uint256 mintAmount) {
-        uint256 nCoins = self.pooledTokens.length;
+        uint256 nCoins = self.nTokens;
         require(amounts.length == nCoins, "arrayError");
         uint256[] memory fees = new uint256[](nCoins);
         uint256 _fee = _feePerToken(self);
@@ -124,7 +132,7 @@ library StablePoolLib {
      * @return mintAmount Amount of LP tokens received by depositing
      */
     function addLiquidityInit(SwapStorage storage self, uint256[] memory amounts) external returns (uint256 mintAmount) {
-        uint256 nCoins = self.pooledTokens.length;
+        uint256 nCoins = self.nTokens;
         require(amounts.length == nCoins, "arrayError");
 
         uint256[] memory newBalances = self.balances;
@@ -162,23 +170,62 @@ library StablePoolLib {
     ) external returns (uint256 dy) {
         uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
         uint256 inAmount = balanceIn - self.balances[i];
-        uint256[] memory normalizedBalances = _xp(self);
-        uint256 x = normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]);
-        uint256 y = _getY(self, i, j, x, normalizedBalances);
 
-        dy = (normalizedBalances[j] - y) / self.tokenMultipliers[j]; // denormalize
-        uint256 dy_fee = (dy * self.fee) / FEE_DENOMINATOR; // charge fee on actual out amount
-
-        dy -= dy_fee;
+        dy = _calcOutGivenIn(self, i, j, inAmount);
 
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= dy;
-        self.collectedFees[j] += (dy_fee * self.adminFee) / FEE_DENOMINATOR;
+        self.collectedFees[j] += (dy * self.adminSwapFee) / FEE_DENOMINATOR;
 
         self.pooledTokens[j].safeTransfer(to, dy);
 
         emit TokenExchange(msg.sender, i, inAmount, j, dy, to);
+    }
+
+    /**
+     *  the same function as swap, but it expects that amounts already have been
+     *  sent to the contract
+     *   - designed to be used in the Requiem Swap framework
+     *   - deducts the fee from the output, in this case simple as the output is the calculated value
+     *   - viable function for batch swapping
+     * @param i token index in
+     * @param j token index out
+     */
+    function flashSwapExactIn(
+        SwapStorage storage self,
+        uint256 i,
+        uint256 j,
+        uint256 inAmount,
+        address to
+    ) external returns (uint256 outAmount) {
+        // calculate out amount from assumed in amount
+        outAmount = _calcOutGivenIn(self, i, j, inAmount);
+        // we fetch the tokens and provide it as input for the flash call
+        IERC20 tokenIn = self.pooledTokens[i];
+        IERC20 tokenOut = self.pooledTokens[j];
+        // address receiverAddress = address(to);
+
+        // optimistic transfer
+        tokenOut.safeTransfer(to, outAmount);
+
+        // flash call of recipient
+        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+
+        // get actual new in balance
+        uint256 balanceIn = tokenIn.balanceOf(address(this));
+
+        // check the whether sufficient amounts have been sent in
+        require(inAmount <= balanceIn - self.balances[i], "insufficient in");
+
+        // update balances
+        self.balances[i] = balanceIn;
+        self.balances[j] -= outAmount;
+
+        // collect admin fee
+        self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
+
+        emit TokenExchange(msg.sender, i, inAmount, j, outAmount, to);
     }
 
     /**
@@ -222,19 +269,14 @@ library StablePoolLib {
      * @param j token index out
      * @param outAmount amount of token with outIndex to be sent
      * @param to flash swap recipient
-     * @param data data that caller can provide to the flash call
      */
-    function flashSwap(
+    function flashSwapExactOut(
         SwapStorage storage self,
         uint256 i,
         uint256 j,
         uint256 outAmount,
-        address to,
-        bytes calldata data
+        address to
     ) external returns (uint256 inAmount) {
-        // reduce scope to avoid stack too deep errors
-        uint256 balanceIn;
-
         // add fee to in Amount - this amount has to be sent to the pool
         inAmount = _calcInGivenOut(self, i, j, outAmount);
         // we fetch the tokens and provide it as input for the flash call
@@ -246,10 +288,10 @@ library StablePoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        if (data.length != 0) IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
+        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
 
         // get actual new in balance
-        balanceIn = tokenIn.balanceOf(address(this));
+        uint256 balanceIn = tokenIn.balanceOf(address(this));
 
         // check the whether sufficient amounts have been sent in
         require(inAmount <= balanceIn - self.balances[i], "insufficient in");
@@ -312,7 +354,7 @@ library StablePoolLib {
         uint256 totalSupply
     ) external returns (uint256[] memory amounts) {
         require(lpAmount <= totalSupply);
-        uint256 nCoins = self.pooledTokens.length;
+        uint256 nCoins = self.nTokens;
 
         uint256[] memory fees = new uint256[](nCoins);
         amounts = _calculateRemoveLiquidity(self, msg.sender, lpAmount, totalSupply);
@@ -333,7 +375,7 @@ library StablePoolLib {
         uint256 minAmount,
         uint256 totalSupply
     ) external returns (uint256 dy) {
-        uint256 numTokens = self.pooledTokens.length;
+        uint256 numTokens = self.nTokens;
         require(index < numTokens, "tokenError");
 
         uint256 dyFee;
@@ -405,7 +447,7 @@ library StablePoolLib {
     }
 
     /// VIEW FUNCTIONS
-    function getAPrecise(SwapStorage storage self) external view returns (uint256) {
+    function getAPrecise(SwapStorage storage self) internal view returns (uint256) {
         return _getAPrecise(self);
     }
 
@@ -492,10 +534,7 @@ library StablePoolLib {
         uint256 outIndex,
         uint256 inAmount
     ) external view returns (uint256) {
-        uint256[] memory normalizedBalances = _xp(self);
-        uint256 outAmount = (normalizedBalances[outIndex] - _getY(self, inIndex, outIndex, normalizedBalances[inIndex] + (inAmount * self.tokenMultipliers[inIndex]), normalizedBalances));
-        uint256 _fee = (self.fee * outAmount) / FEE_DENOMINATOR;
-        return (outAmount - _fee) / self.tokenMultipliers[outIndex];
+        return _calcOutGivenIn(self, inIndex, outIndex, inAmount);
     }
 
     /**
@@ -550,7 +589,64 @@ library StablePoolLib {
         _updateUserWithdrawFee(self, user, userBalance, toMint);
     }
 
+    /**
+     * @notice Start ramping up or down A parameter towards given futureA_ and futureTime_
+     * Checks if the change is too rapid, and commits the new A value only when it falls under
+     * the limit range.
+     * @param futureA the new A to ramp towards
+     * @param futureATime timestamp when the new A should be reached
+     */
+    function rampA(
+        SwapStorage storage self,
+        uint256 futureA,
+        uint256 futureATime
+    ) external {
+        require(block.timestamp >= self.initialATime + (1 days), "Ramp period"); // please wait 1 days before start a new ramping
+        require(futureATime >= block.timestamp + (MIN_RAMP_TIME), "Ramp too early");
+        require(0 < futureA && futureA < MAX_A, "AError");
+
+        uint256 initialAPrecise = _getAPrecise(self);
+        uint256 futureAPrecise = futureA * StablePoolLib.A_PRECISION;
+
+        if (futureAPrecise < initialAPrecise) {
+            require(futureAPrecise * (StablePoolLib.MAX_A_CHANGE) >= initialAPrecise, "TooHigh");
+        } else {
+            require(futureAPrecise <= initialAPrecise * (StablePoolLib.MAX_A_CHANGE), "TooLow");
+        }
+
+        self.initialA = initialAPrecise;
+        self.futureA = futureAPrecise;
+        self.initialATime = block.timestamp;
+        self.futureATime = futureATime;
+
+        emit RampA(initialAPrecise, futureAPrecise, block.timestamp, futureATime);
+    }
+
+    function stopRampA(SwapStorage storage self) external {
+        require(self.futureATime > block.timestamp, "alreadyStopped");
+        uint256 currentA = _getAPrecise(self);
+
+        self.initialA = currentA;
+        self.futureA = currentA;
+        self.initialATime = block.timestamp;
+        self.futureATime = block.timestamp;
+
+        emit StopRampA(currentA, block.timestamp);
+    }
+
     /// PRIVATE FUNCTIONS
+
+    function _calcOutGivenIn(
+        SwapStorage storage self,
+        uint256 i,
+        uint256 j,
+        uint256 inAmount
+    ) private view returns (uint256 dy) {
+        uint256[] memory normalizedBalances = _xp(self);
+        return
+            (((normalizedBalances[j] - _getY(self, i, j, normalizedBalances[i] + (inAmount * self.tokenMultipliers[i]), normalizedBalances)) * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR) /
+            self.tokenMultipliers[j];
+    }
 
     function _calcInGivenOut(
         SwapStorage storage self,
@@ -694,12 +790,12 @@ library StablePoolLib {
         uint256 totalSupply
     ) private view returns (uint256[] memory) {
         require(amount <= totalSupply, "supplyError");
-
+        uint256 length = self.nTokens;
         uint256 feeAdjustedAmount = (amount * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
 
-        uint256[] memory amounts = new uint256[](self.pooledTokens.length);
+        uint256[] memory amounts = new uint256[](length);
 
-        for (uint256 i = 0; i < self.pooledTokens.length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             amounts[i] = (self.balances[i] * feeAdjustedAmount) / totalSupply;
         }
         return amounts;
@@ -712,7 +808,7 @@ library StablePoolLib {
         uint256 index,
         uint256 totalSupply
     ) private view returns (uint256 dy, uint256 fee) {
-        require(index < self.pooledTokens.length, "arrayError");
+        require(index < self.nTokens, "arrayError");
         uint256 amp = _getAPrecise(self);
         uint256[] memory xp = _xp(self);
         uint256 D0 = _getD(xp, amp);
@@ -721,7 +817,7 @@ library StablePoolLib {
         uint256[] memory reducedXP = xp;
         uint256 _fee = _feePerToken(self);
 
-        for (uint256 i = 0; i < self.pooledTokens.length; i++) {
+        for (uint256 i = 0; i < self.nTokens; i++) {
             uint256 expectedDx;
             if (i == index) {
                 expectedDx = (xp[i] * D1) / D0 - newY;

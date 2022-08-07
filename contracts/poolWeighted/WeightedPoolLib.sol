@@ -141,6 +141,65 @@ library WeightedPoolLib {
     }
 
     /**
+     *  @notice Calculates the output amount and swaps it. As we use the WeightedMath library, no additional check
+     *  of the invariant is needed since the amount out formula is equivalent to the local invariant equation.
+     *   - designed to be used in the Requiem Swap framework
+     *   - input is derived from increased actual token balance
+     * @param inIndex token index in
+     * @param outIndex token index out
+     */
+    function flashSwapExactIn(
+        WeightedSwapStorage storage self,
+        uint256 inIndex,
+        uint256 outIndex,
+        uint256 inAmount,
+        address to
+    ) external returns (uint256 outAmount) {
+        uint256 inMultiplier = self.tokenMultipliers[inIndex];
+        uint256 outMultiplier = self.tokenMultipliers[outIndex];
+
+        // get out amount
+        outAmount = WeightedMath._calcOutGivenIn(
+            self.balances[inIndex] * inMultiplier,
+            self.normalizedWeights[inIndex],
+            self.balances[outIndex] * outMultiplier,
+            self.normalizedWeights[outIndex],
+            (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // amount in with fee
+        );
+        
+        // denormalize amounts
+        inAmount /= inMultiplier;
+        outAmount /= outMultiplier;
+
+        // reduce scope to avoid stack too deep errors
+        uint256 balanceIn;
+        {
+            // we fetch the tokens and provide it as input for the flash call
+            IERC20 tokenIn = self.pooledTokens[inIndex];
+            IERC20 tokenOut = self.pooledTokens[outIndex];
+
+            // optimistic transfer
+            tokenOut.safeTransfer(to, outAmount);
+
+            // flash call of recipient
+            IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+
+            // get actual new in balance
+            balanceIn = tokenIn.balanceOf(address(this));
+        }
+
+        // update balances
+        self.balances[inIndex] = balanceIn;
+        self.balances[outIndex] -= outAmount;
+
+        // transfer amount
+        self.pooledTokens[outIndex].safeTransfer(to, outAmount);
+
+        self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
+        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
+    }
+
+    /**
      * @notice Swaps for provided amountOut - expects that a sufficient amount of token with inIndex
      *  has been sent to the contract already
      *  - as the out amount is provided as input, the functiomn
@@ -193,15 +252,13 @@ library WeightedPoolLib {
      * @param outIndex token index out
      * @param outAmount amount of token with outIndex to be sent
      * @param to flash swap recipient
-     * @param data data that caller can provide to the flash call
      */
-    function flashSwap(
+    function flashSwapExactOut(
         WeightedSwapStorage storage self,
         uint256 inIndex,
         uint256 outIndex,
         uint256 outAmount,
-        address to,
-        bytes calldata data
+        address to
     ) external returns (uint256 inAmount) {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
@@ -222,13 +279,12 @@ library WeightedPoolLib {
             // we fetch the tokens and provide it as input for the flash call
             IERC20 tokenIn = self.pooledTokens[inIndex];
             IERC20 tokenOut = self.pooledTokens[outIndex];
-            // address receiverAddress = address(to);
 
             // optimistic transfer
             tokenOut.safeTransfer(to, outAmount);
 
             // flash call of recipient
-            if (data.length != 0) IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
+            IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
 
             // get actual new in balance
             balanceIn = tokenIn.balanceOf(address(this));
@@ -252,7 +308,6 @@ library WeightedPoolLib {
      * it has to recalculate the invariant if called, otherwise manipulations are allowed
      * as all balances are greater than zero, it always will satisfy the invariant condition
      * such that it is greater than the previous one
-     * the flash fee is 20% of a regular swap fee
      */
     function flashLoan(
         WeightedSwapStorage storage self,

@@ -134,6 +134,49 @@ library BalancedPoolLib {
     }
 
     /**
+     *  @notice Calculates the output amount and swaps it. As we use the BalancedMath library, no additional check
+     *  of the invariant is needed since the amount out formula is equivalent to the local invariant equation.
+     *   - designed to be used in the Requiem Swap framework
+     *   - input is derived from increased actual token balance
+     * @param inIndex token index in
+     * @param outIndex token index out
+     */
+    function flashSwapExactIn(
+        BalancedSwapStorage storage self,
+        uint256 inIndex,
+        uint256 outIndex,
+        uint256 inAmount,
+        address to
+    ) external returns (uint256 outAmount) {
+        // we fetch the tokens and provide it as input for the flash call
+        IERC20 tokenIn = self.pooledTokens[inIndex];
+        IERC20 tokenOut = self.pooledTokens[outIndex];
+
+        uint256 balanceInVirtual = self.balances[inIndex];
+
+        outAmount = _calcOutGivenIn(balanceInVirtual, self.balances[outIndex], inAmount, self.fee);
+
+        // optimistic transfer
+        tokenOut.safeTransfer(to, outAmount);
+
+        // flash call of recipient
+        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+
+        // fetch in balance
+        uint256 balanceIn = tokenIn.balanceOf(address(this));
+
+        // validate trade against actual amount sent
+        require(inAmount <= balanceIn - balanceInVirtual, "insufficient in");
+
+        // update balances
+        self.balances[inIndex] = balanceIn;
+        self.balances[outIndex] -= outAmount;
+        self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
+
+        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
+    }
+
+    /**
      * @notice Swaps for provided amountOut - expects that a sufficient amount of token with inIndex
      *  has been sent to the contract already
      *  - as the out amount is provided as input, the functiomn
@@ -179,15 +222,13 @@ library BalancedPoolLib {
      * @param outIndex token index out
      * @param outAmount amount of token with outIndex to be sent
      * @param to flash swap recipient
-     * @param data data that caller can provide to the flash call
      */
-    function flashSwap(
+    function flashSwapExactOut(
         BalancedSwapStorage storage self,
         uint256 inIndex,
         uint256 outIndex,
         uint256 outAmount,
-        address to,
-        bytes calldata data
+        address to
     ) external returns (uint256 inAmount) {
         // get recorded in balance before trade
         uint256 inBalanceVirtual = self.balances[inIndex];
@@ -203,7 +244,7 @@ library BalancedPoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        if (data.length != 0) IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
+        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
 
         // get actual new in balance after flash swap call
         uint256 balanceIn = tokenIn.balanceOf(address(this));
@@ -226,7 +267,6 @@ library BalancedPoolLib {
      * it has to recalculate the invariant if called, otherwise manipulations are allowed
      * as all balances are greater than zero, it always will satisfy the invariant condition
      * such that it is greater than the previous one
-     * the flash fee is 20% of a regular swap fee
      */
     function flashLoan(
         BalancedSwapStorage storage self,
@@ -427,6 +467,16 @@ library BalancedPoolLib {
         uint256 numerator = inBalance * outAmount * FEE_DENOMINATOR;
         uint256 denominator = (outBalance - outAmount) * (FEE_DENOMINATOR - fee);
         inAmount = numerator / denominator + 1;
+    }
+
+    function _calcOutGivenIn(
+        uint256 inBalance,
+        uint256 outBalance,
+        uint256 inAmount,
+        uint256 fee
+    ) private pure returns (uint256 outAmount) {
+        uint256 amountInWithFee = inAmount * (FEE_DENOMINATOR - fee);
+        outAmount = (outBalance * amountInWithFee) / (inBalance * FEE_DENOMINATOR + amountInWithFee);
     }
 
     /**

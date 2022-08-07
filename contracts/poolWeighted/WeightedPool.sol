@@ -110,6 +110,24 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     }
 
     /**
+     * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
+     * If data.length == 0, onSwapGivenOut should be used instead.
+     * @param tokenIn token for which the amount has already sent to this address
+     * @param tokenOut token for which the calculated output amount will be sent
+     * @param amountIn target amount send to recipient will be calculated from this value
+     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @return inAmount
+     */
+    function onFlashSwapExactIn(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address to
+    ) external whenNotPaused nonReentrant returns (uint256) {
+        return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+    }
+
+    /**
      * @notice calculates and executes the exact-out swap for an amount of token in tht has already been sent to this address.
      * @param tokenIn token for which the amount has already sent to this address
      * @param tokenOut token for which the calculated output amount will be sent
@@ -134,14 +152,13 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
      * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
      * @return inAmount
      */
-    function onFlashSwap(
+    function onFlashSwapExactOut(
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
-        address to,
-        bytes calldata data
+        address to
     ) external whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.flashSwap(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, data);
+        return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
     }
 
     /**  @notice Flash loan using weighted pool balances  */

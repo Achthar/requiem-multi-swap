@@ -10,7 +10,6 @@ interface IFlashSwapRecipient {
         IERC20 tokenIn,
         IERC20 tokenOut,
         uint256 requiredInAmount,
-        uint256 amountOut,
-        bytes calldata data
+        uint256 amountOut
     ) external;
 }
