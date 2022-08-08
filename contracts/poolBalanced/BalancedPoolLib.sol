@@ -44,7 +44,6 @@ library BalancedPoolLib {
         uint256 defaultWithdrawFee;
         uint256 withdrawDuration;
         mapping(address => uint256) depositTimestamp;
-        mapping(address => uint256) feeEndTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
     }
 
@@ -555,7 +554,6 @@ library BalancedPoolLib {
             }
         }
         self.depositTimestamp[user] = block.timestamp;
-        self.feeEndTimestamp[user] = block.timestamp + self.withdrawDuration;
     }
 
     /**
@@ -565,7 +563,7 @@ library BalancedPoolLib {
      * @return current withdraw fee of the user
      */
     function _calculateCurrentWithdrawFee(BalancedSwapStorage storage self, address user) internal view returns (uint256) {
-        uint256 endTime = self.feeEndTimestamp[user];
+        uint256 endTime = self.depositTimestamp[user] + self.withdrawDuration;
         if (endTime > block.timestamp) {
             uint256 timeLeftover = endTime - block.timestamp;
             return (self.defaultWithdrawFee * self.withdrawFeeMultiplier[user] * timeLeftover) / self.withdrawDuration / FEE_DENOMINATOR;

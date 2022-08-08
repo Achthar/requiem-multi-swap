@@ -311,6 +311,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     }
 
     function withdrawAdminFee(address _receiver) external override onlyAdmin {
+        require(_receiver != address(0), "Cannot withdraw to zero address");
         swapStorage.withdrawCollectedFees(_receiver);
     }
 

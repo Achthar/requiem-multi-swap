@@ -42,7 +42,6 @@ library WeightedPoolLib {
         uint256 defaultWithdrawFee;
         uint256 withdrawDuration;
         mapping(address => uint256) depositTimestamp;
-        mapping(address => uint256) feeEndTimestamp;
         mapping(address => uint256) withdrawFeeMultiplier;
     }
 
@@ -113,7 +112,7 @@ library WeightedPoolLib {
         // calculate amount sent
         uint256 inAmount = (balanceIn - self.balances[inIndex]) * inMultiplier;
 
-        // respect fee in amount sent
+        // respect fee on in amount
         uint256 amountInWithFee = (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
 
         // get out amount denormalized
@@ -156,39 +155,37 @@ library WeightedPoolLib {
     ) external returns (uint256 outAmount) {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
+        uint256 inBalanceVirtual = self.balances[inIndex];
 
         // get out amount denormalized
         outAmount =
             WeightedMath._calcOutGivenIn(
-                self.balances[inIndex] * inMultiplier,
+                inBalanceVirtual * inMultiplier,
                 self.normalizedWeights[inIndex],
                 self.balances[outIndex] * outMultiplier,
                 self.normalizedWeights[outIndex],
-                (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // amount in with fee
+                (inAmount * inMultiplier * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // amount in with fee
             ) /
             outMultiplier;
 
-        // denormalize amount in
-        inAmount /= inMultiplier;
-
         // transfer amount optimistically
         self.pooledTokens[outIndex].safeTransfer(to, outAmount);
-        // reduce scope to avoid stack too deep errors
-        uint256 balanceIn;
-        {
-            // we fetch the tokens and provide it as input for the flash call
-            IERC20 tokenIn = self.pooledTokens[inIndex];
-            IERC20 tokenOut = self.pooledTokens[outIndex];
 
-            // optimistic transfer
-            tokenOut.safeTransfer(to, outAmount);
+        // we fetch the tokens and provide it as input for the flash call
+        IERC20 tokenIn = self.pooledTokens[inIndex];
+        IERC20 tokenOut = self.pooledTokens[outIndex];
 
-            // flash call of recipient
-            IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        // optimistic transfer
+        tokenOut.safeTransfer(to, outAmount);
 
-            // get actual new in balance
-            balanceIn = tokenIn.balanceOf(address(this));
-        }
+        // flash call of recipient
+        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+
+        // get actual new in balance
+        uint256 balanceIn = tokenIn.balanceOf(address(this));
+
+        // validate trade
+        require(inAmount <= balanceIn - inBalanceVirtual, "insufficient in");
 
         // update balances
         self.balances[inIndex] = balanceIn;
@@ -261,9 +258,11 @@ library WeightedPoolLib {
     ) external returns (uint256 inAmount) {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
+        uint256 inBalanceVirtual = self.balances[inIndex];
+
         // calculate in amount with upscaled balances
         inAmount = WeightedMath._calcInGivenOut(
-            self.balances[inIndex] * inMultiplier,
+            inBalanceVirtual * inMultiplier,
             self.normalizedWeights[inIndex],
             self.balances[outIndex] * outMultiplier,
             self.normalizedWeights[outIndex],
@@ -272,28 +271,24 @@ library WeightedPoolLib {
         // adjust for fee and scale down - rounding up - this is the amount that has to be paid in
         inAmount = (inAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / inMultiplier + 1;
 
-        // reduce scope to avoid stack too deep errors
-        uint256 balanceIn;
-        {
-            // we fetch the tokens and provide it as input for the flash call
-            IERC20 tokenIn = self.pooledTokens[inIndex];
-            IERC20 tokenOut = self.pooledTokens[outIndex];
+        // we fetch the tokens and provide it as input for the flash call
+        IERC20 tokenIn = self.pooledTokens[inIndex];
+        IERC20 tokenOut = self.pooledTokens[outIndex];
 
-            // optimistic transfer
-            tokenOut.safeTransfer(to, outAmount);
+        // optimistic transfer
+        tokenOut.safeTransfer(to, outAmount);
 
-            // flash call of recipient
-            IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        // flash call of recipient
+        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
 
-            // get actual new in balance
-            balanceIn = tokenIn.balanceOf(address(this));
-        }
+        // get actual new in balance
+        uint256 balanceIn = tokenIn.balanceOf(address(this));
 
         // collect admin fee
         self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         //validate trade
-        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
+        require(inAmount <= balanceIn - inBalanceVirtual, "insufficient in");
 
         // update balances
         self.balances[inIndex] = balanceIn;
@@ -598,7 +593,6 @@ library WeightedPoolLib {
             }
         }
         self.depositTimestamp[user] = block.timestamp;
-        self.feeEndTimestamp[user] = block.timestamp + self.withdrawDuration;
     }
 
     /**
@@ -608,7 +602,7 @@ library WeightedPoolLib {
      * @return current withdraw fee of the user
      */
     function _calculateCurrentWithdrawFee(WeightedSwapStorage storage self, address user) internal view returns (uint256) {
-        uint256 endTime = self.feeEndTimestamp[user];
+        uint256 endTime = self.depositTimestamp[user] + self.withdrawDuration;
         if (endTime > block.timestamp) {
             uint256 timeLeftover = endTime - block.timestamp;
             return (self.defaultWithdrawFee * self.withdrawFeeMultiplier[user] * timeLeftover) / self.withdrawDuration / FEE_DENOMINATOR;

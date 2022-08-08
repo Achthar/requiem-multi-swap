@@ -725,12 +725,10 @@ describe("Weighted Pools", () => {
             fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
         ).to.be.revertedWith("insufficient in")
 
-
         await flashSwapRecipient.setRepayLess(true)
         await expect(
             fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
         ).to.be.revertedWith("insufficient in")
-
 
         await flashSwapRecipient.setRepayLess(false)
         await flashSwapRecipient.setReenterIn(true)
@@ -749,7 +747,7 @@ describe("Weighted Pools", () => {
         await flashSwapRecipient.setRepayLess(false)
         await flashSwapRecipient.setReenterIn(false)
 
-        testAmount = '1000000000000000000'
+        testAmount = '1000000000'
 
         await tokens.token0.approve(flashSwapRecipient.address, maxUint256)
         // valid
