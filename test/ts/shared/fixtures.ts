@@ -41,7 +41,8 @@ import {
     BalancedPoolFactory__factory,
     BalancedPool__factory,
     WeightedPairAdmin__factory,
-    WeightedPairAdmin
+    WeightedPairAdmin,
+    PoolAdmin
 } from "../../../types";
 import {
     keccak256,
@@ -548,6 +549,51 @@ export async function validatePoolBals(signer: SignerWithAddress, pool: StablePo
         const bal = await tok.balanceOf(pool.address)
         expect(bal).to.equal(poolBals[i])
     }
+
+}
+
+
+export async function behavesLikeAdministrablePool(
+    pool: WeightedPool | StablePool | BalancedPool,
+    adminWallet: SignerWithAddress,
+    otherWallet: SignerWithAddress
+) {
+    const DENOMINATOR = parseUnits('1', 18)
+    let validAdminFee = parseUnits('2', 17)
+    let validSwapFee = parseUnits('4', 15)
+    let validFlashFee = parseUnits('4', 14)
+    let validWithdrawFee = parseUnits('4', 14)
+
+    const MAX_ADMIN_FEE = parseUnits('5', 17)  // 0.5e18; // 50%
+    const MAX_TRANSACTION_FEE = parseUnits('1', 16)  // 0.01e18; // 1%
+    const MAX_FLASH_FEE = parseUnits('1', 15)  // 0.001e18; // 0.1%
+    const MAX_WITHDRAW_FEE = parseUnits('5', 15) // 0.005e18; // 0.5%
+
+    await expect(pool.connect(otherWallet).setAdminFee(validAdminFee)).to.be.revertedWith("Administrable: caller is not admin")
+    await expect(pool.connect(otherWallet).setSwapFee(validSwapFee)).to.be.revertedWith("Administrable: caller is not admin")
+    await expect(pool.connect(otherWallet).setFlashFee(validFlashFee)).to.be.revertedWith("Administrable: caller is not admin")
+    await expect(pool.connect(otherWallet).setWithdrawFee(1, 2)).to.be.revertedWith("Administrable: caller is not admin")
+
+    await expect(pool.connect(adminWallet).setAdminFee(MAX_ADMIN_FEE.add(1))).to.be.revertedWith("AdminFeeError")
+    await expect(pool.connect(adminWallet).setSwapFee(MAX_TRANSACTION_FEE.add(1))).to.be.revertedWith("SwapFeeError")
+    await expect(pool.connect(adminWallet).setFlashFee(MAX_FLASH_FEE.add(1))).to.be.revertedWith("FlashFeeError")
+    await expect(pool.connect(adminWallet).setWithdrawFee(1000000000, validWithdrawFee)).to.be.revertedWith("WithdrawDurationError")
+    await expect(pool.connect(adminWallet).setWithdrawFee(1000, MAX_WITHDRAW_FEE.add(1))).to.be.revertedWith("WithdrawFeeError")
+
+    await pool.connect(adminWallet).setAdminFee(validAdminFee)
+    let storage = await pool.swapStorage()
+    expect(storage.adminFee).to.equal(validAdminFee)
+    expect(storage.adminSwapFee).to.equal(validAdminFee.mul(storage.fee).div(DENOMINATOR))
+
+    await pool.connect(adminWallet).setSwapFee(validSwapFee)
+    storage = await pool.swapStorage()
+    expect(storage.fee).to.equal(validSwapFee)
+    expect(storage.adminSwapFee).to.equal(validAdminFee.mul(validSwapFee).div(DENOMINATOR))
+
+    await pool.connect(adminWallet).setWithdrawFee(1000, validWithdrawFee)
+    storage = await pool.swapStorage()
+    expect(storage.defaultWithdrawFee).to.equal(validWithdrawFee)
+    expect(storage.withdrawDuration).to.equal(BigNumber.from(1000))
 
 }
 

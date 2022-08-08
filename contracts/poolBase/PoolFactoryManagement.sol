@@ -50,8 +50,8 @@ abstract contract PoolFactoryManagement is IPoolFactoryManagement, OwnerPausable
         return allPools.length;
     }
 
-    function setPoolGovernance(address _newPoolGovernance) external onlyOwner {
-        poolAdmin = _newPoolGovernance;
+    function setPoolAdmin(address _newPoolAdmin) external onlyOwner {
+        poolAdmin = _newPoolAdmin;
     }
 
     function pushCreator(address _creator) external onlyOwner {

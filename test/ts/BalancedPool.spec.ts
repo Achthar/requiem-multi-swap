@@ -10,6 +10,7 @@ import {
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, network } from "hardhat";
 import { parseUnits } from "ethers/lib/utils";
+import { MockFlashSwapRecipient, MockFlashSwapRecipient__factory, RepayFlashSwapRecipient, RepayFlashSwapRecipient__factory } from "../../types";
 // import { StableSwapFactory, TestErc20, Swap, LpToken, StableSwapRouter } from "../../types";
 
 const overrides = {};
@@ -31,6 +32,23 @@ describe("Balanced Pools", () => {
     const initialAmounts = [parseUnits('143321', 6), parseUnits('173321', 18), parseUnits('123111', 18)]
 
     let amounts = [parseUnits('231', 6), parseUnits('21', 18), parseUnits('122', 18)]
+
+
+    let flashSwapRecipient: MockFlashSwapRecipient
+    let repayFlashSwap: RepayFlashSwapRecipient
+
+    let dev = BigNumber.from(1e9)
+    let obtain: BigNumber
+    let receive: BigNumber
+    let baseAmount: BigNumber
+    let balancePre: BigNumber
+    let balancePost: BigNumber
+    let received: BigNumber
+    let txOut: any
+    let txIn: any
+    let receipt: any
+    let gasUsed: any
+
     beforeEach(async () => {
         signers = await ethers.getSigners();
         wallet = signers[0];
@@ -487,10 +505,6 @@ describe("Balanced Pools", () => {
     // note that these are example cases in which the symmetry works that is not always the case due to the approximative way
     // the calculations are done - deviations sould be less than a basis point (expressed in token decimal)
 
-    let dev = BigNumber.from(1e8)
-    let obtain: BigNumber
-    let receive: BigNumber
-    let baseAmount: BigNumber
     for (let i = 0; i < 5; i++) {
 
         it(`Allows consistent swap calculation ${i}`, async () => {
@@ -565,12 +579,6 @@ describe("Balanced Pools", () => {
     // })
 
 
-    let balancePre: BigNumber
-    let balancePost: BigNumber
-    let received: BigNumber
-    let txOut: any
-    let txIn: any
-    let receipt: any
     for (let i = 0; i < 5; i++) {
         it(`Allows consistent swap calculation with execution exact out ${i}`, async () => {
 
@@ -700,6 +708,122 @@ describe("Balanced Pools", () => {
                 '0x')
         ).to.be.revertedWith("ReentrancyGuard: reentrant call")
     })
+
+
+
+    it('FlashSwap: valid, insufficient fee and reentrant', async () => {
+
+        let testAmount = '1000000'
+
+        flashSwapRecipient = await new MockFlashSwapRecipient__factory(wallet).deploy()
+
+        await tokens.token0.approve(flashSwapRecipient.address, maxUint256)
+        // valid
+        await flashSwapRecipient.setRepay(true)
+
+        await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+
+        await flashSwapRecipient.setRepay(false)
+
+        await expect(
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        ).to.be.revertedWith("insufficient in")
+
+
+        await flashSwapRecipient.setRepayLess(true)
+        await expect(
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        ).to.be.revertedWith("insufficient in")
+
+
+        await flashSwapRecipient.setRepayLess(false)
+        await flashSwapRecipient.setReenterIn(true)
+
+        await expect(
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        ).to.be.revertedWith("ReentrancyGuard: reentrant call")
+
+
+        // second test exact out
+
+        // reset parameters of mock contract
+        await flashSwapRecipient.setRepay(false)
+        await flashSwapRecipient.setRepay(false)
+        await flashSwapRecipient.setRepayLess(false)
+        await flashSwapRecipient.setRepayLess(false)
+        await flashSwapRecipient.setReenterIn(false)
+
+        testAmount = '1000000000000000000'
+
+        await tokens.token0.approve(flashSwapRecipient.address, maxUint256)
+        // valid
+        await flashSwapRecipient.setRepay(true)
+
+        await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+
+        await flashSwapRecipient.setRepay(false)
+
+        await expect(
+            fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        ).to.be.revertedWith("insufficient in")
+
+
+        await flashSwapRecipient.setRepayLess(true)
+        await expect(
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        ).to.be.revertedWith("insufficient in")
+
+
+        await flashSwapRecipient.setRepayLess(false)
+        await flashSwapRecipient.setReenterOut(true)
+
+        await expect(
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        ).to.be.revertedWith("ReentrancyGuard: reentrant call")
+    })
+
+    // executes flash swap and regular swap for gas comparison
+    // succeeeds if no contract call fails
+    it('FlashSwap: gas cost', async () => {
+
+        let testAmount = '1000000'
+        repayFlashSwap = await new RepayFlashSwapRecipient__factory(wallet).deploy()
+
+        await tokens.token0.connect(wallet).approve(repayFlashSwap.address, maxUint256)
+
+
+        txIn = await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+
+        receipt = await txIn.wait();
+
+        console.log('exactInFlash', receipt.gasUsed)
+
+
+        await tokens.token0.connect(wallet).transfer(fixture.pool.address, testAmount)
+        txIn = await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+
+        receipt = await txIn.wait();
+
+        console.log('exactInReg', receipt.gasUsed)
+
+        testAmount = '1000000000000000000'
+
+        txIn = await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+
+        receipt = await txIn.wait();
+
+        console.log('exactOutFlash', receipt.gasUsed)
+
+        const amIn = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, testAmount)
+        await tokens.token0.connect(wallet).transfer(fixture.pool.address, amIn)
+        txIn = await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+
+        receipt = await txIn.wait();
+
+        console.log('exactOutReg', receipt.gasUsed)
+
+    })
+
 
 
     it("Allows admin fee withdrawal", async () => {
