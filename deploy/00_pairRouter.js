@@ -14,27 +14,32 @@ async function main() {
     const Formula = await ethers.getContractFactory('WeightedFormula')
 
     // deploy the Formula
-    const formula = await Formula.deploy()
+    const formulaContract = await Formula.deploy()
 
-    console.log("Formula", formula.address)
+    const PairAdminFactory = await ethers.getContractFactory('WeightedPairAdmin')
+    const pairAdminContract = await PairAdminFactory.deploy()
 
     const Factory = await ethers.getContractFactory("RequiemPairFactory")
+    console.log("Factory with args", pairAdminContract.address, formulaContract.address, operator.address)
+    const factoryContract = await Factory.deploy(pairAdminContract.address, formulaContract.address, operator.address)
 
-    const factory = await Factory.deploy(operator.address, formula.address, operator.address)
-
-    console.log("Factory", factory.address)
-
-    const Router = await ethers.getContractFactory("SwapRouter")
+    console.log("PairAdmin::setFactory", factoryContract.address)
+    await pairAdminContract.setFactory(factoryContract.address)
 
     const weth = {
         43113: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c',
         42261: '0x792296e2a15e6ceb5f5039decae7a1f25b00b0b0'
     }
+    const Router = await ethers.getContractFactory("SwapRouter")
+    console.log("Router with args", factoryContract.address, weth[chainId])
+    const routerContract = await Router.deploy(factoryContract.address, weth[chainId])
 
-
-    const router = await Router.deploy(factory.address, weth[chainId])
-
-    console.log("Router", router.address)
+    console.log("addresses", {
+        admin: pairAdminContract.address,
+        formula: formulaContract.address,
+        factory: factoryContract.address,
+        router: routerContract.address
+    })
 }
 
 main()

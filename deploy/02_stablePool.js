@@ -1,26 +1,37 @@
 const { ethers } = require('hardhat')
-const { addresses } = require('../deployments/addresses')
 
 // deployment script for bond depository
 async function main() {
     const [operator] = await ethers.getSigners();
-    const chainId = await operator.getChainId()
 
     console.log("Deploying contracts with the account:", operator.address);
 
     console.log("Account balance:", ethers.utils.formatEther(await operator.getBalance()).toString());
 
-    const Library = await ethers.getContractFactory('StableSwapLib')
+    // deploy library
+    const StablePoolLibFactory = await ethers.getContractFactory('StablePoolLib')
+    const libraryContract = await StablePoolLibFactory.deploy()
+    console.log("library address", libraryContract.address)
+    // deploy creator
+    const PoolCreatorFactory = await ethers.getContractFactory('StablePoolCreator', { libraries: { StablePoolLib: libraryContract.address } })
+    const poolCreatorContract = await PoolCreatorFactory.deploy()
+    console.log("creator address", poolCreatorContract.address)
 
-    const wPoolLib = await Library.deploy()
+    // deploy factory
+    const FactoryFactory = await ethers.getContractFactory('StablePoolFactory')
+    const factoryContract = await FactoryFactory.deploy()
+    console.log("factory address", factoryContract.address)
 
-    // We get the contract to deploy
-    const Pool = await ethers.getContractFactory('StableSwap', { libraries: { StableSwapLib: wPoolLib.address } })
-
-    // deploy the pool
-    const pool = await Pool.deploy()
-
-    console.log("Pool", pool.address)
+    // init factory
+    // await factoryContract.initialize(
+    //     operator.address,// feeToSetter
+    //     poolCreatorContract.address
+    // )
+    console.log("addresses", {
+        library: libraryContract.address,
+        poolCrator: poolCreatorContract.address,
+        factory: factoryContract.address
+    })
 }
 
 main()

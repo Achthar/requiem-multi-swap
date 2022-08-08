@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.15;
+pragma solidity >=0.8.16;
 
 import "../interfaces/poolPair/IWeightedPair.sol";
 
@@ -26,25 +26,26 @@ contract WeightedPairAdmin {
         controller = msg.sender;
     }
 
+    modifier onlyController() {
+        require(msg.sender == controller, "Unauthorized: Caller is not the controller");
+        _;
+    }
+
     /// General control
-    function changeController(address _newController) external {
-        require(msg.sender == controller, "Unauthorized: Caller has be controller");
+    function changeController(address _newController) external onlyController {
         controller = _newController;
     }
 
-    function setFactory(address _newFactory) external {
-        require(msg.sender == controller, "Unauthorized: Caller has be controller");
+    function setFactory(address _newFactory) external onlyController {
         factory = _newFactory;
     }
 
     // Set values read by pairs
-    function setFeeTo(address _newFeeTo) external {
-        require(msg.sender == controller, "Unauthorized: Caller has be controller");
+    function setFeeTo(address _newFeeTo) external onlyController {
         feeTo = _newFeeTo;
     }
 
-    function setProtocolFee(address _pair, uint256 _newFee) external {
-        require(msg.sender == controller, "Unauthorized: Caller has be controller");
+    function setProtocolFee(address _pair, uint256 _newFee) external onlyController {
         _protocolFees[_pair] = _newFee;
     }
 
@@ -61,7 +62,7 @@ contract WeightedPairAdmin {
         uint32 _swapFee,
         uint32 _amp
     ) external {
-        require(msg.sender == factory, "Caller can only be the factory");
+        require(msg.sender == factory, "Caller is not the factory");
         _protocolFees[_pair] = _protocolFee;
         IWeightedPair(_pair).setSwapFee(_swapFee);
         IWeightedPair(_pair).setAmplification(_amp);
@@ -71,8 +72,7 @@ contract WeightedPairAdmin {
 
     /// Functions to set pair parameters
 
-    function switchPairAdmin(address _pair, address _newAdmin) external {
-        require(msg.sender == controller, "Unauthorized: Caller has be controller");
+    function switchPairAdmin(address _pair, address _newAdmin) external onlyController {
         IWeightedPair(_pair).switchAdmin(_newAdmin);
     }
 
@@ -91,8 +91,7 @@ contract WeightedPairAdmin {
         pairGovernances[_pair] = _governance;
     }
 
-    function pullGovernance(address _pair) external {
-        require(msg.sender == controller, "Unauthorized: Caller has be controller");
+    function pullGovernance(address _pair) external onlyController {
         pairGovernances[_pair] = address(0);
     }
 }

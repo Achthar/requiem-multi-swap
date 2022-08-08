@@ -254,7 +254,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       // tags: ['staging'],
       // gasMultiplier: 4,
-      gas: 800000,
+      gas: 8000000,
       gasPrice: 250000000000,
     },
     'quarkchain-dev-s0': {
@@ -359,7 +359,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.15',
+        version: '0.8.16',
         settings: {
           optimizer: {
             enabled: true,
