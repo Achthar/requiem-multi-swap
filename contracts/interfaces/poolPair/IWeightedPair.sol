@@ -18,8 +18,6 @@ interface IWeightedPair is IWeightedPairERC20 {
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
     event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to);
 
-    // function MINIMUM_LIQUIDITY() external pure returns (uint256);
-
     function admin() external view returns (address);
 
     function token0() external view returns (address);
