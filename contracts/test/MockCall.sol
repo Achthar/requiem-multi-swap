@@ -2,18 +2,23 @@
 
 pragma solidity ^0.8.0;
 
+import "../interfaces/ERC20/IERC20.sol";
+
+import "../interfaces/poolBase/IFlashSwap.sol";
+
 contract MyContract {
-    function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data) external {
-    }
-    
+    function uniswapV2Call(
+        address sender,
+        uint256 amount0,
+        uint256 amount1,
+        bytes calldata data
+    ) external {}
+
     function passArray() external {
-        bytes memory data = abi.encode([
-            address(0x33),
-            address(0x44)
-        ]);
+        bytes memory data = abi.encode([address(0x33), address(0x44)]);
         this.uniswapV2Call(address(0x233), 1, 0, data);
     }
-    
+
     function passFuncionCall() external {
         bytes memory data = abi.encodePacked(
             bytes4(keccak256("anotherfunction(uint256,address)")), // function signature
@@ -23,5 +28,34 @@ contract MyContract {
             )
         );
         this.uniswapV2Call(address(0x233), 1, 0, data);
+    }
+
+    function onFlashSwapExactOut(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountOut,
+        address to
+    ) external returns (uint256) {}
+
+    // flash swap for exact out swap chain
+    function recieveSwapAmount(
+        address sender,
+        IERC20 tokenIn,
+        IERC20 tokenOut,
+        uint256 requiredInAmount,
+        uint256 amountOut,
+        bytes calldata data
+    ) external {
+        (address[] memory pools, address[] memory tokens, uint256 index) = abi.decode(data, (address[], address[], uint256));
+
+        // if (index == 0) tokenIn.transferFrom(sender, pools[0], requiredInAmount);
+        // else
+        //     IFlashSwap(pools[index]).onFlashSwapExactOut(
+        //         tokens[--index], // new tokenIn
+        //         address(tokenIn), // new tokenOut
+        //         requiredInAmount, // required amount that has to be sent to pool
+        //         msg.sender, // pool address - recipient of required tken in amount
+        //         abi.encode(pools, index) // args and relevant index
+        //     );
     }
 }

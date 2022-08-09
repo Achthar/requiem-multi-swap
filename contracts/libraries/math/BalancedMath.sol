@@ -31,64 +31,6 @@ library BalancedMath {
     // On these operations, we split the token amounts in 'taxable' and 'non-taxable' portions, where the 'taxable' part
     // is the one to which swap fees are applied.
 
-    // Computes how many tokens can be taken out of a pool if `amountIn` are sent, given the
-    // current balances and weights.
-    function _calcOutGivenIn(
-        uint256 balanceIn,
-        uint256 balanceOut,
-        uint256 amountIn
-    ) internal pure returns (uint256) {
-        /**********************************************************************************************
-        // outGivenIn                                                                                //
-        // aO = amountOut                                                                            //
-        // bO = balanceOut                                                                           //
-        // bI = balanceIn              /      /            bI             \  \                       //
-        // aI = amountIn    aO = bO * |  1 - | --------------------------  |  |                      //
-        // wI = weightIn               \      \       ( bI + aI )         /  /                       //
-        // wO = weightOut                                                                            //
-        **********************************************************************************************/
-
-        // Amount out, so we round down overall.
-
-        // The multiplication rounds down, and the subtrahend (power) rounds up (so the base rounds up too).
-
-        // Cannot exceed maximum in ratio
-        require(amountIn <= balanceIn.mulDown(_MAX_IN_RATIO), "MAX_IN_RATIO");
-
-        uint256 denominator = balanceIn + amountIn;
-
-        return balanceOut.mulDown(FixedPoint.ONE - balanceIn.divUp(denominator));
-    }
-
-    // Computes how many tokens must be sent to a pool in order to take `amountOut`, given the
-    // current balances and weights.
-    function _calcInGivenOut(
-        uint256 balanceIn,
-        uint256 balanceOut,
-        uint256 amountOut
-    ) internal pure returns (uint256) {
-        /**********************************************************************************************
-        // inGivenOut                                                                                //
-        // aO = amountOut                                                                            //
-        // bO = balanceOut                                                                           //
-        // bI = balanceIn              /  /            bO             \                   \          //
-        // aI = amountIn    aI = bI * |  | --------------------------  |              - 1  |         //
-        //                             \  \       ( bO - aO )         /                   /          //
-        //                                                                                           //
-        **********************************************************************************************/
-
-        // Amount in, so we round up overall.
-
-        // Cannot exceed maximum out ratio
-        require(amountOut <= balanceOut.mulDown(_MAX_OUT_RATIO), "MAX_OUT_RATIO");
-
-        // Because the base is larger than one (and the power rounds up), the power should always be larger than one, so
-        // the following subtraction should never revert.
-        uint256 ratio = balanceOut.divUp(balanceOut - amountOut) - FixedPoint.ONE;
-
-        return balanceIn.mulUp(ratio);
-    }
-
     function _calcLpOutGivenExactTokensIn(
         uint256[] memory balances,
         uint256[] memory amountsIn,
