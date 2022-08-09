@@ -260,6 +260,7 @@ export interface ERC20Fixture {
     token3: MockERC20
     token4: MockERC20
     token5: MockERC20
+    decimals: number[]
 }
 
 
@@ -278,7 +279,8 @@ export async function tokenFixture(signer: SignerWithAddress): Promise<ERC20Fixt
         token2: t2,
         token3: t3,
         token4: t4,
-        token5: t5
+        token5: t5,
+        decimals: [6, 18, 18, 8, 9, 18]
     }
 }
 
@@ -595,6 +597,11 @@ export async function behavesLikeAdministrablePool(
     expect(storage.defaultWithdrawFee).to.equal(validWithdrawFee)
     expect(storage.withdrawDuration).to.equal(BigNumber.from(1000))
 
+}
+
+interface FlashRouterFixture {
+    pools: WeightedPool[]
+    tokens: MockERC20[][]
 }
 
 // interface StakePoolFixture {

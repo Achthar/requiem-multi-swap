@@ -4,9 +4,9 @@ pragma solidity >=0.8.16;
 
 import "../interfaces/ERC20/IERC20.sol";
 import "../interfaces/poolBase/IFlashSwap.sol";
+import "../interfaces/poolBase/IFlashSwapRecipient.sol";
 
 // solhint-disable no-empty-blocks
-
 
 // flash swap implementation for testing
 contract MockFlashSwapRecipient {
@@ -44,7 +44,8 @@ contract MockFlashSwapRecipient {
         IERC20 tokenIn,
         IERC20 tokenOut,
         uint256 requiredInAmount,
-        uint256 amountOut
+        uint256 amountOut,
+        bytes calldata
     ) external {
         if (repay) tokenIn.transferFrom(sender, msg.sender, requiredInAmount);
         else if (repayLess) {
@@ -53,8 +54,8 @@ contract MockFlashSwapRecipient {
 
         if (send) tokenOut.transferFrom(sender, recipient, amountOut);
 
-        if (reenterIn) IFlashSwap(msg.sender).onFlashSwapExactIn(address(tokenIn), address(tokenOut), 1, sender);
+        if (reenterIn) IFlashSwap(msg.sender).onFlashSwapExactIn(address(tokenIn), address(tokenOut), 1, sender, IFlashSwapRecipient(sender), new bytes(0));
 
-        if (reenterOut) IFlashSwap(msg.sender).onFlashSwapExactOut(address(tokenIn), address(tokenOut), 1, sender);
+        if (reenterOut) IFlashSwap(msg.sender).onFlashSwapExactOut(address(tokenIn), address(tokenOut), 1, sender, IFlashSwapRecipient(sender), new bytes(0));
     }
 }

@@ -717,24 +717,24 @@ describe("Weighted Pools", () => {
         // valid
         await flashSwapRecipient.setRepay(true)
 
-        await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
 
         await flashSwapRecipient.setRepay(false)
 
         await expect(
-            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
         ).to.be.revertedWith("insufficient in")
 
         await flashSwapRecipient.setRepayLess(true)
         await expect(
-            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
         ).to.be.revertedWith("insufficient in")
 
         await flashSwapRecipient.setRepayLess(false)
         await flashSwapRecipient.setReenterIn(true)
 
         await expect(
-            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
         ).to.be.revertedWith("ReentrancyGuard: reentrant call")
 
 
@@ -753,18 +753,18 @@ describe("Weighted Pools", () => {
         // valid
         await flashSwapRecipient.setRepay(true)
 
-        await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+        await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
 
         await flashSwapRecipient.setRepay(false)
 
         await expect(
-            fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+            fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
         ).to.be.revertedWith("insufficient in")
 
 
         await flashSwapRecipient.setRepayLess(true)
         await expect(
-            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
         ).to.be.revertedWith("insufficient in")
 
 
@@ -772,7 +772,7 @@ describe("Weighted Pools", () => {
         await flashSwapRecipient.setReenterOut(true)
 
         await expect(
-            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address)
+            fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, flashSwapRecipient.address, flashSwapRecipient.address, '0x')
         ).to.be.revertedWith("ReentrancyGuard: reentrant call")
     })
 
@@ -786,7 +786,7 @@ describe("Weighted Pools", () => {
         await tokens.token0.connect(wallet).approve(repayFlashSwap.address, maxUint256)
 
 
-        txIn = await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+        txIn = await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address, repayFlashSwap.address, '0x')
 
         receipt = await txIn.wait();
 
@@ -794,7 +794,7 @@ describe("Weighted Pools", () => {
 
 
         await tokens.token0.connect(wallet).transfer(fixture.pool.address, testAmount)
-        txIn = await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+        txIn = await fixture.pool.onFlashSwapExactIn(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address, repayFlashSwap.address, '0x')
 
         receipt = await txIn.wait();
 
@@ -802,7 +802,7 @@ describe("Weighted Pools", () => {
 
         testAmount = '1000000000000000000'
 
-        txIn = await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+        txIn = await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address, repayFlashSwap.address, '0x')
 
         receipt = await txIn.wait();
 
@@ -810,7 +810,7 @@ describe("Weighted Pools", () => {
 
         const amIn = await fixture.pool.calculateSwapGivenOut(tokens.token0.address, tokens.token1.address, testAmount)
         await tokens.token0.connect(wallet).transfer(fixture.pool.address, amIn)
-        txIn = await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address)
+        txIn = await fixture.pool.onFlashSwapExactOut(tokens.token0.address, tokens.token1.address, testAmount, repayFlashSwap.address, repayFlashSwap.address, '0x')
 
         receipt = await txIn.wait();
 

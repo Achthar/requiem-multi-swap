@@ -132,16 +132,18 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param tokenIn token for which the amount has already sent to this address
      * @param tokenOut token for which the calculated output amount will be sent
      * @param amountIn target amount send to recipient will be calculated from this value
-     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @param to receiver for tokenOut amount
      * @return inAmount
      */
     function onFlashSwapExactIn(
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+        return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to, flashContract, data);
     }
 
     /**
@@ -150,16 +152,18 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param tokenIn token for which the amount has already sent to this address
      * @param tokenOut token for which the calculated output amount will be sent
      * @param amountOut target amount which will be obtained if swap succeeds
-     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @param to receiver for tokenOut amount
      * @return inAmount
      */
     function onFlashSwapExactOut(
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
+        return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, flashContract, data);
     }
 
     /**  @notice Flash loan using stable swap balances  */

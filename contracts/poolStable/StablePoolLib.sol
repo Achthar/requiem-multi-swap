@@ -196,7 +196,9 @@ library StablePoolLib {
         uint256 i,
         uint256 j,
         uint256 inAmount,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external returns (uint256 outAmount) {
         // calculate out amount from assumed in amount
         outAmount = _calcOutGivenIn(self, i, j, inAmount);
@@ -209,7 +211,7 @@ library StablePoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
         uint256 balanceIn = tokenIn.balanceOf(address(this));
@@ -274,7 +276,9 @@ library StablePoolLib {
         uint256 i,
         uint256 j,
         uint256 outAmount,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external returns (uint256 inAmount) {
         // add fee to in Amount - this amount has to be sent to the pool
         inAmount = _calcInGivenOut(self, i, j, outAmount);
@@ -287,7 +291,7 @@ library StablePoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
         uint256 balanceIn = tokenIn.balanceOf(address(this));

@@ -115,9 +115,11 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to);
+        return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to, flashContract, data);
     }
 
     /**
@@ -133,9 +135,11 @@ contract BalancedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external whenNotPaused nonReentrant returns (uint256) {
-        return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to);
+        return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, flashContract, data);
     }
 
     /**  @notice Flash loan using pool balances  */

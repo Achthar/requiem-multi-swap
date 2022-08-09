@@ -6,6 +6,8 @@ import "../interfaces/ERC20/IERC20.sol";
 
 import "../interfaces/poolBase/IFlashSwap.sol";
 
+import "../interfaces/poolBase/IFlashSwapRecipient.sol";
+
 contract MyContract {
     function uniswapV2Call(
         address sender,
@@ -48,14 +50,17 @@ contract MyContract {
     ) external {
         (address[] memory pools, address[] memory tokens, uint256 index) = abi.decode(data, (address[], address[], uint256));
 
-        // if (index == 0) tokenIn.transferFrom(sender, pools[0], requiredInAmount);
-        // else
-        //     IFlashSwap(pools[index]).onFlashSwapExactOut(
-        //         tokens[--index], // new tokenIn
-        //         address(tokenIn), // new tokenOut
-        //         requiredInAmount, // required amount that has to be sent to pool
-        //         msg.sender, // pool address - recipient of required tken in amount
-        //         abi.encode(pools, index) // args and relevant index
-        //     );
+        if (index == 0) tokenIn.transferFrom(sender, pools[0], requiredInAmount);
+        else if (index == pools.length) tokenOut.transfer(sender, amountOut);
+        else { // flash swap with prev pool
+            IFlashSwap(pools[index]).onFlashSwapExactOut(
+                tokens[--index], // new tokenIn
+                address(tokenIn), // new tokenOut
+                requiredInAmount, // required amount that has to be sent to pool
+                msg.sender, // pool address - recipient of required tken in amount
+                IFlashSwapRecipient(msg.sender),
+                abi.encode(pools, index) // args and relevant index
+            );
+        }
     }
 }

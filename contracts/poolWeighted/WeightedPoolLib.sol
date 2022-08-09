@@ -151,26 +151,12 @@ library WeightedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         uint256 inAmount,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external returns (uint256 outAmount) {
-        uint256 inMultiplier = self.tokenMultipliers[inIndex];
-        uint256 outMultiplier = self.tokenMultipliers[outIndex];
-        uint256 inBalanceVirtual = self.balances[inIndex];
-
         // get out amount denormalized
-        outAmount =
-            WeightedMath._calcOutGivenIn(
-                inBalanceVirtual * inMultiplier,
-                self.normalizedWeights[inIndex],
-                self.balances[outIndex] * outMultiplier,
-                self.normalizedWeights[outIndex],
-                (inAmount * inMultiplier * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // amount in with fee
-            ) /
-            outMultiplier;
-
-        // transfer amount optimistically
-        self.pooledTokens[outIndex].safeTransfer(to, outAmount);
-
+        outAmount = _calcuOutGivenIn(self, inIndex, outIndex, inAmount);
         // we fetch the tokens and provide it as input for the flash call
         IERC20 tokenIn = self.pooledTokens[inIndex];
         IERC20 tokenOut = self.pooledTokens[outIndex];
@@ -179,19 +165,20 @@ library WeightedPoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
         uint256 balanceIn = tokenIn.balanceOf(address(this));
 
+        self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
+
         // validate trade
-        require(inAmount <= balanceIn - inBalanceVirtual, "insufficient in");
+        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
 
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
 
-        self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
         emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
     }
 
@@ -254,23 +241,12 @@ library WeightedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         uint256 outAmount,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external returns (uint256 inAmount) {
-        uint256 inMultiplier = self.tokenMultipliers[inIndex];
-        uint256 outMultiplier = self.tokenMultipliers[outIndex];
-        uint256 inBalanceVirtual = self.balances[inIndex];
-
         // calculate in amount with upscaled balances
-        inAmount = WeightedMath._calcInGivenOut(
-            inBalanceVirtual * inMultiplier,
-            self.normalizedWeights[inIndex],
-            self.balances[outIndex] * outMultiplier,
-            self.normalizedWeights[outIndex],
-            outAmount * outMultiplier
-        );
-        // adjust for fee and scale down - rounding up - this is the amount that has to be paid in
-        inAmount = (inAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / inMultiplier + 1;
-
+        inAmount = _calcInGivenOut(self, inIndex, outIndex, outAmount);
         // we fetch the tokens and provide it as input for the flash call
         IERC20 tokenIn = self.pooledTokens[inIndex];
         IERC20 tokenOut = self.pooledTokens[outIndex];
@@ -279,7 +255,7 @@ library WeightedPoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
         uint256 balanceIn = tokenIn.balanceOf(address(this));
@@ -288,7 +264,7 @@ library WeightedPoolLib {
         self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         //validate trade
-        require(inAmount <= balanceIn - inBalanceVirtual, "insufficient in");
+        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
 
         // update balances
         self.balances[inIndex] = balanceIn;
@@ -473,21 +449,8 @@ library WeightedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         uint256 amountIn
-    ) external view returns (uint256 amountOut) {
-        uint256 inMultiplier = self.tokenMultipliers[inIndex];
-        uint256 outMultiplier = self.tokenMultipliers[outIndex];
-        // use in amount with fee alredy deducted
-        uint256 amountInWithFee = (amountIn * inMultiplier * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
-        // calculate out amount
-        amountOut = WeightedMath._calcOutGivenIn(
-            self.balances[inIndex] * inMultiplier,
-            self.normalizedWeights[inIndex],
-            self.balances[outIndex] * outMultiplier,
-            self.normalizedWeights[outIndex],
-            amountInWithFee
-        );
-        // downscale out amount
-        amountOut = amountOut / outMultiplier;
+    ) external view returns (uint256) {
+        return _calcuOutGivenIn(self, inIndex, outIndex, amountIn);
     }
 
     function calculateSwapGivenOut(
@@ -495,19 +458,8 @@ library WeightedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         uint256 amountOut
-    ) external view returns (uint256 amountIn) {
-        uint256 inMultiplier = self.tokenMultipliers[inIndex];
-        uint256 outMultiplier = self.tokenMultipliers[outIndex];
-        // calculate in amount with upscaled balances
-        amountIn = WeightedMath._calcInGivenOut(
-            self.balances[inIndex] * inMultiplier,
-            self.normalizedWeights[inIndex],
-            self.balances[outIndex] * outMultiplier,
-            self.normalizedWeights[outIndex],
-            amountOut * outMultiplier
-        );
-        // adjust for fee and scale down - rounding up
-        amountIn = (amountIn * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / inMultiplier + 1;
+    ) external view returns (uint256) {
+        return _calcInGivenOut(self, inIndex, outIndex, amountOut);
     }
 
     function withdrawCollectedFees(WeightedSwapStorage storage self, address receiver) external {
@@ -524,6 +476,47 @@ library WeightedPoolLib {
     }
 
     /// INTERNAL FUNCTIONS
+
+    function _calcuOutGivenIn(
+        WeightedSwapStorage storage self,
+        uint256 inIndex,
+        uint256 outIndex,
+        uint256 amountIn
+    ) private view returns (uint256 amountOut) {
+        uint256 inMultiplier = self.tokenMultipliers[inIndex];
+        uint256 outMultiplier = self.tokenMultipliers[outIndex];
+
+        // calculate out amount
+        amountOut =
+            WeightedMath._calcOutGivenIn(
+                self.balances[inIndex] * inMultiplier,
+                self.normalizedWeights[inIndex],
+                self.balances[outIndex] * outMultiplier,
+                self.normalizedWeights[outIndex],
+                (amountIn * inMultiplier * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR // in with fee
+            ) /
+            outMultiplier;
+    }
+
+    function _calcInGivenOut(
+        WeightedSwapStorage storage self,
+        uint256 inIndex,
+        uint256 outIndex,
+        uint256 amountOut
+    ) private view returns (uint256 amountIn) {
+        uint256 inMultiplier = self.tokenMultipliers[inIndex];
+        uint256 outMultiplier = self.tokenMultipliers[outIndex];
+        // calculate in amount with upscaled balances
+        amountIn = WeightedMath._calcInGivenOut(
+            self.balances[inIndex] * inMultiplier,
+            self.normalizedWeights[inIndex],
+            self.balances[outIndex] * outMultiplier,
+            self.normalizedWeights[outIndex],
+            amountOut * outMultiplier
+        );
+        // adjust for fee and scale down - rounding up
+        amountIn = (amountIn * FEE_DENOMINATOR) / (FEE_DENOMINATOR - self.fee) / inMultiplier + 1;
+    }
 
     /**
      * normalized balances of each tokens.

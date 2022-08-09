@@ -145,7 +145,9 @@ library BalancedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         uint256 inAmount,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external returns (uint256 outAmount) {
         // we fetch the tokens and provide it as input for the flash call
         IERC20 tokenIn = self.pooledTokens[inIndex];
@@ -159,7 +161,7 @@ library BalancedPoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // fetch in balance
         uint256 balanceIn = tokenIn.balanceOf(address(this));
@@ -227,7 +229,9 @@ library BalancedPoolLib {
         uint256 inIndex,
         uint256 outIndex,
         uint256 outAmount,
-        address to
+        address to,
+        IFlashSwapRecipient flashContract,
+        bytes calldata data
     ) external returns (uint256 inAmount) {
         // get recorded in balance before trade
         uint256 inBalanceVirtual = self.balances[inIndex];
@@ -243,7 +247,7 @@ library BalancedPoolLib {
         tokenOut.safeTransfer(to, outAmount);
 
         // flash call of recipient
-        IFlashSwapRecipient(to).recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount);
+        flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance after flash swap call
         uint256 balanceIn = tokenIn.balanceOf(address(this));

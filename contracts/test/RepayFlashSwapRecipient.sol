@@ -16,7 +16,8 @@ contract RepayFlashSwapRecipient {
         IERC20 tokenIn,
         IERC20,
         uint256 requiredInAmount,
-        uint256
+        uint256,
+        bytes calldata
     ) external {
         tokenIn.transferFrom(sender, msg.sender, requiredInAmount);
     }
