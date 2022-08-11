@@ -1,7 +1,10 @@
 const { ethers } = require('hardhat')
 const { addresses } = require('../deployments/addresses')
-const WeihghtedPool = require('../artifacts/contracts/WeightedPool.sol/WeightedPool.json')
-const ERC20 = require('../artifacts/contracts/libraries/ERC20.sol/ERC20.json')
+
+// it does not matter for this script which abi we use as all pools have the same add liquidity function
+const WeihghtedPool = require('../artifacts/contracts/poolWeighted/WeightedPool.sol/WeightedPool.json')
+const ERC20 = require('../artifacts/contracts/libraries/ERC20.sol/ERC20.json');
+const { formatEther } = require('ethers/lib/utils');
 
 
 function delay(delayInms) {
@@ -18,30 +21,26 @@ async function main() {
     const chainId = await operator.getChainId()
 
     const one18 = ethers.BigNumber.from(10).pow(18)
-    const one14 = ethers.BigNumber.from(10).pow(14)
     const one8 = ethers.BigNumber.from(10).pow(8)
     const one6 = ethers.BigNumber.from(10).pow(6)
 
 
-    const oneThird = one18.div(3)
 
     console.log("Deploying contracts with the account:", operator.address);
 
     console.log("Account balance:", ethers.utils.formatEther(await operator.getBalance()).toString());
 
     // deploy the pool
-    const poolContract = new ethers.Contract(addresses.pools.weighted.classic[chainId], new ethers.utils.Interface(WeihghtedPool.abi), operator)
+    const poolContract = new ethers.Contract(addresses.pools.stable.classic[chainId], new ethers.utils.Interface(WeihghtedPool.abi), operator)
 
     console.log("Pool", poolContract.address)
 
-    const tokens = [addresses.tokens.WETH, addresses.tokens.WBTC, addresses.tokens.USDT].map(tt => tt[chainId])
-    const amounts = [one18.mul(200), one8.mul(10), one6.mul(200000)]
-    const decimals = [18, 8, 6]
-    const weights = [oneThird, oneThird, oneThird.add(1)]
-    const fee = one14.mul(15)
-    const flashFee = one14.mul(5)
-    const adminFee = one14.mul(2000)
+    const amounts = [one18.mul(10000), one6.mul(10000), one6.mul(10000)]
 
+    const tokens = await poolContract.getPooledTokens()
+    const multi = await poolContract.getTokenMultipliers()
+    console.log("Add", multi.map((m, i) => formatEther(m.mul(amounts[i]))))
+    console.log("Tokens", tokens)
     for (let i = 0; i < tokens.length; i++) {
         const tokenContract = new ethers.Contract(tokens[i], new ethers.utils.Interface(ERC20.abi), operator)
         const allowance = await tokenContract.allowance(operator.address, poolContract.address)
@@ -51,19 +50,16 @@ async function main() {
         }
     }
 
-
-    await poolContract.initialize(
-        tokens, // address[] memory _coins,
-        decimals, // uint8[] memory _decimals,
-        weights,// uint256[] memory _normalizedWeights,
-        amounts,// uint256[] memory _amounts,
-        "REQ-3-Crypto", // string memory lpTokenName,
-        "REQ3C", // string memory lpTokenSymbol,
-        fee, // uint256 _fee,
-        flashFee, // uint256 _flashFee,
-        adminFee, // uint256 _adminFee,
-        operator.address // address _feeDistributor
+    console.log("Adding liquidity")
+    await poolContract.addLiquidityExactIn(
+        amounts,   // uint256[] memory amounts,
+        1,  // uint256 minMintAmount,
+        operator.address,  // address to,
+        ethers.constants.MaxUint256 // uint256 deadline
     )
+
+    console.log("execution done")
+
 }
 
 main()

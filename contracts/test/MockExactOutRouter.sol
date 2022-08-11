@@ -17,7 +17,7 @@ contract MockExactOutRouter is IFlashSwapRecipient {
     ) external virtual {
         uint256 index = pools.length - 1;
         bytes memory data = abi.encode(pools, tokens, index, msg.sender);
-        IFlashSwap(pools[index]).onFlashSwapExactOut(tokens[index], tokens[pools.length], amountOut, to, this, data);
+        IFlashSwap(pools[index]).onFlashSwapExactOut(this, tokens[index], tokens[pools.length], amountOut, to, data);
     }
 
     // flash swap for exact out swap chain
@@ -32,17 +32,18 @@ contract MockExactOutRouter is IFlashSwapRecipient {
         (address[] memory pools, address[] memory tokens, uint256 index, address origin) = abi.decode(data, (address[], address[], uint256, address));
 
         if (index == 0) {
-            tokenIn.transferFrom(origin, pools[0], requiredInAmount);
+            tokenIn.transferFrom(origin, msg.sender, requiredInAmount);
         } else {
-            uint256 newIndex = index - 1;
+            // delete pools[index];
+            delete tokens[index--];
             // flash swap with prev pool
-            IFlashSwap(pools[newIndex]).onFlashSwapExactOut(
-                tokens[newIndex], // new tokenIn
+            IFlashSwap(pools[index]).onFlashSwapExactOut(
+                this,
+                tokens[index], // new tokenIn
                 address(tokenIn), // new tokenOut
                 requiredInAmount, // required amount that has to be sent to pool
-                pools[index], // pool address - exact out swap the required amount in
-                this,
-                abi.encode(pools, tokens, newIndex, origin) // args and relevant index
+                msg.sender, // pool address - exact out swap the required amount in
+                abi.encode(pools, tokens, index, origin) // args and relevant index
             );
         }
     }

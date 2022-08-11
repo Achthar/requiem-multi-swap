@@ -112,18 +112,19 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     /**
      * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
      * If data.length == 0, onSwapGivenOut should be used instead.
+     * @param flashContract contract on which the receiver function is called
      * @param tokenIn token for which the amount has already sent to this address
      * @param tokenOut token for which the calculated output amount will be sent
      * @param amountIn target amount send to recipient will be calculated from this value
-     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @param to receiver for tokenOut amount - not necesariliy the flashContract address
      * @return inAmount
      */
     function onFlashSwapExactIn(
+        IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
         address to,
-        IFlashSwapRecipient flashContract,
         bytes calldata data
     ) external whenNotPaused nonReentrant returns (uint256) {
         return swapStorage.flashSwapExactIn(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountIn, to, flashContract, data);
@@ -148,18 +149,19 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
     /**
      * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
      * If data.length == 0, onSwapGivenOut should be used instead.
+     * @param flashContract contract on which the receiver function is called
      * @param tokenIn token for which the amount has already sent to this address
      * @param tokenOut token for which the calculated output amount will be sent
      * @param amountOut target amount which will be obtained if swap succeeds
-     * @param to receiver for tokenOut amount - and IFlashSwapReceiver implementation
+     * @param to receiver for tokenOut amount - not necesariliy the flashContract address
      * @return inAmount
      */
     function onFlashSwapExactOut(
+        IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
         address to,
-        IFlashSwapRecipient flashContract,
         bytes calldata data
     ) external whenNotPaused nonReentrant returns (uint256) {
         return swapStorage.flashSwapExactOut(tokenIndexes[tokenIn], tokenIndexes[tokenOut], amountOut, to, flashContract, data);
@@ -336,7 +338,15 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 
-    /// VIEWS FOR ARRAYS IN SWAPSTORAGE
+    /// VIEWS FOR VARIABLES IN SWAPSTORAGE
+
+    /**
+     * @notice Return timestamp of last deposit of given address
+     * @return timestamp of the last deposit made by the given address
+     */
+    function getDepositTimestamp(address user) external view returns (uint256) {
+        return swapStorage.depositTimestamp[user];
+    }
 
     function getTokenBalances() external view override returns (uint256[] memory) {
         return swapStorage.balances;

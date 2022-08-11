@@ -54,8 +54,8 @@ contract MockFlashSwapRecipient {
 
         if (send) tokenOut.transferFrom(sender, recipient, amountOut);
 
-        if (reenterIn) IFlashSwap(msg.sender).onFlashSwapExactIn(address(tokenIn), address(tokenOut), 1, sender, IFlashSwapRecipient(sender), new bytes(0));
+        if (reenterIn) IFlashSwap(msg.sender).onFlashSwapExactIn(IFlashSwapRecipient(sender), address(tokenIn), address(tokenOut), 1, sender, new bytes(0));
 
-        if (reenterOut) IFlashSwap(msg.sender).onFlashSwapExactOut(address(tokenIn), address(tokenOut), 1, sender, IFlashSwapRecipient(sender), new bytes(0));
+        if (reenterOut) IFlashSwap(msg.sender).onFlashSwapExactOut(IFlashSwapRecipient(sender), address(tokenIn), address(tokenOut), 1, sender, new bytes(0));
     }
 }

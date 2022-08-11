@@ -229,6 +229,41 @@ describe("Flash Swap Multi Hop eact out", () => {
     
     
 
+    // Flash Swap Multi Hop eact out
+    // 0x04C89607413713Ec9775E14b954286519d836FEf
+    // BigNumber { value: "1967" } BigNumber { value: "1967" }
+    // FlashGas BigNumber { value: "285554" }
+    // RegGas BigNumber { value: "312472" }
+    //     ✓ Flash swaps 2x
+    // 0xD49a0e9A4CD5979aE36840f542D2d7f02C4817Be
+    // FlashGas BigNumber { value: "380107" }
+    // BigNumber { value: "984" } BigNumber { value: "984" }
+    // RegGas BigNumber { value: "385852" }
+    //     ✓ Flash swaps 3x
+    // 0x9Fcca440F19c62CDF7f973eB6DDF218B15d4C71D
+    // FlashGas BigNumber { value: "528549" }
+    // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
+    // RegGas BigNumber { value: "514922" }
+    //     ✓ Flash swaps 4x
+    
+    
+    // lash Swap Multi Hop eact out
+    // 0x04C89607413713Ec9775E14b954286519d836FEf
+    // BigNumber { value: "1967" } BigNumber { value: "1967" }
+    // FlashGas BigNumber { value: "285545" }
+    // RegGas BigNumber { value: "312472" }
+    //     ✓ Flash swaps 2x
+    // 0xD49a0e9A4CD5979aE36840f542D2d7f02C4817Be
+    // FlashGas BigNumber { value: "380089" }
+    // BigNumber { value: "984" } BigNumber { value: "984" }
+    // RegGas BigNumber { value: "385852" }
+    //     ✓ Flash swaps 3x
+    // 0x9Fcca440F19c62CDF7f973eB6DDF218B15d4C71D
+    // FlashGas BigNumber { value: "528522" }
+    // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
+    // RegGas BigNumber { value: "514922" }
+    //     ✓ Flash swaps 4x
+    
 
     // it('FlashSwap: valid, insufficient fee and reentrant', async () => {
 

@@ -52,13 +52,14 @@ contract MyContract {
 
         if (index == 0) tokenIn.transferFrom(sender, pools[0], requiredInAmount);
         else if (index == pools.length) tokenOut.transfer(sender, amountOut);
-        else { // flash swap with prev pool
+        else {
+            // flash swap with prev pool
             IFlashSwap(pools[index]).onFlashSwapExactOut(
+                IFlashSwapRecipient(msg.sender),
                 tokens[--index], // new tokenIn
                 address(tokenIn), // new tokenOut
                 requiredInAmount, // required amount that has to be sent to pool
                 msg.sender, // pool address - recipient of required tken in amount
-                IFlashSwapRecipient(msg.sender),
                 abi.encode(pools, index) // args and relevant index
             );
         }
