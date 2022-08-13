@@ -7,6 +7,8 @@ import "../interfaces/poolPair/IWeightedPair.sol";
 // solhint-disable reason-string, max-line-length
 
 contract WeightedPairAdmin {
+    address public defaultGovernance;
+    uint256 public defaultProtocolFee;
     // tracks the governance addres per pair - can be a contract or an individual
     mapping(address => address) public pairGovernances;
 
@@ -57,17 +59,16 @@ contract WeightedPairAdmin {
     function inititalizePairAdministration(
         address _pair,
         address _formula,
-        address _governance,
-        uint256 _protocolFee,
         uint32 _swapFee,
         uint32 _amp
     ) external {
         require(msg.sender == factory, "Caller is not the factory");
-        _protocolFees[_pair] = _protocolFee;
+        require(_amp >= 10000 && _swapFee <= 500, "RLP: ISP");
+        _protocolFees[_pair] = defaultProtocolFee;
         IWeightedPair(_pair).setSwapFee(_swapFee);
         IWeightedPair(_pair).setAmplification(_amp);
         IWeightedPair(_pair).setFormula(_formula);
-        pairGovernances[_pair] = _governance;
+        pairGovernances[_pair] = defaultGovernance;
     }
 
     /// Functions to set pair parameters
@@ -84,6 +85,11 @@ contract WeightedPairAdmin {
     function setPairSwapFee(address _pair, uint32 _newSwapFee) external {
         require(msg.sender == pairGovernances[_pair], "Unauthorized: Caller has be pair governance");
         IWeightedPair(_pair).setSwapFee(_newSwapFee);
+    }
+
+    function setDefaultProtocolFee(uint256 _newProtocolFee) external onlyController {
+        require(_newProtocolFee <= 50000);
+        defaultProtocolFee = _newProtocolFee;
     }
 
     function pushGovernance(address _pair, address _governance) external {

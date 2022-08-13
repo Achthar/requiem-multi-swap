@@ -42,7 +42,8 @@ import {
     BalancedPool__factory,
     WeightedPairAdmin__factory,
     WeightedPairAdmin,
-    PoolAdmin
+    PoolAdmin,
+    RequiemPairCreator__factory
 } from "../../../types";
 import {
     keccak256,
@@ -82,8 +83,9 @@ export async function factoryFixture(signer: SignerWithAddress): Promise<Factory
     return await deployments.createFixture(async () => {
 
         const { formula } = await formulaFixture(signer)
+        const creator = await new RequiemPairCreator__factory(signer).deploy()
         const admin = await new WeightedPairAdmin__factory(signer).deploy()
-        const factory = await new RequiemPairFactory__factory(signer).deploy(admin.address, formula.address, signer.address)
+        const factory = await new RequiemPairFactory__factory(signer).deploy(creator.address, admin.address, formula.address)
         await admin.setFactory(factory.address)
         return { factory, formula, admin }
     })()
@@ -107,10 +109,10 @@ export async function pairFixture(signer: SignerWithAddress): Promise<PairFixtur
         const tokenA = await new TestERC20__factory(signer).deploy(toWei(10000));
         const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000))
 
-        await factory.createPair(tokenA.address, tokenB.address, 50, 30, 10000, overrides)
+        await factory.createPair(tokenA.address, tokenB.address, 50, 30, 10000)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, 50)
         const pair = RequiemPair__factory.connect(pairAddress, signer)
-        await admin.pushGovernance(signer.address, pair.address)
+        await admin.pushGovernance(pair.address, signer.address)
         const token0Address = await pair.token0()
         const token0 = tokenA.address === token0Address ? tokenA : tokenB
         const token1 = tokenA.address === token0Address ? tokenB : tokenA
@@ -131,7 +133,7 @@ export async function pairDifferentWeightFixture(signer: SignerWithAddress, toke
         await factory.createPair(tokenA.address, tokenB.address, tokenWeightA, 40, 10000, overrides)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
         const pair = RequiemPair__factory.connect(pairAddress, signer)
-        await admin.pushGovernance(signer.address, pair.address)
+        await admin.pushGovernance(pair.address, signer.address)
         const token0Address = await pair.token0()
         const token1Address = await pair.token1()
         const { _tokenWeight0: tokenWeight0, _tokenWeight1: tokenWeight1 } = await pair.getParameters();
@@ -159,7 +161,7 @@ export async function pairDifferentWeightAndAmpFixture(signer: SignerWithAddress
         await factory.createPair(tokenA.address, tokenB.address, tokenWeightA, 40, 12500, overrides)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
         const pair = RequiemPair__factory.connect(pairAddress, signer)
-        await admin.pushGovernance(signer.address, pair.address)
+        await admin.pushGovernance(pair.address, signer.address)
         const token0Address = await pair.token0()
         const token1Address = await pair.token1()
         const { _tokenWeight0: tokenWeight0, _tokenWeight1: tokenWeight1 } = await pair.getParameters();

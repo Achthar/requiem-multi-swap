@@ -12,8 +12,6 @@ interface IWeightedPairAdmin {
     function inititalizePairAdministration(
         address _pair,
         address _formula,
-        address _governance,
-        uint256 _protocolFee,
         uint32 _swapFee,
         uint32 _amp
     ) external;

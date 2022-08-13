@@ -42,16 +42,16 @@ contract MyContract {
     // flash swap for exact out swap chain
     function recieveSwapAmount(
         address sender,
-        IERC20 tokenIn,
-        IERC20 tokenOut,
+        address tokenIn,
+        address tokenOut,
         uint256 requiredInAmount,
         uint256 amountOut,
         bytes calldata data
     ) external {
         (address[] memory pools, address[] memory tokens, uint256 index) = abi.decode(data, (address[], address[], uint256));
 
-        if (index == 0) tokenIn.transferFrom(sender, pools[0], requiredInAmount);
-        else if (index == pools.length) tokenOut.transfer(sender, amountOut);
+        if (index == 0) IERC20(tokenIn).transferFrom(sender, pools[0], requiredInAmount);
+        else if (index == pools.length) IERC20(tokenOut).transfer(sender, amountOut);
         else {
             // flash swap with prev pool
             IFlashSwap(pools[index]).onFlashSwapExactOut(

@@ -3,13 +3,12 @@
 pragma solidity ^0.8.15;
 
 import "../interfaces/poolPair/IWeightedPairFactory.sol";
-import "../interfaces/poolPair/IWeightedPairCreator.sol";
 import "../libraries/EnumerableSetLite.sol";
 import "./WeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
-contract RequiemPairFactory is IWeightedPairFactory {
+contract RequiemPairFactoryD is IWeightedPairFactory {
     using EnumerableSetLite for EnumerableSetLite.AddressSet;
 
     // admin that can set the default protocol fee and default governance
@@ -17,7 +16,6 @@ contract RequiemPairFactory is IWeightedPairFactory {
     // these governance contracts then can make crucial changes to the pair
     // e.g. change the formula, amplification and swap fee
     address public pairAdmin;
-    IWeightedPairCreator public pairCreator;
 
     // default formula for swap calculation
     address public formula;
@@ -30,14 +28,9 @@ contract RequiemPairFactory is IWeightedPairFactory {
     mapping(address => mapping(address => EnumerableSetLite.AddressSet)) private tokenPairs;
     mapping(bytes32 => address) private _pairSalts;
 
-    constructor(
-        IWeightedPairCreator _creator,
-        address _admin,
-        address _formula
-    ) {
+    constructor(address _admin, address _formula) {
         pairAdmin = _admin;
         formula = _formula;
-        pairCreator = _creator;
     }
 
     // ===== views =====
@@ -88,8 +81,8 @@ contract RequiemPairFactory is IWeightedPairFactory {
         require(tokenWeightA >= 2 && tokenWeightA <= 98 && (tokenWeightA % 2) == 0, "RLP: IW");
 
         (address token0, address token1, uint32 tokenWeight0) = tokenA < tokenB ? (tokenA, tokenB, tokenWeightA) : (tokenB, tokenA, 100 - tokenWeightA);
-        require(token0 != address(0) && token1 != address(0), "RLP: ZA");
-        pair = pairCreator.createPair();
+        require(token0 != address(0), "RLP: ZA");
+        pair = address(new RequiemPair());
 
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, tokenWeight0));
         require(!isPair[pair], "RLP: PE");
@@ -99,16 +92,12 @@ contract RequiemPairFactory is IWeightedPairFactory {
 
         // handle administrative initiallization
         IWeightedPairAdmin(pairAdmin).inititalizePairAdministration(pair, formula, initialFee, initialAmp);
+
         tokenPairs[token0][token1].add(pair);
         tokenPairs[token1][token0].add(pair);
         _pairSalts[salt] = pair;
         _pairCount += 1;
         isPair[pair] = true;
         emit PairCreated(token0, token1, pair, tokenWeight0);
-    }
-
-    function changeCreator(IWeightedPairCreator _newCreator) external {
-        require(msg.sender == pairAdmin, "caller has to be the admin");
-        pairCreator = _newCreator;
     }
 }

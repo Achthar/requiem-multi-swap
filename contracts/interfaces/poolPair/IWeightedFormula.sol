@@ -17,22 +17,6 @@ interface IWeightedFormula {
             uint32 swapFee
         );
 
-    function getFactoryParameters(
-        address factory,
-        address pair,
-        address tokenA
-    )
-        external
-        view
-        returns (
-            address tokenB,
-            uint256 reserveA,
-            uint256 reserveB,
-            uint32 tokenWeightA,
-            uint32 tokenWeightB,
-            uint32 swapFee
-        );
-
     function getAmountIn(
         uint256 amountOut,
         uint256 reserveIn,
@@ -70,23 +54,7 @@ interface IWeightedFormula {
         address[] calldata path
     ) external view returns (uint256[] memory amounts);
 
-    function getFactoryAmountsIn(
-        address factory,
-        address tokenIn,
-        address tokenOut,
-        uint256 amountOut,
-        address[] calldata path
-    ) external view returns (uint256[] memory amounts);
-
     function getAmountsOut(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        address[] calldata path
-    ) external view returns (uint256[] memory amounts);
-
-    function getFactoryAmountsOut(
-        address factory,
         address tokenIn,
         address tokenOut,
         uint256 amountIn,

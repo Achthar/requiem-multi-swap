@@ -15,7 +15,6 @@ import "../poolBase/PoolFeeManagement.sol";
 
 contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IMultiPool, PoolERC20, PoolFeeManagement {
     using WeightedPoolLib for WeightedPoolLib.WeightedSwapStorage;
-    using SafeERC20 for IERC20;
     /// constants
     uint256 public constant POOL_TOKEN_COMMON_DECIMALS = 18;
 
@@ -78,13 +77,13 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         swapStorage.collectedFees = new uint256[](_length);
         swapStorage.balances = new uint256[](_length);
         swapStorage.tokenMultipliers = new uint256[](_length);
-        swapStorage.pooledTokens = new IERC20[](_length);
+        swapStorage.pooledTokens = new address[](_length);
         // Ensure  each normalized weight is above them minimum and find the token index of the maximum weight
         uint256 normalizedSum = 0;
         for (uint8 i = 0; i < _length; i++) {
             require(_decimals[i] <= POOL_TOKEN_COMMON_DECIMALS, "DecimalError");
             swapStorage.tokenMultipliers[i] = 10**(POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
-            swapStorage.pooledTokens[i] = IERC20(_coins[i]);
+            swapStorage.pooledTokens[i] = _coins[i];
             tokenIndexes[_coins[i]] = i;
             require(_normalizedWeights[i] >= WeightedMath._MIN_WEIGHT, "MIN_WEIGHT");
             normalizedSum += _normalizedWeights[i];
@@ -364,7 +363,7 @@ contract WeightedPool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, 
         return swapStorage.tokenMultipliers;
     }
 
-    function getPooledTokens() external view returns (IERC20[] memory) {
+    function getPooledTokens() external view returns (address[] memory) {
         return swapStorage.pooledTokens;
     }
 }

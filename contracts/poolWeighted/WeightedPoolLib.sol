@@ -2,26 +2,23 @@
 pragma solidity ^0.8.16;
 
 import "../interfaces/ERC20/IERC20.sol";
-import "../libraries/SafeERC20.sol";
 import "../libraries/math/weighted/WeightedMath.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/poolBase/IFlashSwapRecipient.sol";
 
-// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls
 
 /**
  * Weighted Pool main algorithm
  */
 library WeightedPoolLib {
-    using SafeERC20 for IERC20;
-
     event CollectProtocolFee(address token, uint256 amount);
-    event TokenExchange(address indexed origin, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought, address indexed target);
+    event TokenExchange(uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
 
     uint256 public constant FEE_DENOMINATOR = 1e18; // = 100%
 
     struct WeightedSwapStorage {
-        IERC20[] pooledTokens;
+        address[] pooledTokens;
         uint256 nTokens;
         /// @dev token i multiplier to reach POOL_TOKEN_COMMON_DECIMALS
         uint256[] tokenMultipliers;
@@ -46,6 +43,38 @@ library WeightedPoolLib {
     }
 
     /**
+     * @notice Simple safeTransfer implementation
+     * @param token token to send
+     * @param to receiver
+     * @param value amount to send
+     */
+    function _safeTransfer(
+        address token,
+        address to,
+        uint256 value
+    ) private {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value)); // transfer selector
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TRANSFER_FAILED");
+    }
+
+    /**
+     * @notice Simple safeTransferFrom implementation
+     * @param token token to send
+     * @param from sender
+     * @param to receiver
+     * @param value amount to send
+     */
+    function _safeTransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    ) private {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value)); // transferFom selector
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TRANSFER_FROM_FAILED");
+    }
+
+    /**
      * @notice Deposit coins into the pool
      * @param amounts List of amounts of coins to deposit
      * @param minMintAmount Minimum amount of LP tokens to mint from the deposit
@@ -65,7 +94,7 @@ library WeightedPoolLib {
         _processSwapFeeAmounts(self, swapFees);
 
         for (uint256 i = 0; i < self.balances.length; i++) {
-            self.pooledTokens[i].safeTransferFrom(msg.sender, address(this), amounts[i]);
+            _safeTransferFrom(self.pooledTokens[i], msg.sender, address(this), amounts[i]);
             self.balances[i] += amounts[i];
         }
 
@@ -83,7 +112,7 @@ library WeightedPoolLib {
 
         for (uint256 i = 0; i < count; i++) {
             require(amounts[i] > 0, "amnt");
-            self.pooledTokens[i].safeTransferFrom(msg.sender, address(this), amounts[i]);
+            _safeTransferFrom(self.pooledTokens[i], msg.sender, address(this), amounts[i]);
             self.balances[i] = amounts[i];
         }
 
@@ -107,7 +136,7 @@ library WeightedPoolLib {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
         // fetch in balance
-        uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
+        uint256 balanceIn = IERC20(self.pooledTokens[inIndex]).balanceOf(address(this));
 
         // calculate amount sent
         uint256 inAmount = (balanceIn - self.balances[inIndex]) * inMultiplier;
@@ -131,11 +160,11 @@ library WeightedPoolLib {
         self.balances[outIndex] -= outAmount;
 
         // transfer amount
-        self.pooledTokens[outIndex].safeTransfer(to, outAmount);
+        _safeTransfer(self.pooledTokens[outIndex], to, outAmount);
 
         inAmount /= inMultiplier;
         self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
-        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
+        emit TokenExchange(inIndex, inAmount, outIndex, outAmount);
     }
 
     /**
@@ -158,17 +187,17 @@ library WeightedPoolLib {
         // get out amount denormalized
         outAmount = _calcuOutGivenIn(self, inIndex, outIndex, inAmount);
         // we fetch the tokens and provide it as input for the flash call
-        IERC20 tokenIn = self.pooledTokens[inIndex];
-        IERC20 tokenOut = self.pooledTokens[outIndex];
+        address tokenIn = self.pooledTokens[inIndex];
+        address tokenOut = self.pooledTokens[outIndex];
 
         // optimistic transfer
-        tokenOut.safeTransfer(to, outAmount);
+        _safeTransfer(tokenOut, to, outAmount);
 
         // flash call of recipient
         flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
-        uint256 balanceIn = tokenIn.balanceOf(address(this));
+        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
 
         self.collectedFees[inIndex] += (inAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
@@ -179,7 +208,7 @@ library WeightedPoolLib {
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
 
-        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
+        emit TokenExchange(inIndex, inAmount, outIndex, outAmount);
     }
 
     /**
@@ -199,7 +228,7 @@ library WeightedPoolLib {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
         // get actual new in balance
-        uint256 balanceIn = self.pooledTokens[inIndex].balanceOf(address(this));
+        uint256 balanceIn = IERC20(self.pooledTokens[inIndex]).balanceOf(address(this));
 
         // calculate in amount with upscaled balances
         inAmount = WeightedMath._calcInGivenOut(
@@ -219,13 +248,13 @@ library WeightedPoolLib {
         require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
 
         //send tokens
-        self.pooledTokens[outIndex].safeTransfer(to, outAmount);
+        _safeTransfer(self.pooledTokens[outIndex], to, outAmount);
 
         // update balances
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
 
-        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
+        emit TokenExchange(inIndex, inAmount, outIndex, outAmount);
     }
 
     /**
@@ -248,17 +277,17 @@ library WeightedPoolLib {
         // calculate in amount with upscaled balances
         inAmount = _calcInGivenOut(self, inIndex, outIndex, outAmount);
         // we fetch the tokens and provide it as input for the flash call
-        IERC20 tokenIn = self.pooledTokens[inIndex];
-        IERC20 tokenOut = self.pooledTokens[outIndex];
+        address tokenIn = self.pooledTokens[inIndex];
+        address tokenOut = self.pooledTokens[outIndex];
 
         // optimistic transfer
-        tokenOut.safeTransfer(to, outAmount);
+        _safeTransfer(tokenOut, to, outAmount);
 
         // flash call of recipient
         flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
-        uint256 balanceIn = tokenIn.balanceOf(address(this));
+        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
 
         // collect admin fee
         self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
@@ -270,7 +299,7 @@ library WeightedPoolLib {
         self.balances[inIndex] = balanceIn;
         self.balances[outIndex] -= outAmount;
 
-        emit TokenExchange(msg.sender, inIndex, inAmount, outIndex, outAmount, to);
+        emit TokenExchange(inIndex, inAmount, outIndex, outAmount);
     }
 
     /**
@@ -295,11 +324,11 @@ library WeightedPoolLib {
             uint256 amount = amounts[i];
             if (amount != 0) {
                 // zeros will be ignored
-                preLoanBalances[i] = self.pooledTokens[i].balanceOf(address(this));
+                preLoanBalances[i] = IERC20(self.pooledTokens[i]).balanceOf(address(this));
                 feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
                 require(preLoanBalances[i] >= amount, "pre bals");
-                self.pooledTokens[i].safeTransfer(address(recipient), amount);
+                _safeTransfer(self.pooledTokens[i], address(recipient), amount);
             }
         }
 
@@ -311,7 +340,7 @@ library WeightedPoolLib {
                 uint256 feeAmount = feeAmounts[i];
                 // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
                 // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
-                uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
+                uint256 postLoanBalance = IERC20(self.pooledTokens[i]).balanceOf(address(this));
                 require(postLoanBalance >= preLoanBalance, "post bal");
                 self.balances[i] = postLoanBalance;
                 self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
@@ -338,7 +367,7 @@ library WeightedPoolLib {
             require(amounts[i] >= minAmounts[i], "s");
             uint256 amount = amounts[i];
             self.balances[i] = self.balances[i] - amount;
-            self.pooledTokens[i].safeTransfer(msg.sender, amount);
+            _safeTransfer(self.pooledTokens[i], msg.sender, amount);
         }
     }
 
@@ -362,7 +391,7 @@ library WeightedPoolLib {
         require(amountOut >= minAmount, "s");
 
         uint256 amountOutFinal = amountOut;
-        self.pooledTokens[index].safeTransfer(msg.sender, amountOutFinal);
+        _safeTransfer(self.pooledTokens[index], msg.sender, amountOutFinal);
         uint256[] memory amounts = new uint256[](self.nTokens);
         amounts[index] = amountOut;
 
@@ -392,7 +421,7 @@ library WeightedPoolLib {
 
         for (uint256 i = 0; i < self.nTokens; i++) {
             if (amounts[i] != 0) {
-                self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
+                _safeTransfer(self.pooledTokens[i], msg.sender, amounts[i]);
                 self.balances[i] -= amounts[i];
             }
         }
@@ -464,12 +493,12 @@ library WeightedPoolLib {
 
     function withdrawCollectedFees(WeightedSwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
-            IERC20 token = self.pooledTokens[i];
+            address token = self.pooledTokens[i];
             uint256 fee = self.collectedFees[i];
             if (fee > 0) {
-                token.safeTransfer(receiver, fee);
+                _safeTransfer(token, receiver, fee);
                 self.collectedFees[i] = 0;
-                self.balances[i] = token.balanceOf(address(this));
+                self.balances[i] = IERC20(token).balanceOf(address(this));
                 emit CollectProtocolFee(address(token), fee);
             }
         }

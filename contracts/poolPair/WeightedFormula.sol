@@ -594,22 +594,9 @@ contract WeightedFormula is IWeightedFormula {
     {
         try IWeightedPair(pair).getParameters() returns (uint32 _tokenWeight0, uint32 _tokenWeight1, uint32 _swapFee, uint32 _amp) {
             return (_tokenWeight0, _tokenWeight1, _swapFee, _amp);
-        } catch Error(string memory reason) {
-            revert(reason);
+        } catch {
+            return (50, 50, 30, 10000);
         }
-    }
-
-    function getFactoryStaticData(address factory, address pair)
-        public
-        view
-        returns (
-            uint32 tokenWeight0,
-            uint32 tokenWeight1,
-            uint32 swapFee,
-            uint32 amp
-        )
-    {
-        return IWeightedPairFactory(factory).getParameters(pair);
     }
 
     function getPairParameters(address pair, address tokenA)
@@ -639,38 +626,7 @@ contract WeightedFormula is IWeightedFormula {
         }
     }
 
-    function getFactoryParameters(
-        address factory,
-        address pair,
-        address tokenA
-    )
-        public
-        view
-        override
-        returns (
-            address tokenB,
-            uint256 reserveA,
-            uint256 reserveB,
-            uint32 tokenWeightA,
-            uint32 tokenWeightB,
-            uint32 swapFee
-        )
-    {
-        IWeightedPair.ReserveData memory reserveData = IWeightedPair(pair).getReserves();
-        uint32 tokenWeight0;
-        uint32 tokenWeight1;
-        (tokenWeight0, tokenWeight1, swapFee, ) = getFactoryStaticData(factory, pair);
-
-        if (tokenA == IWeightedPair(pair).token0()) {
-            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IWeightedPair(pair).token1(), reserveData.vReserve0, reserveData.vReserve1, tokenWeight0, tokenWeight1);
-        } else if (tokenA == IWeightedPair(pair).token1()) {
-            (tokenB, reserveA, reserveB, tokenWeightA, tokenWeightB) = (IWeightedPair(pair).token0(), reserveData.vReserve1, reserveData.vReserve0, tokenWeight1, tokenWeight0);
-        } else {
-            revert("REQF: IA");
-        }
-    }
-
-    function getFactoryPairData(address factory, address pair)
+    function getFactoryPairData(address pair)
         public
         view
         returns (
@@ -686,7 +642,7 @@ contract WeightedFormula is IWeightedFormula {
         token0 = IWeightedPair(pair).token0();
         token1 = IWeightedPair(pair).token1();
         reserveData = IWeightedPair(pair).getReserves();
-        (tokenWeight0, tokenWeight1, swapFee, amp) = getFactoryStaticData(factory, pair);
+        (tokenWeight0, tokenWeight1, swapFee, amp) = getPairStaticData(pair);
     }
 
     /**
@@ -795,27 +751,6 @@ contract WeightedFormula is IWeightedFormula {
         require(currentTokenIn == tokenOut, "REQF: IOP");
     }
 
-    function getFactoryAmountsOut(
-        address factory,
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        address[] calldata path
-    ) external view override returns (uint256[] memory amounts) {
-        require(path.length > 0, "REQF: IP");
-        amounts = new uint256[](path.length + 1);
-        amounts[0] = amountIn;
-        address currentTokenIn = tokenIn;
-
-        for (uint256 i = 0; i < path.length; i++) {
-            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryParameters(factory, path[i], currentTokenIn);
-
-            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, tokenWeightIn, tokenWeightOut, swapFee);
-            currentTokenIn = currentTokenOut;
-        }
-        require(currentTokenIn == tokenOut, "REQF: IOP");
-    }
-
     function getPairAmountOut(
         address pair,
         address tokenIn,
@@ -838,25 +773,6 @@ contract WeightedFormula is IWeightedFormula {
         address currentTokenIn = tokenOut;
         for (uint256 i = path.length; i > 0; i--) {
             (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getPairParameters(path[i - 1], currentTokenIn);
-            amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
-            currentTokenIn = currentTokenOut;
-        }
-        require(currentTokenIn == tokenIn, "REQF: IIP");
-    }
-
-    function getFactoryAmountsIn(
-        address factory,
-        address tokenIn,
-        address tokenOut,
-        uint256 amountOut,
-        address[] calldata path
-    ) external view override returns (uint256[] memory amounts) {
-        require(path.length > 0, "REQF: IP");
-        amounts = new uint256[](path.length + 1);
-        amounts[amounts.length - 1] = amountOut;
-        address currentTokenIn = tokenOut;
-        for (uint256 i = path.length; i > 0; i--) {
-            (address currentTokenOut, uint256 reserveIn, uint256 reserveOut, uint32 tokenWeightIn, uint32 tokenWeightOut, uint32 swapFee) = getFactoryParameters(factory, path[i - 1], currentTokenIn);
             amounts[i - 1] = getAmountIn(amounts[i], reserveOut, reserveIn, tokenWeightOut, tokenWeightIn, swapFee);
             currentTokenIn = currentTokenOut;
         }

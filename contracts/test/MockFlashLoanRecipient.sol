@@ -36,9 +36,9 @@ contract MockFlashLoanRecipient is IFlashLoanRecipient {
         repayInExcess = false;
         reenter = false;
         // tokens = new IERC20[](_tokens.length);
-    //     for(uint256 i = 0; i < _tokens.length; i++){
-    //         tokens[i] = IERC20(_tokens[i]);
-    //     }
+        //     for(uint256 i = 0; i < _tokens.length; i++){
+        //         tokens[i] = IERC20(_tokens[i]);
+        //     }
     }
 
     function setRepayLoan(bool _repayLoan) public {
@@ -55,13 +55,13 @@ contract MockFlashLoanRecipient is IFlashLoanRecipient {
 
     // Repays loan unless setRepayLoan was called with 'false'
     function receiveFlashLoan(
-        IERC20[] memory tokens,
+        address[] memory tokens,
         uint256[] memory amounts,
         uint256[] memory feeAmounts,
         bytes memory userData
     ) external override {
         for (uint256 i = 0; i < amounts.length; ++i) {
-            IERC20 token = tokens[i];
+            IERC20 token = IERC20(tokens[i]);
             uint256 amount = amounts[i];
             uint256 feeAmount = feeAmounts[i];
 

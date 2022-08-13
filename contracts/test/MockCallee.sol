@@ -73,9 +73,9 @@ contract MockCallee is IRequiemCallee {
 
         uint256 fee1 = (amount1 * swapFee) / 10000;
 
-        MockERC20(IWeightedPair(msg.sender).token0()).mint(address(this), repayInExcess ? fee0 + 1 : fee0);
+        MockERC20(address(IWeightedPair(msg.sender).token0())).mint(address(this), repayInExcess ? fee0 + 1 : fee0);
 
-        MockERC20(IWeightedPair(msg.sender).token1()).mint(address(this), repayInExcess ? fee1 + 1 : fee1);
+        MockERC20(address(IWeightedPair(msg.sender).token1())).mint(address(this), repayInExcess ? fee1 + 1 : fee1);
 
         uint256 totalDebt0 = amount0 + fee0;
         uint256 totalDebt1 = amount1 + fee1;
@@ -88,8 +88,8 @@ contract MockCallee is IRequiemCallee {
             totalDebt1 = totalDebt1 + 1;
         }
 
-        MockERC20(IWeightedPair(msg.sender).token0()).transfer(pool, totalDebt0);
+        MockERC20(address(IWeightedPair(msg.sender).token0())).transfer(pool, totalDebt0);
 
-        MockERC20(IWeightedPair(msg.sender).token1()).transfer(pool, totalDebt1);
+        MockERC20(address(IWeightedPair(msg.sender).token1())).transfer(pool, totalDebt1);
     }
 }

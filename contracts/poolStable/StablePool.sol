@@ -17,7 +17,6 @@ import "../poolBase/PoolFeeManagement.sol";
 
 contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IMultiPool, PoolERC20, PoolFeeManagement {
     using StablePoolLib for StablePoolLib.SwapStorage;
-    using SafeERC20 for IERC20;
 
     /// STATE VARS
     StablePoolLib.SwapStorage public swapStorage;
@@ -48,11 +47,11 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         uint256 length = _coins.length;
         require(length == _decimals.length, "ArrayError");
         swapStorage.tokenMultipliers = new uint256[](length);
-        swapStorage.pooledTokens = new IERC20[](length);
+        swapStorage.pooledTokens = new address[](length);
         for (uint8 i = 0; i < length; i++) {
             require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "DecimalError");
             swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
-            swapStorage.pooledTokens[i] = IERC20(_coins[i]);
+            swapStorage.pooledTokens[i] = address(_coins[i]);
             tokenIndexes[address(_coins[i])] = i;
         }
 
@@ -348,7 +347,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         return swapStorage.collectedFees;
     }
 
-    function getPooledTokens() external view returns (IERC20[] memory) {
+    function getPooledTokens() external view returns (address[] memory) {
         return swapStorage.pooledTokens;
     }
 

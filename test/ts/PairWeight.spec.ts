@@ -23,7 +23,7 @@ describe("RequiemPairWeight", () => {
     let tokenB: WeightedPairERC20;
     let tokenWeight1: number;
     let pair: RequiemPair;
-    let admin : WeightedPairAdmin
+    let admin: WeightedPairAdmin
 
     beforeEach(async () => {
         signers = await ethers.getSigners();
@@ -132,7 +132,7 @@ describe("RequiemPairWeight", () => {
             .to.emit(pair, "Sync")
             .withArgs(...syncArgs)
             .to.emit(pair, "Swap")
-            .withArgs(wallet.address, ...swapArgs, wallet.address);
+            .withArgs(...swapArgs);
 
         const reserves = await pair.getReserves();
         expect(isToken0Sorted ? reserves[0] : reserves[1]).to.eq(tokenAamount.add(swapAmount));
@@ -166,7 +166,7 @@ describe("RequiemPairWeight", () => {
             .to.emit(pair, "Sync")
             .withArgs(...syncArgs)
             .to.emit(pair, "Swap")
-            .withArgs(wallet.address, ...swapArgs, wallet.address);
+            .withArgs(...swapArgs);
 
         const reserves = await pair.getReserves();
         expect(isToken0Sorted ? reserves[0] : reserves[1]).to.eq(tokenAamount.sub(expectedOutputAmount));
@@ -199,7 +199,8 @@ describe("RequiemPairWeight", () => {
         const tx = await pair.swap(isToken0Sorted ? 0 : expectedOutputAmount, isToken0Sorted ? expectedOutputAmount : 0, wallet.address, '0x', overrides)
         const receipt = await tx.wait()
         console.log(Number(receipt.gasUsed.toString()))
-        expect(receipt.gasUsed).to.eq(78909)
+        // expect(receipt.gasUsed).to.eq(78909)
+        expect(receipt.gasUsed).to.eq(78215)
     })
 
     //   it("price{0,1}CumulativeLast", async () => {
@@ -320,7 +321,7 @@ describe("RequiemPairWeight", () => {
             .to.emit(pair, 'Sync')
             .withArgs(token0Amount.add(swapAmount), token1Amount.sub(expectedOutputAmount))
             .to.emit(pair, 'Swap')
-            .withArgs(wallet.address, swapAmount, 0, 0, expectedOutputAmount, wallet.address)
+            .withArgs(swapAmount, 0, 0, expectedOutputAmount)
 
         const reserves = await pair.getReserves()
         const balance0 = await token0.balanceOf(pair.address);

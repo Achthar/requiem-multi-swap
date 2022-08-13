@@ -2,19 +2,16 @@
 pragma solidity ^0.8.16;
 
 import "../interfaces/ERC20/IERC20.sol";
-import "../libraries/SafeERC20.sol";
 import "../interfaces/flashLoan/IFlashLoanRecipient.sol";
 import "../interfaces/poolBase/IFlashSwapRecipient.sol";
 
-// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string
+// solhint-disable not-rely-on-time, var-name-mixedcase, max-line-length, reason-string, avoid-low-level-calls
 
 /**
  * StableSwap main algorithm
  */
 library StablePoolLib {
-    using SafeERC20 for IERC20;
-
-    event TokenExchange(address indexed origin, uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought, address indexed target);
+    event TokenExchange(uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
 
     event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256[] fees, uint256 invariant, uint256 token_supply);
 
@@ -49,7 +46,7 @@ library StablePoolLib {
 
     struct SwapStorage {
         /// @dev tokens in pool
-        IERC20[] pooledTokens;
+        address[] pooledTokens;
         /// @dev token i multiplier to reach POOL_TOKEN_COMMON_DECIMALS
         uint256[] tokenMultipliers;
         uint256 nTokens;
@@ -74,6 +71,38 @@ library StablePoolLib {
         mapping(address => uint256) withdrawFeeMultiplier;
         /// @dev array that collects admin fees
         uint256[] collectedFees;
+    }
+
+    /**
+     * @notice Simple safeTransfer implementation
+     * @param token token to send
+     * @param to receiver
+     * @param value amount to send
+     */
+    function _safeTransfer(
+        address token,
+        address to,
+        uint256 value
+    ) private {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value)); // transfer selector
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TRANSFER_FAILED");
+    }
+
+    /**
+     * @notice Simple safeTransferFrom implementation
+     * @param token token to send
+     * @param from sender
+     * @param to receiver
+     * @param value amount to send
+     */
+    function _safeTransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    ) private {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value)); // transferFom selector
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TRANSFER_FROM_FAILED");
     }
 
     /**
@@ -167,7 +196,7 @@ library StablePoolLib {
         uint256 j,
         address to
     ) external returns (uint256 dy) {
-        uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
+        uint256 balanceIn = IERC20(self.pooledTokens[i]).balanceOf(address(this));
         uint256 inAmount = balanceIn - self.balances[i];
 
         dy = _calcOutGivenIn(self, i, j, inAmount);
@@ -177,9 +206,9 @@ library StablePoolLib {
         self.balances[j] -= dy;
         self.collectedFees[j] += (dy * self.adminSwapFee) / FEE_DENOMINATOR;
 
-        self.pooledTokens[j].safeTransfer(to, dy);
+        _safeTransfer(self.pooledTokens[j], to, dy);
 
-        emit TokenExchange(msg.sender, i, inAmount, j, dy, to);
+        emit TokenExchange(i, inAmount, j, dy);
     }
 
     /**
@@ -203,18 +232,18 @@ library StablePoolLib {
         // calculate out amount from assumed in amount
         outAmount = _calcOutGivenIn(self, i, j, inAmount);
         // we fetch the tokens and provide it as input for the flash call
-        IERC20 tokenIn = self.pooledTokens[i];
-        IERC20 tokenOut = self.pooledTokens[j];
+        address tokenIn = self.pooledTokens[i];
+        address tokenOut = self.pooledTokens[j];
         // address receiverAddress = address(to);
 
         // optimistic transfer
-        tokenOut.safeTransfer(to, outAmount);
+        _safeTransfer(tokenOut, to, outAmount);
 
         // flash call of recipient
         flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
-        uint256 balanceIn = tokenIn.balanceOf(address(this));
+        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
 
         // check the whether sufficient amounts have been sent in
         require(inAmount <= balanceIn - self.balances[i], "insufficient in");
@@ -226,7 +255,7 @@ library StablePoolLib {
         // collect admin fee
         self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
-        emit TokenExchange(msg.sender, i, inAmount, j, outAmount, to);
+        emit TokenExchange(i, inAmount, j, outAmount);
     }
 
     /**
@@ -245,7 +274,7 @@ library StablePoolLib {
         uint256 inAmount = _calcInGivenOut(self, i, j, outAmount);
 
         // get received amount
-        uint256 balanceIn = self.pooledTokens[i].balanceOf(address(this));
+        uint256 balanceIn = IERC20(self.pooledTokens[i]).balanceOf(address(this));
 
         // check the whether sufficient amounts have been sent in
         require(inAmount <= balanceIn - self.balances[i], "insufficient in");
@@ -258,9 +287,9 @@ library StablePoolLib {
         self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         // finally transfer the tokens
-        self.pooledTokens[j].safeTransfer(to, outAmount);
+        _safeTransfer(self.pooledTokens[j], to, outAmount);
 
-        emit TokenExchange(msg.sender, i, inAmount, j, outAmount, to);
+        emit TokenExchange(i, inAmount, j, outAmount);
     }
 
     /**
@@ -283,18 +312,18 @@ library StablePoolLib {
         // add fee to in Amount - this amount has to be sent to the pool
         inAmount = _calcInGivenOut(self, i, j, outAmount);
         // we fetch the tokens and provide it as input for the flash call
-        IERC20 tokenIn = self.pooledTokens[i];
-        IERC20 tokenOut = self.pooledTokens[j];
+        address tokenIn = self.pooledTokens[i];
+        address tokenOut = self.pooledTokens[j];
         // address receiverAddress = address(to);
 
         // optimistic transfer
-        tokenOut.safeTransfer(to, outAmount);
+        _safeTransfer(tokenOut, to, outAmount);
 
         // flash call of recipient
         flashContract.recieveSwapAmount(msg.sender, tokenIn, tokenOut, inAmount, outAmount, data);
 
         // get actual new in balance
-        uint256 balanceIn = tokenIn.balanceOf(address(this));
+        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
 
         // check the whether sufficient amounts have been sent in
         require(inAmount <= balanceIn - self.balances[i], "insufficient in");
@@ -306,7 +335,7 @@ library StablePoolLib {
         // collect admin fee
         self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
-        emit TokenExchange(msg.sender, i, inAmount, j, outAmount, to);
+        emit TokenExchange(i, inAmount, j, outAmount);
     }
 
     /**  @notice Flash Loan using the stable swap balances*/
@@ -326,13 +355,13 @@ library StablePoolLib {
             uint256 amount = amounts[i];
             if (amount != 0) {
                 // ignore zero amounts
-                IERC20 token = self.pooledTokens[i];
+                address token = self.pooledTokens[i];
 
-                preLoanBalances[i] = token.balanceOf(address(this));
+                preLoanBalances[i] = IERC20(token).balanceOf(address(this));
                 feeAmounts[i] = (amount * self.flashFee) / FEE_DENOMINATOR;
 
                 require(preLoanBalances[i] >= amount, "pre balances");
-                token.safeTransfer(address(recipient), amount);
+                _safeTransfer(token, address(recipient), amount);
             }
         }
 
@@ -345,7 +374,7 @@ library StablePoolLib {
                 uint256 feeAmount = feeAmounts[i];
                 // Checking for loan repayment first (without accounting for fees) makes for simpler debugging, and results
                 // in more accurate revert reasons if the flash loan protocol fee percentage is zero.
-                uint256 postLoanBalance = self.pooledTokens[i].balanceOf(address(this));
+                uint256 postLoanBalance = IERC20(self.pooledTokens[i]).balanceOf(address(this));
                 require(postLoanBalance >= preLoanBalance, "post balances");
                 self.balances[i] = postLoanBalance;
                 self.collectedFees[i] += (feeAmount * self.adminFee) / FEE_DENOMINATOR;
@@ -373,7 +402,7 @@ library StablePoolLib {
         for (uint256 i = 0; i < nCoins; i++) {
             require(amounts[i] >= minAmounts[i], "slippageError");
             self.balances[i] -= amounts[i];
-            self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
+            _safeTransfer(self.pooledTokens[i], msg.sender, amounts[i]);
         }
 
         emit RemoveLiquidity(msg.sender, amounts, fees, totalSupply - lpAmount);
@@ -397,7 +426,7 @@ library StablePoolLib {
 
         self.balances[index] -= dy;
         self.collectedFees[index] += (dyFee * self.adminFee) / FEE_DENOMINATOR;
-        self.pooledTokens[index].safeTransfer(msg.sender, dy);
+        _safeTransfer(self.pooledTokens[index], msg.sender, dy);
 
         emit RemoveLiquidityOne(msg.sender, index, lpAmount, dy);
     }
@@ -429,7 +458,7 @@ library StablePoolLib {
             self.collectedFees[i] += (fees[i] * self.adminFee) / FEE_DENOMINATOR;
             newBalances[i] -= fees[i]; // reduce fee from balance for burn amount calculation
             if (amounts[i] != 0) {
-                self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
+                _safeTransfer(self.pooledTokens[i], msg.sender, amounts[i]);
             }
         }
 
@@ -446,13 +475,13 @@ library StablePoolLib {
 
     function withdrawCollectedFees(SwapStorage storage self, address receiver) external {
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
-            IERC20 token = self.pooledTokens[i];
+            address token = self.pooledTokens[i];
             uint256 fee = self.collectedFees[i];
             if (fee != 0) {
-                token.safeTransfer(receiver, fee);
+                _safeTransfer(token, receiver, fee);
                 self.collectedFees[i] = 0;
-                self.balances[i] = token.balanceOf(address(this));
-                emit CollectProtocolFee(address(token), fee);
+                self.balances[i] = IERC20(token).balanceOf(address(this));
+                emit CollectProtocolFee(token, fee);
             }
         }
     }
@@ -464,7 +493,7 @@ library StablePoolLib {
 
     function getAdminBalance(SwapStorage storage self, uint256 index) external view returns (uint256) {
         require(index < self.pooledTokens.length, "arrayError");
-        return self.pooledTokens[index].balanceOf(address(this)) - (self.balances[index]);
+        return IERC20(self.pooledTokens[index]).balanceOf(address(this)) - (self.balances[index]);
     }
 
     /**
@@ -929,10 +958,10 @@ library StablePoolLib {
         return 0;
     }
 
-    function _doTransferIn(IERC20 token, uint256 amount) private returns (uint256) {
-        uint256 priorBalance = token.balanceOf(address(this));
-        token.safeTransferFrom(msg.sender, address(this), amount);
-        return token.balanceOf(address(this)) - priorBalance;
+    function _doTransferIn(address token, uint256 amount) private returns (uint256) {
+        uint256 priorBalance = IERC20(token).balanceOf(address(this));
+        _safeTransferFrom(token, msg.sender, address(this), amount);
+        return IERC20(token).balanceOf(address(this)) - priorBalance;
     }
 
     function _sumOf(uint256[] memory x) private pure returns (uint256 sum) {

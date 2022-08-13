@@ -151,7 +151,7 @@ describe('Requiem Pair Base Equal Weight', () => {
             // .to.emit(pair, 'Sync')
             // .withArgs(token0Amount.add(swapAmount), token1Amount.sub(expectedOutputAmount))
             .to.emit(pair, 'Swap')
-            .withArgs(wallet.address, swapAmount, 0, 0, expectedOutputAmount, wallet.address)
+            .withArgs(swapAmount, 0, 0, expectedOutputAmount)
 
         const reserves = await pair.getReserves()
         expect(reserves[0]).to.eq(token0Amount.add(swapAmount))
@@ -292,7 +292,7 @@ describe('Requiem Pair Base Equal Weight', () => {
             // .to.emit(pair, 'Sync')
             // .withArgs(token0Amount.add(swapAmount), token1Amount.sub(expectedOutputAmount))
             .to.emit(pair, 'Swap')
-            .withArgs(wallet.address, swapAmount, 0, 0, expectedOutputAmount, wallet.address)
+            .withArgs(swapAmount, 0, 0, expectedOutputAmount)
 
         const reserves = await pair.getReserves()
         const balance0 = await token0.balanceOf(pair.address);
@@ -323,7 +323,7 @@ describe('Requiem Pair Base Equal Weight', () => {
             // .to.emit(pair, 'Sync')
             // .withArgs(token0Amount.sub(expectedOutputAmount), token1Amount.add(swapAmount))
             .to.emit(pair, 'Swap')
-            .withArgs(wallet.address, 0, swapAmount, expectedOutputAmount, 0, wallet.address)
+            .withArgs(0, swapAmount, expectedOutputAmount, 0)
 
         const reserves = await pair.getReserves()
         expect(reserves[0]).to.eq(token0Amount.sub(expectedOutputAmount))
@@ -352,7 +352,7 @@ describe('Requiem Pair Base Equal Weight', () => {
             // .to.emit(pair, 'Sync')
             // .withArgs(token0Amount.sub(expectedOutputAmount), token1Amount.add(swapAmount))
             .to.emit(pair, 'Swap')
-            .withArgs(wallet.address, 0, swapAmount, expectedOutputAmount, 0, wallet.address)
+            .withArgs(0, swapAmount, expectedOutputAmount, 0)
         const reserves = await pair.getReserves()
         const balance0 = await token0.balanceOf(pair.address);
         const balance1 = await token1.balanceOf(pair.address);
