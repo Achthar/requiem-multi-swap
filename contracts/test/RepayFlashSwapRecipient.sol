@@ -8,6 +8,7 @@ import "../interfaces/poolBase/IFlashSwap.sol";
 // solhint-disable no-empty-blocks
 
 // simple flash swap implementation that just repays the demanded amount
+// this implementation is already a router for single swaps with pools
 contract RepayFlashSwapRecipient {
     constructor() {}
 

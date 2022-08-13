@@ -81,6 +81,7 @@ describe("Flash Swap Multi Hop eact out", () => {
         await approveAll(wallet, tokens, stableFixture.pool.address)
         await approveAll(other, tokens, stableFixture.pool.address)
         flashSwapRouter = await new MockExactOutRouter__factory(wallet).deploy()
+        repayFlashSwap = await new RepayFlashSwapRecipient__factory(wallet).deploy()
 
         await approveAll(wallet, tokens, balancedFixture.pool.address)
         await approveAll(other, tokens, balancedFixture.pool.address)
@@ -90,6 +91,9 @@ describe("Flash Swap Multi Hop eact out", () => {
 
         await approveAll(wallet, tokens, weightedFixture.pool.address)
         await approveAll(other, tokens, weightedFixture.pool.address)
+
+        await approveAll(wallet, tokens, repayFlashSwap.address)
+        await approveAll(other, tokens, repayFlashSwap.address)
 
         await fixture.pool.connect(wallet).addLiquidityExactIn(initialAmounts, 1, wallet.address, maxUint256);
         await stableFixture.pool.connect(wallet).addLiquidityExactIn([0, 3, 4].map((x, i) => parseUnits(baseUnits[i], tokens.decimals[x])), 1, wallet.address, maxUint256);
@@ -210,6 +214,52 @@ describe("Flash Swap Multi Hop eact out", () => {
 
     })
 
+    it('Flash ExactIn tests', async () => {
+        // route 4 -> 3 
+        const inAm0 = parseUnits('1', 8)
+        const inAm1 = parseUnits('1', 8)
+        const inAm2 = parseUnits('1', 8)
+        const inAm3 = parseUnits('1', 8)
+
+        let out0 = await weightedFixture.pool.calculateSwapGivenIn(tokens.token5.address, tokens.token3.address, inAm0)
+        let out1 = await balancedFixture.pool.calculateSwapGivenIn(tokens.token2.address, tokens.token5.address, inAm1)
+        let out2 = await fixture.pool.calculateSwapGivenIn(tokens.token0.address, tokens.token2.address, inAm2)
+        let out3 = await stableFixture.pool.calculateSwapGivenIn(tokens.token4.address, tokens.token0.address, inAm3)
+
+        balancePre = await tokens.token3.balanceOf(wallet.address)
+        txIn = await weightedFixture.pool.onFlashSwapExactIn(repayFlashSwap.address, tokens.token5.address, tokens.token3.address, inAm0, wallet.address, '0x')
+        balancePost = await tokens.token3.balanceOf(wallet.address)
+        receipt = await txIn.wait()
+        console.log("FlashGas weighted", receipt.gasUsed)
+        expect(balancePost.sub(balancePre)).to.equal(out0)
+
+
+        balancePre = await tokens.token5.balanceOf(wallet.address)
+        txIn = await balancedFixture.pool.onFlashSwapExactIn(repayFlashSwap.address, tokens.token2.address, tokens.token5.address, inAm1, wallet.address, '0x')
+        balancePost = await tokens.token5.balanceOf(wallet.address)
+        receipt = await txIn.wait()
+        console.log("FlashGas balanced", receipt.gasUsed)
+        expect(balancePost.sub(balancePre)).to.equal(out1)
+
+
+        balancePre = await tokens.token2.balanceOf(wallet.address)
+        txIn = await fixture.pool.onFlashSwapExactIn(repayFlashSwap.address, tokens.token0.address, tokens.token2.address, inAm2, wallet.address, '0x')
+        balancePost = await tokens.token2.balanceOf(wallet.address)
+        receipt = await txIn.wait()
+        console.log("FlashGas weighted1", receipt.gasUsed)
+        expect(balancePost.sub(balancePre)).to.equal(out2)
+
+
+        balancePre = await tokens.token0.balanceOf(wallet.address)
+        txIn = await stableFixture.pool.onFlashSwapExactIn(repayFlashSwap.address, tokens.token4.address, tokens.token0.address, inAm3, wallet.address, '0x')
+        balancePost = await tokens.token0.balanceOf(wallet.address)
+        receipt = await txIn.wait()
+        console.log("FlashGas stable", receipt.gasUsed)
+        expect(balancePost.sub(balancePre)).to.equal(out3)
+
+
+    })
+
     // Flash Swap Multi Hop eact out
     // 0x04C89607413713Ec9775E14b954286519d836FEf
     // BigNumber { value: "1967" } BigNumber { value: "1967" }
@@ -226,8 +276,8 @@ describe("Flash Swap Multi Hop eact out", () => {
     // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
     // RegGas BigNumber { value: "514878" }
     //     ✓ Flash swaps 4x
-    
-    
+
+
 
     // Flash Swap Multi Hop eact out
     // 0x04C89607413713Ec9775E14b954286519d836FEf
@@ -245,8 +295,8 @@ describe("Flash Swap Multi Hop eact out", () => {
     // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
     // RegGas BigNumber { value: "514922" }
     //     ✓ Flash swaps 4x
-    
-    
+
+
     // lash Swap Multi Hop eact out
     // 0x04C89607413713Ec9775E14b954286519d836FEf
     // BigNumber { value: "1967" } BigNumber { value: "1967" }
@@ -263,7 +313,7 @@ describe("Flash Swap Multi Hop eact out", () => {
     // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
     // RegGas BigNumber { value: "514922" }
     //     ✓ Flash swaps 4x
-    
+
 
     // it('FlashSwap: valid, insufficient fee and reentrant', async () => {
 
