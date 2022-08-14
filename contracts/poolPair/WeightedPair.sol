@@ -619,6 +619,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 v0,
         uint256 v1
     ) private returns (uint256 amountOut) {
+        // calculate output amount
         amountOut = IWeightedFormula(formula).getAmountOut(amountIn, v0, v1, tokenWeight0, tokenWeight1, swapFee);
 
         // handle fee
@@ -630,10 +631,11 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 v0,
         uint256 v1
     ) private returns (uint256 amountOut) {
+        // calculate output amount
         amountOut = IWeightedFormula(formula).getAmountOut(amountIn, v1, v0, tokenWeight1, tokenWeight0, swapFee);
 
         // handle fee
-        collectedFee0 = uint112(uint256(collectedFee0) + amountIn * swapFee);
+        collectedFee1 = uint112(uint256(collectedFee1) + amountIn * swapFee);
     }
 
     function _handleIn0ExactOut(

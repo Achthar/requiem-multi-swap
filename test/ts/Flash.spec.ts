@@ -260,42 +260,6 @@ describe("Flash Swap Multi Hop eact out", () => {
 
     })
 
-    // Flash Swap Multi Hop eact out
-    // 0x04C89607413713Ec9775E14b954286519d836FEf
-    // BigNumber { value: "1967" } BigNumber { value: "1967" }
-    // FlashGas BigNumber { value: "287434" }
-    // RegGas BigNumber { value: "312450" }
-    //     ✓ Flash swaps 2x
-    // 0xD49a0e9A4CD5979aE36840f542D2d7f02C4817Be
-    // FlashGas BigNumber { value: "381563" }
-    // BigNumber { value: "984" } BigNumber { value: "984" }
-    // RegGas BigNumber { value: "385830" }
-    //     ✓ Flash swaps 3x
-    // 0x9Fcca440F19c62CDF7f973eB6DDF218B15d4C71D
-    // FlashGas BigNumber { value: "529559" }
-    // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
-    // RegGas BigNumber { value: "514878" }
-    //     ✓ Flash swaps 4x
-
-
-
-    // Flash Swap Multi Hop eact out
-    // 0x04C89607413713Ec9775E14b954286519d836FEf
-    // BigNumber { value: "1967" } BigNumber { value: "1967" }
-    // FlashGas BigNumber { value: "285554" }
-    // RegGas BigNumber { value: "312472" }
-    //     ✓ Flash swaps 2x
-    // 0xD49a0e9A4CD5979aE36840f542D2d7f02C4817Be
-    // FlashGas BigNumber { value: "380107" }
-    // BigNumber { value: "984" } BigNumber { value: "984" }
-    // RegGas BigNumber { value: "385852" }
-    //     ✓ Flash swaps 3x
-    // 0x9Fcca440F19c62CDF7f973eB6DDF218B15d4C71D
-    // FlashGas BigNumber { value: "528549" }
-    // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
-    // RegGas BigNumber { value: "514922" }
-    //     ✓ Flash swaps 4x
-
 
     // lash Swap Multi Hop eact out
     // 0x04C89607413713Ec9775E14b954286519d836FEf
@@ -314,6 +278,28 @@ describe("Flash Swap Multi Hop eact out", () => {
     // RegGas BigNumber { value: "514922" }
     //     ✓ Flash swaps 4x
 
+    // current: 
+    // Flash Swap Multi Hop eact out
+    // 0x04C89607413713Ec9775E14b954286519d836FEf
+    // BigNumber { value: "1967" } BigNumber { value: "1967" }
+    // FlashGas BigNumber { value: "284266" }
+    // RegGas BigNumber { value: "310838" }
+    //     ✓ Flash swaps 2x
+    // 0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27
+    // FlashGas BigNumber { value: "377755" }
+    // BigNumber { value: "984" } BigNumber { value: "984" }
+    // RegGas BigNumber { value: "383402" }
+    //     ✓ Flash swaps 3x
+    // 0xd3FFD73C53F139cEBB80b6A524bE280955b3f4db
+    // FlashGas BigNumber { value: "525074" }
+    // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
+    // RegGas BigNumber { value: "511644" }
+    //     ✓ Flash swaps 4x
+    // FlashGas weighted BigNumber { value: "156123" }
+    // FlashGas balanced BigNumber { value: "131634" }
+    // FlashGas weighted1 BigNumber { value: "164523" }
+    // FlashGas stable BigNumber { value: "170566" }
+    
 
     // it('FlashSwap: valid, insufficient fee and reentrant', async () => {
 

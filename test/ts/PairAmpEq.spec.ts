@@ -8,7 +8,7 @@ import { WeightedFormula, WeightedPairERC20, RequiemPairFactory, RequiemPair, We
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const overrides = {};
 
-describe("RequiemPairAmp", () => {
+describe("RequiemPair:Amplified:EqualWeight", () => {
     let signers: SignerWithAddress[];
 
     let wallet: SignerWithAddress;

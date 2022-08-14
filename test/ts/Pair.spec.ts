@@ -23,7 +23,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3)
 const overrides = {}
 
-describe('Requiem Pair Base Equal Weight', () => {
+describe('RequiemPair:Unamplified:EqualWeight', () => {
     let signers: SignerWithAddress[];
 
     let wallet: SignerWithAddress;
@@ -403,7 +403,7 @@ describe('Requiem Pair Base Equal Weight', () => {
 
         let receipt = await tx.wait()
         // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80368) // the special function takes slihgtly more gas than the usual weighted pair
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80439) // the special function takes slihgtly more gas than the usual weighted pair
         console.log("EI0", Number(receipt.gasUsed.toString()))
         let bal = await token0.balanceOf(wallet.address)
         expect(bal.sub(balPre)).to.equal(expectedOutputAmount)
@@ -416,7 +416,7 @@ describe('Requiem Pair Base Equal Weight', () => {
 
         receipt = await tx.wait()
         // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80368) // the special function takes slihgtly more gas than the usual weighted pair
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80439) // the special function takes slihgtly more gas than the usual weighted pair
         console.log("EI1", Number(receipt.gasUsed.toString()))
         bal = await token0.balanceOf(wallet.address)
         expect(balPre.sub(bal)).to.equal(expectedOutputAmount)
