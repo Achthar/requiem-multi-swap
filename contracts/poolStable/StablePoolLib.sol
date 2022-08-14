@@ -314,7 +314,6 @@ library StablePoolLib {
         // we fetch the tokens and provide it as input for the flash call
         address tokenIn = self.pooledTokens[i];
         address tokenOut = self.pooledTokens[j];
-        // address receiverAddress = address(to);
 
         // optimistic transfer
         _safeTransfer(tokenOut, to, outAmount);

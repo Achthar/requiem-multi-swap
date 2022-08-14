@@ -254,7 +254,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 amountIn
     ) external view returns (uint256) {
         return
-            tokenIn == address(token0)
+            tokenIn == token0
                 ? IWeightedFormula(formula).getAmountOut(amountIn, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
                 : IWeightedFormula(formula).getAmountOut(amountIn, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
     }
@@ -270,7 +270,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 amountOut
     ) external view returns (uint256) {
         return
-            tokenIn == address(token0)
+            tokenIn == token0
                 ? IWeightedFormula(formula).getAmountIn(amountOut, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
                 : IWeightedFormula(formula).getAmountIn(amountOut, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
     }

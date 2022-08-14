@@ -2086,7 +2086,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param to receiver for tokenOut amount - not necesariliy the flashContract address
      * @return inAmount
      */
-    function onFlashSwapExactIn(
+    function onFlashSwapGivenIn(
         IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,
@@ -2107,7 +2107,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param to receiver for tokenOut amount - not necesariliy the flashContract address
      * @return inAmount
      */
-    function onFlashSwapExactOut(
+    function onFlashSwapGivenOut(
         IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,

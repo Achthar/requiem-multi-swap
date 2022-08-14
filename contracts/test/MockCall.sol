@@ -32,7 +32,7 @@ contract MyContract {
         this.uniswapV2Call(address(0x233), 1, 0, data);
     }
 
-    function onFlashSwapExactOut(
+    function onFlashSwapGivenOut(
         address tokenIn,
         address tokenOut,
         uint256 amountOut,
@@ -54,7 +54,7 @@ contract MyContract {
         else if (index == pools.length) IERC20(tokenOut).transfer(sender, amountOut);
         else {
             // flash swap with prev pool
-            IFlashSwap(pools[index]).onFlashSwapExactOut(
+            IFlashSwap(pools[index]).onFlashSwapGivenOut(
                 IFlashSwapRecipient(msg.sender),
                 tokens[--index], // new tokenIn
                 address(tokenIn), // new tokenOut

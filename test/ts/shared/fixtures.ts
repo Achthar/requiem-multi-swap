@@ -178,6 +178,42 @@ export async function pairDifferentWeightAndAmpFixture(signer: SignerWithAddress
     })();
 }
 
+interface PairMockFixture extends FactoryFixture {
+    token0: WeightedPairERC20
+    tokenWeight0: number
+    token1: WeightedPairERC20
+    tokenWeight1: number
+    pair: RequiemPair
+    tokenA: MockERC20
+    tokenB: MockERC20
+}
+
+export async function pairTestFixture(signer: SignerWithAddress, token0: MockERC20, token1: MockERC20, tokenWeightA = 80): Promise<PairMockFixture> {
+    return await deployments.createFixture(async () => {
+
+        const { factory, formula, admin } = await factoryFixture(signer)
+
+
+        await factory.createPair(token0.address, token1.address, tokenWeightA, 40, 12500, overrides)
+        const pairAddress = await factory.getPair(token0.address, token1.address, tokenWeightA)
+        const pair = RequiemPair__factory.connect(pairAddress, signer)
+        await admin.pushGovernance(pair.address, signer.address)
+        const token0Address = await pair.token0()
+        const token1Address = await pair.token1()
+        const { _tokenWeight0: tokenWeight0, _tokenWeight1: tokenWeight1 } = await pair.getParameters();
+        return {
+            factory, formula, admin,
+            token0: TestERC20__factory.connect(token0Address, signer),
+            tokenWeight0,
+            token1: TestERC20__factory.connect(token1Address, signer),
+            tokenWeight1,
+            pair,
+            tokenA: token0,
+            tokenB: token1
+        }
+    })();
+}
+
 export async function pairSameWeightAndAmpFixture(signer: SignerWithAddress): Promise<PairFixture> {
     return await deployments.createFixture(async () => {
 

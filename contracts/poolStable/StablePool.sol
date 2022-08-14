@@ -126,7 +126,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
     }
 
     /**
-     * @notice Very similar to exact out swap, except that transfer to the to address is done before the flash call on the recipient.
+     * @notice Very similar to exact in swap, except that transfer to the to address is done before the flash call on the recipient.
      * If data.length == 0, onSwapGivenOut should be used instead.
      * @param flashContract contract on which the receiver function is called
      * @param tokenIn token for which the amount has already sent to this address
@@ -135,7 +135,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param to receiver for tokenOut amount - not necesariliy the flashContract address
      * @return inAmount
      */
-    function onFlashSwapExactIn(
+    function onFlashSwapGivenIn(
         IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,
@@ -156,7 +156,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
      * @param to receiver for tokenOut amount - not necesariliy the flashContract address
      * @return inAmount
      */
-    function onFlashSwapExactOut(
+    function onFlashSwapGivenOut(
         IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,

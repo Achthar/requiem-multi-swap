@@ -5,7 +5,7 @@ pragma solidity >=0.8.16;
 import "./IFlashSwapRecipient.sol";
 
 interface IFlashSwap {
-    function onFlashSwapExactIn(
+    function onFlashSwapGivenIn(
         IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,
@@ -14,7 +14,7 @@ interface IFlashSwap {
         bytes calldata data
     ) external returns (uint256);
 
-    function onFlashSwapExactOut(
+    function onFlashSwapGivenOut(
         IFlashSwapRecipient flashContract,
         address tokenIn,
         address tokenOut,
