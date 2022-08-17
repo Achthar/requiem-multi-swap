@@ -21,6 +21,8 @@ abstract contract PoolFactoryManagement is IPoolFactoryManagement, OwnerPausable
     // default governance address assigned to created pools
     address public poolAdmin;
 
+    address public votesRegister;
+
     // true if pool is deployed through this factory
     mapping(address => bool) public isPool;
 
@@ -42,8 +44,10 @@ abstract contract PoolFactoryManagement is IPoolFactoryManagement, OwnerPausable
         anyoneCanCreate = false;
     }
 
-    function _poolFactoryInit(address _admin) internal {
+    function _poolFactoryInit(address _admin, address _votesRegister) internal {
         poolAdmin = _admin;
+        // votes register cannot be changed
+        votesRegister = _votesRegister;
     }
 
     function allPoolsLength() external view override returns (uint256) {

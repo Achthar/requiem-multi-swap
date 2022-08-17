@@ -16,10 +16,11 @@ contract StablePoolCreator is IStablePoolCreator {
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
+        address _votingRegister,
         address _creator
     ) external override returns (address) {
         StablePool swap = new StablePool();
-        swap.initialize(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _adminFee, _withdrawFee, _creator);
+        swap.initialize(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, _adminFee, _withdrawFee, _votingRegister, _creator);
         return address(swap);
     }
 }

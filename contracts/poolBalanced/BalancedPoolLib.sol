@@ -13,8 +13,11 @@ import "../interfaces/poolBase/IFlashSwapRecipient.sol";
  */
 library BalancedPoolLib {
     event CollectProtocolFee(address token, uint256 amount);
-
     event TokenExchange(uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
+    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 lpAmount);
+    event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 lpAmount);
+    event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
+    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 lpAmount);
 
     uint256 public constant FEE_DENOMINATOR = 1e18; // = 100%
 
@@ -86,7 +89,8 @@ library BalancedPoolLib {
         BalancedSwapStorage storage self,
         uint256[] memory amounts,
         uint256 minMintAmount,
-        uint256 tokenSupply
+        uint256 tokenSupply,
+        address to
     ) external returns (uint256 mintAmount) {
         uint256 count = self.balances.length;
         uint256[] memory swapFees;
@@ -108,6 +112,8 @@ library BalancedPoolLib {
         }
 
         require(mintAmount >= minMintAmount, "s");
+
+        emit AddLiquidity(to, amounts, mintAmount);
     }
 
     /**
@@ -360,6 +366,8 @@ library BalancedPoolLib {
             self.balances[i] = self.balances[i] - amount;
             _safeTransfer(self.pooledTokens[i], msg.sender, amount);
         }
+
+        emit RemoveLiquidity(msg.sender, amounts, lpAmount);
     }
 
     function removeLiquidityOneTokenExactIn(
@@ -387,6 +395,8 @@ library BalancedPoolLib {
         amounts[index] = amountOut;
 
         self.balances[index] -= amountOutFinal;
+
+        emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountOut);
     }
 
     function removeLiquidityExactOut(
@@ -415,6 +425,8 @@ library BalancedPoolLib {
                 self.balances[i] -= amounts[i];
             }
         }
+
+        emit RemoveLiquidity(msg.sender, amounts, burnAmount);
     }
 
     function calculateRemoveLiquidityOneTokenExactIn(
@@ -562,7 +574,7 @@ library BalancedPoolLib {
      * @param user address of the user depositing tokens
      * @param toMint amount of pool tokens to be minted
      */
-    function _updateUserWithdrawFee(
+    function updateUserWithdrawFee(
         BalancedSwapStorage storage self,
         address user,
         uint256 userBalance,

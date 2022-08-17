@@ -12,8 +12,13 @@ import "../interfaces/poolBase/IFlashSwapRecipient.sol";
  * Weighted Pool main algorithm
  */
 library WeightedPoolLib {
+    /// EVENTS
     event CollectProtocolFee(address token, uint256 amount);
     event TokenExchange(uint256 soldId, uint256 tokensSold, uint256 boughtId, uint256 tokensBought);
+    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
+    event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
+    event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
+    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
 
     uint256 public constant FEE_DENOMINATOR = 1e18; // = 100%
 
@@ -84,39 +89,37 @@ library WeightedPoolLib {
         WeightedSwapStorage storage self,
         uint256[] memory amounts,
         uint256 minMintAmount,
-        uint256 tokenSupply
+        uint256 tokenSupply,
+        address creator
     ) external returns (uint256 mintAmount) {
-        uint256[] memory swapFees;
+        if (tokenSupply == 0) {
+            require(msg.sender == creator, "Can only be inititalized by creator");
+            uint256 count = self.balances.length;
+            uint256 invariantAfterJoin = FixedPoint.ONE;
 
-        (mintAmount, swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), tokenSupply, self.fee);
+            for (uint256 i = 0; i < count; i++) {
+                require(amounts[i] > 0, "amnt");
+                _safeTransferFrom(self.pooledTokens[i], msg.sender, address(this), amounts[i]);
+                self.balances[i] = amounts[i];
+            }
 
-        // Note that swapFees is already upscaled
-        _processSwapFeeAmounts(self, swapFees);
+            mintAmount = invariantAfterJoin * count;
+        } else {
+            uint256[] memory swapFees;
 
-        for (uint256 i = 0; i < self.balances.length; i++) {
-            _safeTransferFrom(self.pooledTokens[i], msg.sender, address(this), amounts[i]);
-            self.balances[i] += amounts[i];
+            (mintAmount, swapFees) = WeightedMath._calcLpOutGivenExactTokensIn(_xp(self), self.normalizedWeights, _xp(amounts, self.tokenMultipliers), tokenSupply, self.fee);
+
+            // Note that swapFees is already upscaled
+            _processSwapFeeAmounts(self, swapFees);
+
+            for (uint256 i = 0; i < self.balances.length; i++) {
+                _safeTransferFrom(self.pooledTokens[i], msg.sender, address(this), amounts[i]);
+                self.balances[i] += amounts[i];
+            }
+
+            require(mintAmount >= minMintAmount, "s");
+            emit AddLiquidity(msg.sender, amounts, mintAmount);
         }
-
-        require(mintAmount >= minMintAmount, "s");
-    }
-
-    /**
-     * @notice Deposit coins into the pool
-     * @param amounts List of amounts of coins to deposit
-     * @return mintAmount Amount of LP tokens received by depositing
-     */
-    function initialize(WeightedSwapStorage storage self, uint256[] memory amounts) external returns (uint256 mintAmount) {
-        uint256 count = self.balances.length;
-        uint256 invariantAfterJoin = FixedPoint.ONE;
-
-        for (uint256 i = 0; i < count; i++) {
-            require(amounts[i] > 0, "amnt");
-            _safeTransferFrom(self.pooledTokens[i], msg.sender, address(this), amounts[i]);
-            self.balances[i] = amounts[i];
-        }
-
-        mintAmount = invariantAfterJoin * count;
     }
 
     /**
@@ -369,6 +372,8 @@ library WeightedPoolLib {
             self.balances[i] = self.balances[i] - amount;
             _safeTransfer(self.pooledTokens[i], msg.sender, amount);
         }
+
+        emit RemoveLiquidity(msg.sender, amounts, totalSupply);
     }
 
     function removeLiquidityOneToken(
@@ -396,6 +401,7 @@ library WeightedPoolLib {
         amounts[index] = amountOut;
 
         self.balances[index] -= amountOutFinal;
+        emit RemoveLiquidityOne(msg.sender, index, lpAmount, amountOut);
     }
 
     function removeLiquidityExactOut(
@@ -425,6 +431,7 @@ library WeightedPoolLib {
                 self.balances[i] -= amounts[i];
             }
         }
+        emit RemoveLiquidityImbalance(msg.sender, amounts, totalSupply);
     }
 
     function calculateRemoveLiquidityOneTokenExactIn(
@@ -590,12 +597,12 @@ library WeightedPoolLib {
      * @param user address of the user depositing tokens
      * @param toMint amount of pool tokens to be minted
      */
-    function _updateUserWithdrawFee(
+    function updateUserWithdrawFee(
         WeightedSwapStorage storage self,
         address user,
         uint256 userBalance,
         uint256 toMint
-    ) internal {
+    ) external {
         // If token is transferred to address 0 (or burned), don't update the fee.
         if (user == address(0)) {
             return;

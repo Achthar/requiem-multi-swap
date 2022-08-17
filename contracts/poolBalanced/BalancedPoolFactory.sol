@@ -12,9 +12,13 @@ contract BalancedPoolFactory is IBalancedPoolFactory, PoolFactoryManagement {
     IBalancedPoolCreator public swapCreator;
     bool private _initialized = false;
 
-    function initialize(IBalancedPoolCreator _swapCreator, address _admin) public {
+    function initialize(
+        IBalancedPoolCreator _swapCreator,
+        address _admin,
+        address _votesRegister
+    ) public {
         require(_initialized == false, "BalancedPoolFactory: initialized");
-        _poolFactoryInit(_admin);
+        _poolFactoryInit(_admin, _votesRegister);
         swapCreator = _swapCreator;
         _initialized = true;
     }
@@ -40,7 +44,7 @@ contract BalancedPoolFactory is IBalancedPoolFactory, PoolFactoryManagement {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address swap) {
-        swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, adminFee, _withdrawFee, msg.sender);
+        swap = IBalancedPoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _fee, _flashFee, adminFee, _withdrawFee, votesRegister, msg.sender);
         _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);
     }

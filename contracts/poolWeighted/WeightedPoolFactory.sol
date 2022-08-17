@@ -16,9 +16,13 @@ contract WeightedPoolFactory is IWeightedPoolFactory, PoolFactoryManagement {
     IWeightedPoolCreator public swapCreator;
     bool private _initialized = false;
 
-    function initialize(IWeightedPoolCreator _swapCreator, address _admin) public {
+    function initialize(
+        IWeightedPoolCreator _swapCreator,
+        address _admin,
+        address _votesRegister
+    ) public {
         require(_initialized == false, "WeightedPoolFactory: initialized");
-        _poolFactoryInit(_admin);
+        _poolFactoryInit(_admin, _votesRegister);
         swapCreator = _swapCreator;
         _initialized = true;
     }
@@ -46,7 +50,7 @@ contract WeightedPoolFactory is IWeightedPoolFactory, PoolFactoryManagement {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address swap) {
-        swap = IWeightedPoolCreator(swapCreator).create(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, adminFee, _withdrawFee, msg.sender);
+        swap = IWeightedPoolCreator(swapCreator).create(_pooledTokens, decimals, normalizedWeights, lpTokenName, lpTokenSymbol, _fee, _flashFee, adminFee, _withdrawFee, votesRegister, msg.sender);
 
         _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);

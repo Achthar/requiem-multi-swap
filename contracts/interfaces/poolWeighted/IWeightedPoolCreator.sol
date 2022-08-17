@@ -12,6 +12,7 @@ interface IWeightedPoolCreator {
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
+        address _votingRegister,
         address _creator
     ) external returns (address);
 }

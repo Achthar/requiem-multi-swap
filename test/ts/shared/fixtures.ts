@@ -43,7 +43,8 @@ import {
     WeightedPairAdmin__factory,
     WeightedPairAdmin,
     PoolAdmin,
-    RequiemPairCreator__factory
+    RequiemPairCreator__factory,
+    MockVotesRegister__factory
 } from "../../../types";
 import {
     keccak256,
@@ -429,11 +430,12 @@ async function approveArray(tokens: MockERC20[], address: string) {
 
 
 export async function stablePoolFixture(signer: SignerWithAddress, tokens: MockERC20[], fee: BigNumber, flashFee: BigNumber, withdrawFee: BigNumber): Promise<StablePoolFixture> {
+    const register = await new MockVotesRegister__factory(signer).deploy()
     const lib = await new StablePoolLib__factory(signer).deploy()
     const creator = await new StablePoolCreator__factory({ ["contracts/poolStable/StablePoolLib.sol:StablePoolLib"]: lib.address }, signer).deploy()
     const factory = await new StablePoolFactory__factory(signer).deploy()
 
-    await factory.initialize(creator.address, signer.address)
+    await factory.initialize(creator.address, signer.address, register.address)
     await factory.setStandardAdminFee(
         parseUnits('5', 17), // admin fee 50%
     )
@@ -497,11 +499,12 @@ export interface WeightedPoolFixture {
 }
 
 export async function weightedPoolFixture(signer: SignerWithAddress, tokens: MockERC20[], weights: BigNumber[], fee: BigNumber, flashFee: BigNumber, withdrawFee: BigNumber): Promise<WeightedPoolFixture> {
+    const register = await new MockVotesRegister__factory(signer).deploy()
     const lib = await new WeightedPoolLib__factory(signer).deploy()
     const creator = await new WeightedPoolCreator__factory({ ["contracts/poolWeighted/WeightedPoolLib.sol:WeightedPoolLib"]: lib.address }, signer).deploy()
     const factory = await new WeightedPoolFactory__factory(signer).deploy()
 
-    await factory.initialize(creator.address, signer.address)
+    await factory.initialize(creator.address, signer.address, register.address)
     await factory.setStandardAdminFee(
         parseUnits('5', 17), // admin fee 50%
     )
@@ -553,11 +556,12 @@ export interface BalancedPoolFixture {
 }
 
 export async function balancedPoolFixture(signer: SignerWithAddress, tokens: MockERC20[], fee: BigNumber, flashFee: BigNumber, withdrawFee: BigNumber): Promise<BalancedPoolFixture> {
+    const register = await new MockVotesRegister__factory(signer).deploy()
     const lib = await new BalancedPoolLib__factory(signer).deploy()
     const creator = await new BalancedPoolCreator__factory({ ["contracts/poolBalanced/BalancedPoolLib.sol:BalancedPoolLib"]: lib.address }, signer).deploy()
     const factory = await new BalancedPoolFactory__factory(signer).deploy()
 
-    await factory.initialize(creator.address, signer.address)
+    await factory.initialize(creator.address, signer.address, register.address)
     await factory.setStandardAdminFee(
         parseUnits('5', 17), // admin fee 50%
     )

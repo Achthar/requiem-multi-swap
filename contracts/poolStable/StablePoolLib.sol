@@ -115,70 +115,62 @@ library StablePoolLib {
         SwapStorage storage self,
         uint256[] memory amounts,
         uint256 minMintAmount,
-        uint256 tokenSupply
+        uint256 tokenSupply,
+        address creator
     ) external returns (uint256 mintAmount) {
-        uint256 nCoins = self.nTokens;
-        require(amounts.length == nCoins, "arrayError");
-        uint256[] memory fees = new uint256[](nCoins);
-        uint256 _fee = _feePerToken(self);
+        // uint256 nCoins = self.nTokens;
+        uint256 D1;
+        require(amounts.length == self.nTokens, "arrayError");
+        uint256[] memory fees = new uint256[](self.nTokens);
+        uint256[] memory newBalances;
+        uint256 i;
+        if (tokenSupply == 0) {
+            require(msg.sender == creator, "can only be inititalized by creator");
+            newBalances = new uint256[](self.nTokens);
+            for (i = 0; i < self.nTokens; i++) {
+                require(amounts[i] > 0, "tokenError");
+                // get real transfer in amount
+                newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
+            }
 
-        uint256 amp = _getAPrecise(self);
+            D1 = _getD(_xp(newBalances, self.tokenMultipliers), _getAPrecise(self));
+            require(D1 > 0); // double check
 
-        uint256 D0 = _getD(_xp(self.balances, self.tokenMultipliers), amp);
+            self.balances = newBalances;
+            self.collectedFees = fees;
+            mintAmount = D1;
+        } else {
+            newBalances = self.balances;
+            uint256 _fee = _feePerToken(self);
 
-        uint256[] memory newBalances = self.balances;
+            uint256 amp = _getAPrecise(self);
 
-        for (uint256 i = 0; i < nCoins; i++) {
-            // get real transfer in amount
-            newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
+            uint256 D0 = _getD(_xp(self.balances, self.tokenMultipliers), amp);
+
+            for (i = 0; i < self.nTokens; i++) {
+                // get real transfer in amount
+                newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
+            }
+
+            D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
+            require(D1 > D0); // double check
+
+            // uint256 diff; // = 0;
+            for (i = 0; i < self.nTokens; i++) {
+                uint256 diff = _distance((D1 * self.balances[i]) / D0, newBalances[i]);
+                fees[i] = (_fee * diff) / FEE_DENOMINATOR;
+                self.balances[i] = newBalances[i];
+                // deduct swap fee
+                newBalances[i] -= fees[i];
+                // collect admin fee
+                self.collectedFees[i] += (fees[i] * self.adminFee) / FEE_DENOMINATOR;
+            }
+            D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
+            mintAmount = (tokenSupply * (D1 - D0)) / D0;
+
+            require(mintAmount >= minMintAmount, "slippageError");
         }
-
-        uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-        assert(D1 > D0); // double check
-
-        uint256 diff; // = 0;
-        for (uint256 i = 0; i < nCoins; i++) {
-            diff = _distance((D1 * self.balances[i]) / D0, newBalances[i]);
-            fees[i] = (_fee * diff) / FEE_DENOMINATOR;
-            self.balances[i] = newBalances[i];
-            // deduct swap fee
-            newBalances[i] -= fees[i];
-            // collect admin fee
-            self.collectedFees[i] += (fees[i] * self.adminFee) / FEE_DENOMINATOR;
-        }
-        D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-        mintAmount = (tokenSupply * (D1 - D0)) / D0;
-
-        require(mintAmount >= minMintAmount, "slippageError");
-
         emit AddLiquidity(msg.sender, amounts, fees, D1, mintAmount);
-    }
-
-    /**
-     * @notice Deposit coins into the pool for the first time
-     * @param amounts List of amounts of coins to deposit
-     * @return mintAmount Amount of LP tokens received by depositing
-     */
-    function addLiquidityInit(SwapStorage storage self, uint256[] memory amounts) external returns (uint256 mintAmount) {
-        uint256 nCoins = self.nTokens;
-        require(amounts.length == nCoins, "arrayError");
-
-        uint256[] memory newBalances = self.balances;
-
-        for (uint256 i = 0; i < nCoins; i++) {
-            require(amounts[i] > 0, "tokenError");
-
-            // get real transfer in amount
-            newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
-        }
-
-        uint256 D1 = _getD(_xp(newBalances, self.tokenMultipliers), _getAPrecise(self));
-        assert(D1 > 0); // double check
-
-        self.balances = newBalances;
-        mintAmount = D1;
-
-        emit AddLiquidity(msg.sender, amounts, new uint256[](nCoins), D1, mintAmount);
     }
 
     /**
@@ -490,11 +482,6 @@ library StablePoolLib {
         return _getAPrecise(self);
     }
 
-    function getAdminBalance(SwapStorage storage self, uint256 index) external view returns (uint256) {
-        require(index < self.pooledTokens.length, "arrayError");
-        return IERC20(self.pooledTokens[index]).balanceOf(address(this)) - (self.balances[index]);
-    }
-
     /**
      * Estimate amount of LP token minted at deposit
      * with taking fees into account
@@ -607,25 +594,6 @@ library StablePoolLib {
         uint256 totalSupply
     ) external view returns (uint256 amount) {
         (amount, ) = _calculateRemoveLiquidityOneToken(self, account, lpAmount, tokenIndex, totalSupply);
-    }
-
-    /**
-     * @notice Update the withdraw fee for `user`. If the user is currently
-     * not providing liquidity in the pool, sets to default value. If not, recalculate
-     * the starting withdraw fee based on the last deposit's time & amount relative
-     * to the new deposit.
-     *
-     * @param self Swap struct to read from and write to
-     * @param user address of the user depositing tokens
-     * @param toMint amount of pool tokens to be minted
-     */
-    function updateUserWithdrawFee(
-        SwapStorage storage self,
-        address user,
-        uint256 userBalance,
-        uint256 toMint
-    ) external {
-        _updateUserWithdrawFee(self, user, userBalance, toMint);
     }
 
     /**
@@ -872,7 +840,7 @@ library StablePoolLib {
         dy = (dy * (FEE_DENOMINATOR - _calculateCurrentWithdrawFee(self, account))) / FEE_DENOMINATOR;
     }
 
-    function _feePerToken(SwapStorage storage self) internal view returns (uint256) {
+    function _feePerToken(SwapStorage storage self) private view returns (uint256) {
         uint256 nCoins = self.nTokens;
         return (self.fee * nCoins) / (4 * (nCoins - 1));
     }
@@ -915,12 +883,12 @@ library StablePoolLib {
         revert("calcError");
     }
 
-    function _updateUserWithdrawFee(
+    function updateUserWithdrawFee(
         SwapStorage storage self,
         address user,
         uint256 userBalance,
         uint256 toMint
-    ) internal {
+    ) external {
         // If token is transferred to address 0 (or burned), don't update the fee.
         if (user == address(0)) {
             return;

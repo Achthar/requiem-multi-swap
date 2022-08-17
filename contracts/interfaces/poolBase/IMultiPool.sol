@@ -5,15 +5,6 @@ pragma solidity 0.8.16;
 // solhint-disable var-name-mixedcase
 
 interface IMultiPool {
-    /// EVENTS
-    event AddLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
-
-    event RemoveLiquidity(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
-
-    event RemoveLiquidityOne(address indexed provider, uint256 tokenIndex, uint256 tokenAmount, uint256 coinAmount);
-
-    event RemoveLiquidityImbalance(address indexed provider, uint256[] tokenAmounts, uint256 tokenSupply);
-
     // pool data view functions
 
     function calculateAddLiquidityExactIn(uint256[] calldata amounts) external view returns (uint256);

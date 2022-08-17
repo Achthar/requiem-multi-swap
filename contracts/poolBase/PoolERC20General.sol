@@ -3,12 +3,11 @@
 pragma solidity ^0.8.16;
 
 import "../interfaces/poolBase/IMultiPoolERC20.sol";
-import "../interfaces/governance/IVotesRegister.sol";
+
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
 
-abstract contract PoolERC20 is IMultiPoolERC20 {
-    address public votingRegister;
+abstract contract PoolERC20General is IMultiPoolERC20 {
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
 
@@ -26,14 +25,9 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
 
     constructor() {}
 
-    function _poolTokenInit(
-        string memory _name,
-        string memory _symbol,
-        address _register
-    ) internal {
+    function _poolTokenInit(string memory _name, string memory _symbol) internal {
         name = _name;
         symbol = _symbol;
-        votingRegister = _register;
 
         uint256 chainId;
         assembly {
@@ -60,7 +54,7 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
         balanceOf[account] += amount;
         emit Transfer(address(0), account, amount);
 
-        IVotesRegister(votingRegister).onMint(account, amount);
+        _afterTokenTransfer(address(0), account, amount);
     }
 
     function _burn(address account, uint256 amount) internal virtual {
@@ -74,8 +68,14 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
 
         emit Transfer(account, address(0), amount);
 
-        IVotesRegister(votingRegister).onBurn(account, amount);
+        _afterTokenTransfer(account, address(0), amount);
     }
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 
     function _approve(
         address owner,
@@ -96,8 +96,6 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
         balanceOf[from] -= value;
         balanceOf[to] += value;
         emit Transfer(from, to, value);
-
-        IVotesRegister(votingRegister).onAfterTokenTransfer(from, to, value);
     }
 
     function approve(address spender, uint256 value) external returns (bool) {

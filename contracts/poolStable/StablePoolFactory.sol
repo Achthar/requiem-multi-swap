@@ -19,9 +19,13 @@ contract StablePoolFactory is IStablePoolFactory, PoolFactoryManagement {
 
     constructor() PoolFactoryManagement() {}
 
-    function initialize(IStablePoolCreator _swapCreator, address _admin) public {
+    function initialize(
+        IStablePoolCreator _swapCreator,
+        address _admin,
+        address _votesRegister
+    ) public {
         require(_initialized == false, "StablePoolFactory: initialized");
-        _poolFactoryInit(_admin);
+        _poolFactoryInit(_admin, _votesRegister);
         swapCreator = _swapCreator;
         _initialized = true;
     }
@@ -49,7 +53,7 @@ contract StablePoolFactory is IStablePoolFactory, PoolFactoryManagement {
         uint256 _flashFee,
         uint256 _withdrawFee
     ) public returns (address swap) {
-        swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, adminFee, _withdrawFee, msg.sender);
+        swap = IStablePoolCreator(swapCreator).create(_pooledTokens, decimals, lpTokenName, lpTokenSymbol, _a, _fee, _flashFee, adminFee, _withdrawFee, votesRegister, msg.sender);
         _postCreation(swap);
         emit SwapCreated(_pooledTokens, swap, allPools.length);
     }

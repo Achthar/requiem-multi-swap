@@ -323,25 +323,27 @@ describe("Flash Swap Multi Hop eact out", () => {
     // BigNumber { value: "8090111" } BigNumber { value: "8090111" }
     // RegGas BigNumber { value: "514922" }
     //     ✓ Flash swaps 4x
+
+    
     // current state:
-    // Flash Swap Multi Hop eact out
-    //     0x04C89607413713Ec9775E14b954286519d836FEf
+    //     Flash Swap Multi Hop eact out
+    // 0x04C89607413713Ec9775E14b954286519d836FEf
     // BigNumber { value: "2005" } BigNumber { value: "2005" }
-    // FlashGas BigNumber { value: "278694" }
+    // FlashGas BigNumber { value: "279229" }
     // RegGas BigNumber { value: "301176" }
     //     ✓ Flash swaps 2x
-    //     0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27
-    // FlashGas BigNumber { value: "370805" }
+    // 0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27
+    // FlashGas BigNumber { value: "371338" }
     // BigNumber { value: "1003" } BigNumber { value: "1003" }
     // RegGas BigNumber { value: "373740" }
     //     ✓ Flash swaps 3x
-    //     0xd3FFD73C53F139cEBB80b6A524bE280955b3f4db
-    // FlashGas BigNumber { value: "516042" }
+    // 0xd3FFD73C53F139cEBB80b6A524bE280955b3f4db
+    // FlashGas BigNumber { value: "516549" }
     // BigNumber { value: "7979200" } BigNumber { value: "7979200" }
     // RegGas BigNumber { value: "501982" }
     //     ✓ Flash swaps 4x
-    //     0x6A47346e722937B60Df7a1149168c0E76DD6520f
-    // FlashGas BigNumber { value: "593439" }
+    // 0x6A47346e722937B60Df7a1149168c0E76DD6520f
+    // FlashGas BigNumber { value: "593932" }
     // BigNumber { value: "88684165" } BigNumber { value: "88684165" }
     // RegGas BigNumber { value: "587467" }
     //     ✓ Flash swaps 5x with pair
@@ -349,6 +351,7 @@ describe("Flash Swap Multi Hop eact out", () => {
     // FlashGas balanced BigNumber { value: "131679" }
     // FlashGas weighted1 BigNumber { value: "164501" }
     // FlashGas stable BigNumber { value: "168868" }
+
 
 
 

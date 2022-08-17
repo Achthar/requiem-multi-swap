@@ -40,15 +40,15 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         uint256 _flashFee,
         uint256 _adminFee,
         uint256 _withdrawFee,
+        address _votingRegister,
         address _creator
     ) external initializer {
         // initialize pool token data
-        _poolTokenInit(_name, _symbol);
-        uint256 length = _coins.length;
-        require(length == _decimals.length, "ArrayError");
-        swapStorage.tokenMultipliers = new uint256[](length);
-        swapStorage.pooledTokens = new address[](length);
-        for (uint8 i = 0; i < length; i++) {
+        _poolTokenInit(_name, _symbol, _votingRegister);
+        require( _coins.length == _decimals.length, "ArrayError");
+        swapStorage.tokenMultipliers = new uint256[]( _coins.length);
+        swapStorage.pooledTokens = new address[]( _coins.length);
+        for (uint8 i = 0; i <  _coins.length; i++) {
             require(_decimals[i] <= StablePoolLib.POOL_TOKEN_COMMON_DECIMALS, "DecimalError");
             swapStorage.tokenMultipliers[i] = 10**(StablePoolLib.POOL_TOKEN_COMMON_DECIMALS - _decimals[i]);
             swapStorage.pooledTokens[i] = address(_coins[i]);
@@ -60,10 +60,9 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         require(_adminFee <= MAX_ADMIN_FEE, "MaxAdminFee");
         require(_withdrawFee <= MAX_TRANSACTION_FEE, "MaxWithdrawFee");
 
-        swapStorage.balances = new uint256[](length);
         swapStorage.initialA = _A * StablePoolLib.A_PRECISION;
         swapStorage.futureA = _A * StablePoolLib.A_PRECISION;
-        swapStorage.nTokens = length;
+        swapStorage.nTokens =  _coins.length;
 
         // initialize fee data
         swapStorage.fee = _fee;
@@ -72,7 +71,6 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         swapStorage.adminSwapFee = (_adminFee * _fee) / StablePoolLib.FEE_DENOMINATOR;
         swapStorage.defaultWithdrawFee = _withdrawFee;
         swapStorage.withdrawDuration = (4 weeks);
-        swapStorage.collectedFees = new uint256[](length);
 
         // assign creator and fee controller
         creator = _creator;
@@ -85,12 +83,8 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         address to,
         uint256 deadline
     ) external override whenNotPaused nonReentrant deadlineCheck(deadline) returns (uint256 mintAmount) {
-        if (totalSupply == 0) {
-            require(msg.sender == creator, "can only be inititalized by creator");
-            mintAmount = swapStorage.addLiquidityInit(amounts);
-        } else {
-            mintAmount = swapStorage.addLiquidityExactIn(amounts, minMintAmount, totalSupply);
-        }
+        mintAmount = swapStorage.addLiquidityExactIn(amounts, minMintAmount, totalSupply, creator);
+
         _mint(to, mintAmount);
     }
 
@@ -322,7 +316,7 @@ contract StablePool is ISwap, IPoolFlashLoan, ReentrancyGuard, Initializable, IM
         address to,
         uint256 amount
     ) internal override(PoolERC20) {
-        swapStorage._updateUserWithdrawFee(to, this.balanceOf(to), amount);
+        swapStorage.updateUserWithdrawFee(to, this.balanceOf(to), amount);
     }
 
     /// VIEWS FOR VARIABLES IN SWAPSTORAGE
