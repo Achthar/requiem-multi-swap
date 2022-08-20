@@ -48,6 +48,7 @@
  - Pools that has pair-wise weighted pair liquidity,but can contain more than just 2 tokens
 
 *Stable Pool:*
+
  - Curve-type swable swap logic for pools with more than 2 tokens
  - Added Exact out swap feature
  - Added flash swaps and flash loans
