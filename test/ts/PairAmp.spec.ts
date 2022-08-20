@@ -4,7 +4,7 @@ import { expandTo18Decimals, encodePrice } from "./shared/common";
 import { pairDifferentWeightAndAmpFixture, pairDifferentWeightFixture } from "./shared/fixtures";
 import { getLatestBlock, maxUint256, mineBlockTimeStamp } from "./shared/utilities";
 import { ethers } from "hardhat";
-import { WeightedFormula, WeightedPairERC20, RequiemPairFactory, RequiemPair, WeightedPairAdmin, SwapRouter, RepayFlashSwapRecipient, RepayFlashSwapRecipient__factory, SwapRouter__factory } from "../../types";
+import { WeightedFormula, WeightedPairERC20, RequiemPairFactory, RequiemPair, WeightedPairAdmin, SwapRouter, RepayFlashSwapRecipient, RepayFlashSwapRecipient__factory, SwapRouter__factory, MockERC20, TestERC20 } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const overrides = {};
 
@@ -15,12 +15,12 @@ describe("RequiemPair:Amplified:DifferentWeight", () => {
     let other: SignerWithAddress;
 
     let factory: RequiemPairFactory;
-    let token0: WeightedPairERC20;
-    let tokenA: WeightedPairERC20;
+    let token0: TestERC20;
+    let tokenA: TestERC20;
     let formula: WeightedFormula;
     let tokenWeight0: number;
-    let token1: WeightedPairERC20;
-    let tokenB: WeightedPairERC20;
+    let token1: TestERC20;
+    let tokenB: TestERC20;
     let tokenWeight1: number;
     let pair: RequiemPair;
     let router: SwapRouter
@@ -63,135 +63,6 @@ describe("RequiemPair:Amplified:DifferentWeight", () => {
         await tokenB.transfer(pair.address, tokenBAmount);
         await pair.mint(wallet.address, overrides);
     }
-
-    const swapTestCases: BigNumber[][] = [
-        [40, 500, 1000],
-        [1, 10, 5],
-
-        [2, 5, 10],
-        [2, 10, 5],
-
-        [1, 10, 10],
-        [1, 100, 100],
-        [1, 1000, 1000],
-    ].map((a) => a.map((n) => expandTo18Decimals(n)));
-    swapTestCases.forEach((swapTestCase, i) => {
-        it(`getInputPrice:token0:${i}`, async () => {
-            const [swapAmount, token0Amount, token1Amount] = swapTestCase;
-            const amp = await pair.getParameters()
-            const [tokenAmp0, tokenAmp1] = [token0Amount, token1Amount].map(t => t.mul(amp._amp).div(10000))
-            const expectedOutputAmount = BigNumber.from(await formula.getAmountOut(swapAmount, tokenAmp0, tokenAmp1, tokenWeight0, tokenWeight1, 40));
-            await addLiquidity(token0Amount, token1Amount);
-            await token0.transfer(pair.address, swapAmount);
-            await expect(pair.swap(0, expectedOutputAmount.add(2), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
-            await expect(pair.swap(swapAmount.add(1), expectedOutputAmount.add(2), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
-            await pair.swap(0, expectedOutputAmount, wallet.address, "0x", overrides);
-        });
-        it(`getInputPrice:token1:${i}`, async () => {
-            const [amountOut, token0Amount, token1Amount] = swapTestCase;
-            const amp = await pair.getParameters()
-            const [tokenAmp0, tokenAmp1] = [token0Amount, token1Amount].map(t => t.mul(amp._amp).div(10000))
-            const expectedInputAmountIn = await formula.getAmountIn(amountOut, tokenAmp1, tokenAmp0, tokenWeight1, tokenWeight0, 40);
-            await addLiquidity(token0Amount, token1Amount);
-
-            await token1.transfer(pair.address, expectedInputAmountIn);
-            // combining amplification and weights adds slightly to inaccuracies observed in weighted pairs (here 5 * (amp = 1.25) ~7)
-            await expect(pair.swap(amountOut.add(7), 0, wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
-            await expect(pair.swap(amountOut.add(5), expectedInputAmountIn.add(1), wallet.address, "0x", overrides)).to.be.reverted;
-            await pair.swap(amountOut, 0, wallet.address, "0x", overrides);
-        });
-    });
-
-    const optimisticTestCases: BigNumber[][] = [
-        ["996000000000000000", 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .996)
-        ["996000000000000000", 10, 5, 1],
-        ["996000000000000000", 5, 5, 1],
-        // [1, 5, 5, "1004016064257028112"], // given amountOut, amountIn = floor(amountOut / .996)
-    ].map((a) => a.map((n) => (typeof n === "string" ? BigNumber.from(n) : expandTo18Decimals(n))));
-    optimisticTestCases.forEach((optimisticTestCase, i) => {
-        it(`optimistic:token0:${i}`, async () => {
-            const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase;
-            await addLiquidity(token0Amount, token1Amount);
-            await token0.transfer(pair.address, inputAmount);
-            await expect(pair.swap(outputAmount.add(1), 0, wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
-            await pair.swap(outputAmount, 0, wallet.address, "0x", overrides);
-        });
-        it(`optimistic:token1:${i}`, async () => {
-            const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase;
-            await addLiquidity(token0Amount, token1Amount);
-            await token1.transfer(pair.address, inputAmount);
-            await expect(pair.swap(0, outputAmount.add(1), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
-            await pair.swap(0, outputAmount, wallet.address, "0x", overrides);
-        });
-    });
-
-    it("swap:tokenA", async () => {
-        const tokenAamount = expandTo18Decimals(5);
-        const tokenBamount = expandTo18Decimals(10);
-        await addWeightLiquidity(tokenAamount, tokenBamount);
-
-        const swapAmount = expandTo18Decimals(1);
-        const expectedOutputAmount = BigNumber.from("5164587591416097612");
-        await tokenA.transfer(pair.address, swapAmount);
-
-        const isToken0Sorted = tokenA.address === token0.address;
-        const syncArgs = isToken0Sorted
-            ? [tokenAamount.add(swapAmount), tokenBamount.sub(expectedOutputAmount)]
-            : [tokenBamount.sub(expectedOutputAmount), tokenAamount.add(swapAmount)];
-        const swapArgs = isToken0Sorted ? [swapAmount, 0, 0, expectedOutputAmount] : [0, swapAmount, expectedOutputAmount, 0];
-
-        await expect(pair.swap(isToken0Sorted ? 0 : expectedOutputAmount, isToken0Sorted ? expectedOutputAmount : 0, wallet.address, "0x", overrides))
-            .to.emit(tokenB, "Transfer")
-            .withArgs(pair.address, wallet.address, expectedOutputAmount)
-            .to.emit(pair, "Sync")
-            .withArgs(...syncArgs)
-            .to.emit(pair, "Swap")
-            .withArgs(...swapArgs);
-
-        const reserves = await pair.getReserves();
-        expect(isToken0Sorted ? reserves[0] : reserves[1]).to.eq(tokenAamount.add(swapAmount));
-        expect(isToken0Sorted ? reserves[1] : reserves[0]).to.eq(tokenBamount.sub(expectedOutputAmount));
-        expect(await tokenA.balanceOf(pair.address)).to.eq(tokenAamount.add(swapAmount));
-        expect(await tokenB.balanceOf(pair.address)).to.eq(tokenBamount.sub(expectedOutputAmount));
-        const totalSupplyTokenA = await tokenA.totalSupply();
-        const totalSupplyTokenB = await tokenB.totalSupply();
-        expect(await tokenA.balanceOf(wallet.address)).to.eq(totalSupplyTokenA.sub(tokenAamount).sub(swapAmount));
-        expect(await tokenB.balanceOf(wallet.address)).to.eq(totalSupplyTokenB.sub(tokenBamount).add(expectedOutputAmount));
-    });
-
-    it("swap:tokenB", async () => {
-        const tokenAamount = expandTo18Decimals(5);
-        const tokenBamount = expandTo18Decimals(10);
-        await addWeightLiquidity(tokenAamount, tokenBamount);
-
-        const swapAmount = expandTo18Decimals(1);
-        const expectedOutputAmount = BigNumber.from("117285607949537171");
-        await tokenB.transfer(pair.address, swapAmount);
-
-        const isToken0Sorted = tokenA.address === token0.address;
-        const syncArgs = isToken0Sorted
-            ? [tokenAamount.sub(expectedOutputAmount), tokenBamount.add(swapAmount)]
-            : [tokenBamount.add(swapAmount), tokenAamount.sub(expectedOutputAmount)];
-        const swapArgs = isToken0Sorted ? [0, swapAmount, expectedOutputAmount, 0] : [swapAmount, 0, 0, expectedOutputAmount];
-
-        await expect(pair.swap(isToken0Sorted ? expectedOutputAmount : 0, isToken0Sorted ? 0 : expectedOutputAmount, wallet.address, "0x", overrides))
-            .to.emit(tokenA, "Transfer")
-            .withArgs(pair.address, wallet.address, expectedOutputAmount)
-            .to.emit(pair, "Sync")
-            .withArgs(...syncArgs)
-            .to.emit(pair, "Swap")
-            .withArgs(...swapArgs);
-
-        const reserves = await pair.getReserves();
-        expect(isToken0Sorted ? reserves[0] : reserves[1]).to.eq(tokenAamount.sub(expectedOutputAmount));
-        expect(isToken0Sorted ? reserves[1] : reserves[0]).to.eq(tokenBamount.add(swapAmount));
-        expect(await tokenA.balanceOf(pair.address)).to.eq(tokenAamount.sub(expectedOutputAmount));
-        expect(await tokenB.balanceOf(pair.address)).to.eq(tokenBamount.add(swapAmount));
-        const totalSupplyTokenA = await tokenA.totalSupply();
-        const totalSupplyTokenB = await tokenB.totalSupply();
-        expect(await tokenA.balanceOf(wallet.address)).to.eq(totalSupplyTokenA.sub(tokenAamount).add(expectedOutputAmount));
-        expect(await tokenB.balanceOf(wallet.address)).to.eq(totalSupplyTokenB.sub(tokenBamount).sub(swapAmount));
-    });
 
     it('swap:gas', async () => {
         // await factory.setFeeTo(other.address)
@@ -344,6 +215,135 @@ describe("RequiemPair:Amplified:DifferentWeight", () => {
         bal = await token0.balanceOf(wallet.address)
         expect(bal.sub(balPre)).to.equal(outp)
     })
+
+    const swapTestCases: BigNumber[][] = [
+        [40, 500, 1000],
+        [1, 10, 5],
+
+        [2, 5, 10],
+        [2, 10, 5],
+
+        [1, 10, 10],
+        [1, 100, 100],
+        [1, 1000, 1000],
+    ].map((a) => a.map((n) => expandTo18Decimals(n)));
+    swapTestCases.forEach((swapTestCase, i) => {
+        it(`getInputPrice:token0:${i}`, async () => {
+            const [swapAmount, token0Amount, token1Amount] = swapTestCase;
+            const amp = await pair.getParameters()
+            const [tokenAmp0, tokenAmp1] = [token0Amount, token1Amount].map(t => t.mul(amp._amp).div(10000))
+            const expectedOutputAmount = BigNumber.from(await formula.getAmountOut(swapAmount, tokenAmp0, tokenAmp1, tokenWeight0, tokenWeight1, 40));
+            await addLiquidity(token0Amount, token1Amount);
+            await token0.transfer(pair.address, swapAmount);
+            await expect(pair.swap(0, expectedOutputAmount.add(2), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
+            await expect(pair.swap(swapAmount.add(1), expectedOutputAmount.add(2), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
+            await pair.swap(0, expectedOutputAmount, wallet.address, "0x", overrides);
+        });
+        it(`getInputPrice:token1:${i}`, async () => {
+            const [amountOut, token0Amount, token1Amount] = swapTestCase;
+            const amp = await pair.getParameters()
+            const [tokenAmp0, tokenAmp1] = [token0Amount, token1Amount].map(t => t.mul(amp._amp).div(10000))
+            const expectedInputAmountIn = await formula.getAmountIn(amountOut, tokenAmp1, tokenAmp0, tokenWeight1, tokenWeight0, 40);
+            await addLiquidity(token0Amount, token1Amount);
+
+            await token1.transfer(pair.address, expectedInputAmountIn);
+            // combining amplification and weights adds slightly to inaccuracies observed in weighted pairs (here 5 * (amp = 1.25) ~7)
+            await expect(pair.swap(amountOut.add(7), 0, wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
+            await expect(pair.swap(amountOut.add(5), expectedInputAmountIn.add(1), wallet.address, "0x", overrides)).to.be.reverted;
+            await pair.swap(amountOut, 0, wallet.address, "0x", overrides);
+        });
+    });
+
+    const optimisticTestCases: BigNumber[][] = [
+        ["996000000000000000", 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .996)
+        ["996000000000000000", 10, 5, 1],
+        ["996000000000000000", 5, 5, 1],
+        // [1, 5, 5, "1004016064257028112"], // given amountOut, amountIn = floor(amountOut / .996)
+    ].map((a) => a.map((n) => (typeof n === "string" ? BigNumber.from(n) : expandTo18Decimals(n))));
+    optimisticTestCases.forEach((optimisticTestCase, i) => {
+        it(`optimistic:token0:${i}`, async () => {
+            const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase;
+            await addLiquidity(token0Amount, token1Amount);
+            await token0.transfer(pair.address, inputAmount);
+            await expect(pair.swap(outputAmount.add(1), 0, wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
+            await pair.swap(outputAmount, 0, wallet.address, "0x", overrides);
+        });
+        it(`optimistic:token1:${i}`, async () => {
+            const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase;
+            await addLiquidity(token0Amount, token1Amount);
+            await token1.transfer(pair.address, inputAmount);
+            await expect(pair.swap(0, outputAmount.add(1), wallet.address, "0x", overrides)).to.be.revertedWith("REQLP: K");
+            await pair.swap(0, outputAmount, wallet.address, "0x", overrides);
+        });
+    });
+
+    it("swap:tokenA", async () => {
+        const tokenAamount = expandTo18Decimals(5);
+        const tokenBamount = expandTo18Decimals(10);
+        await addWeightLiquidity(tokenAamount, tokenBamount);
+
+        const swapAmount = expandTo18Decimals(1);
+        const expectedOutputAmount = BigNumber.from("5164587591416097612");
+        await tokenA.transfer(pair.address, swapAmount);
+
+        const isToken0Sorted = tokenA.address === token0.address;
+        const syncArgs = isToken0Sorted
+            ? [tokenAamount.add(swapAmount), tokenBamount.sub(expectedOutputAmount)]
+            : [tokenBamount.sub(expectedOutputAmount), tokenAamount.add(swapAmount)];
+        const swapArgs = isToken0Sorted ? [swapAmount, 0, 0, expectedOutputAmount] : [0, swapAmount, expectedOutputAmount, 0];
+
+        await expect(pair.swap(isToken0Sorted ? 0 : expectedOutputAmount, isToken0Sorted ? expectedOutputAmount : 0, wallet.address, "0x", overrides))
+            .to.emit(tokenB, "Transfer")
+            .withArgs(pair.address, wallet.address, expectedOutputAmount)
+            .to.emit(pair, "Sync")
+            .withArgs(...syncArgs)
+            .to.emit(pair, "Swap")
+            .withArgs(...swapArgs);
+
+        const reserves = await pair.getReserves();
+        expect(isToken0Sorted ? reserves[0] : reserves[1]).to.eq(tokenAamount.add(swapAmount));
+        expect(isToken0Sorted ? reserves[1] : reserves[0]).to.eq(tokenBamount.sub(expectedOutputAmount));
+        expect(await tokenA.balanceOf(pair.address)).to.eq(tokenAamount.add(swapAmount));
+        expect(await tokenB.balanceOf(pair.address)).to.eq(tokenBamount.sub(expectedOutputAmount));
+        const totalSupplyTokenA = await tokenA.totalSupply();
+        const totalSupplyTokenB = await tokenB.totalSupply();
+        expect(await tokenA.balanceOf(wallet.address)).to.eq(totalSupplyTokenA.sub(tokenAamount).sub(swapAmount));
+        expect(await tokenB.balanceOf(wallet.address)).to.eq(totalSupplyTokenB.sub(tokenBamount).add(expectedOutputAmount));
+    });
+
+    it("swap:tokenB", async () => {
+        const tokenAamount = expandTo18Decimals(5);
+        const tokenBamount = expandTo18Decimals(10);
+        await addWeightLiquidity(tokenAamount, tokenBamount);
+
+        const swapAmount = expandTo18Decimals(1);
+        const expectedOutputAmount = BigNumber.from("117285607949537171");
+        await tokenB.transfer(pair.address, swapAmount);
+
+        const isToken0Sorted = tokenA.address === token0.address;
+        const syncArgs = isToken0Sorted
+            ? [tokenAamount.sub(expectedOutputAmount), tokenBamount.add(swapAmount)]
+            : [tokenBamount.add(swapAmount), tokenAamount.sub(expectedOutputAmount)];
+        const swapArgs = isToken0Sorted ? [0, swapAmount, expectedOutputAmount, 0] : [swapAmount, 0, 0, expectedOutputAmount];
+
+        await expect(pair.swap(isToken0Sorted ? expectedOutputAmount : 0, isToken0Sorted ? 0 : expectedOutputAmount, wallet.address, "0x", overrides))
+            .to.emit(tokenA, "Transfer")
+            .withArgs(pair.address, wallet.address, expectedOutputAmount)
+            .to.emit(pair, "Sync")
+            .withArgs(...syncArgs)
+            .to.emit(pair, "Swap")
+            .withArgs(...swapArgs);
+
+        const reserves = await pair.getReserves();
+        expect(isToken0Sorted ? reserves[0] : reserves[1]).to.eq(tokenAamount.sub(expectedOutputAmount));
+        expect(isToken0Sorted ? reserves[1] : reserves[0]).to.eq(tokenBamount.add(swapAmount));
+        expect(await tokenA.balanceOf(pair.address)).to.eq(tokenAamount.sub(expectedOutputAmount));
+        expect(await tokenB.balanceOf(pair.address)).to.eq(tokenBamount.add(swapAmount));
+        const totalSupplyTokenA = await tokenA.totalSupply();
+        const totalSupplyTokenB = await tokenB.totalSupply();
+        expect(await tokenA.balanceOf(wallet.address)).to.eq(totalSupplyTokenA.sub(tokenAamount).add(expectedOutputAmount));
+        expect(await tokenB.balanceOf(wallet.address)).to.eq(totalSupplyTokenB.sub(tokenBamount).sub(swapAmount));
+    });
 
     //   it("price{0,1}CumulativeLast", async () => {
     //     const tokenAamount = expandTo18Decimals(3);

@@ -16,7 +16,8 @@ import {
     RepayFlashSwapRecipient,
     RepayFlashSwapRecipient__factory,
     SwapRouter,
-    SwapRouter__factory
+    SwapRouter__factory,
+    MockERC20
 } from "../../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -91,6 +92,162 @@ describe('RequiemPair:Unamplified:EqualWeight', () => {
         await token1.transfer(pair.address, token1Amount)
         await pair.mint(wallet.address, overrides)
     }
+
+
+    it('swap:gas', async () => {
+        await admin.setProtocolFee(pair.address, 50000)
+        // await factory.setProtocolFee(50000)
+        const token0Amount = expandTo18Decimals(5)
+        const token1Amount = expandTo18Decimals(10)
+        await addLiquidity(token0Amount, token1Amount)
+
+        // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        await pair.sync(overrides)
+
+        const swapAmount = expandTo18Decimals(1)
+        const expectedOutputAmount = BigNumber.from('453305446940074565')
+        await token1.transfer(pair.address, swapAmount)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        let balPre = await token0.balanceOf(wallet.address)
+        let tx = await pair.onSwapGivenIn(token1.address, token0.address, wallet.address, overrides)
+        // 		let tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+        let receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80461) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EI0", Number(receipt.gasUsed.toString()))
+        let bal = await token0.balanceOf(wallet.address)
+        expect(bal.sub(balPre)).to.equal(expectedOutputAmount)
+
+        balPre = await token0.balanceOf(wallet.address)
+        await token0.transfer(pair.address, expectedOutputAmount)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        tx = await pair.onSwapGivenIn(token0.address, token1.address, wallet.address, overrides)
+        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80439) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EI1", Number(receipt.gasUsed.toString()))
+        bal = await token0.balanceOf(wallet.address)
+        expect(balPre.sub(bal)).to.equal(expectedOutputAmount)
+
+
+        // exact out
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        let inp = await pair.calculateSwapGivenOut(token0.address, token1.address, expectedOutputAmount)
+        balPre = await token0.balanceOf(wallet.address)
+        await token0.transfer(pair.address, inp)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+
+        tx = await pair.onSwapGivenOut(token0.address, token1.address, expectedOutputAmount, wallet.address)
+        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80914) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EO0", Number(receipt.gasUsed.toString()))
+        bal = await token0.balanceOf(wallet.address)
+        expect(balPre.sub(bal)).to.equal(inp)
+
+        // other token
+
+
+
+        inp = await pair.calculateSwapGivenOut(token1.address, token0.address, expectedOutputAmount)
+        balPre = await token1.balanceOf(wallet.address)
+        // await token1.transfer(pair.address, inp)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        // tx = await pair.onSwapGivenOut(token1.address, token0.address, expectedOutputAmount, wallet.address)
+        tx = await router.onSwapTokensForExactTokens([pair.address], [token1.address, token0.address], expectedOutputAmount, maxUint256, wallet.address, maxUint256)
+        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(107277) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EO1Router", Number(receipt.gasUsed.toString()))
+        bal = await token1.balanceOf(wallet.address)
+        expect(balPre.sub(bal)).to.equal(inp)
+
+
+        // exact out Flash
+        inp = await pair.calculateSwapGivenOut(token0.address, token1.address, expectedOutputAmount)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        balPre = await token0.balanceOf(wallet.address)
+        tx = await pair.onFlashSwapGivenOut(repayFlashSwap.address, token0.address, token1.address, expectedOutputAmount, wallet.address, '0x')
+        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99424) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EOF0", Number(receipt.gasUsed.toString()))
+        bal = await token0.balanceOf(wallet.address)
+        expect(balPre.sub(bal)).to.equal(inp)
+
+        // other token
+
+        inp = await pair.calculateSwapGivenOut(token1.address, token0.address, expectedOutputAmount)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        balPre = await token1.balanceOf(wallet.address)
+        tx = await pair.onFlashSwapGivenOut(repayFlashSwap.address, token1.address, token0.address, expectedOutputAmount, wallet.address, '0x')
+        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99559) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EOF1", Number(receipt.gasUsed.toString()))
+        bal = await token1.balanceOf(wallet.address)
+        expect(balPre.sub(bal)).to.equal(inp)
+
+        // exact in Flash
+        const inputTest = BigNumber.from('32109321090321')
+
+        let outp = await pair.calculateSwapGivenIn(token0.address, token1.address, inputTest)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        balPre = await token1.balanceOf(wallet.address)
+        tx = await router.onSwapExactTokensForTokens([pair.address], [token0.address, token1.address], inputTest, 0, wallet.address, maxUint256)
+        // 		tx = await pair.swap(inputTest, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(101529) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EI0Router", Number(receipt.gasUsed.toString()))
+        bal = await token1.balanceOf(wallet.address)
+        expect(bal.sub(balPre)).to.equal(outp)
+
+
+
+
+        outp = await pair.calculateSwapGivenIn(token0.address, token1.address, inputTest)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        balPre = await token1.balanceOf(wallet.address)
+        tx = await pair.onFlashSwapGivenIn(repayFlashSwap.address, token0.address, token1.address, inputTest, wallet.address, '0x')
+        // 		tx = await pair.swap(inputTest, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99424) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EIF0", Number(receipt.gasUsed.toString()))
+        bal = await token1.balanceOf(wallet.address)
+        expect(bal.sub(balPre)).to.equal(outp)
+
+        // other token
+
+        outp = await pair.calculateSwapGivenIn(token1.address, token0.address, inputTest)
+        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
+        balPre = await token0.balanceOf(wallet.address)
+        tx = await pair.onFlashSwapGivenIn(repayFlashSwap.address, token1.address, token0.address, inputTest, wallet.address, '0x')
+        // 		tx = await pair.swap(inputTest, 0, wallet.address, '0x', overrides)
+
+        receipt = await tx.wait()
+        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
+        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99559) // the special function takes slihgtly more gas than the usual weighted pair
+        console.log("EIF1", Number(receipt.gasUsed.toString()))
+        bal = await token0.balanceOf(wallet.address)
+        expect(bal.sub(balPre)).to.equal(outp)
+    })
+
 
     const swapTestCases: BigNumber[][] = [
         [1, 5, 10, '1662497915624478906'],
@@ -380,160 +537,6 @@ describe('RequiemPair:Unamplified:EqualWeight', () => {
         const totalSupplyToken1 = await token1.totalSupply()
         expect(await token0.balanceOf(wallet.address)).to.eq(totalSupplyToken0.sub(token0Amount).add(expectedOutputAmount))
         expect(await token1.balanceOf(wallet.address)).to.eq(totalSupplyToken1.sub(token1Amount).sub(swapAmount))
-    })
-
-    it('swap:gas', async () => {
-        await admin.setProtocolFee(pair.address, 50000)
-        // await factory.setProtocolFee(50000)
-        const token0Amount = expandTo18Decimals(5)
-        const token1Amount = expandTo18Decimals(10)
-        await addLiquidity(token0Amount, token1Amount)
-
-        // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        await pair.sync(overrides)
-
-        const swapAmount = expandTo18Decimals(1)
-        const expectedOutputAmount = BigNumber.from('453305446940074565')
-        await token1.transfer(pair.address, swapAmount)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        let balPre = await token0.balanceOf(wallet.address)
-        let tx = await pair.onSwapGivenIn(token1.address, token0.address, wallet.address, overrides)
-        // 		let tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
-
-        let receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80439) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EI0", Number(receipt.gasUsed.toString()))
-        let bal = await token0.balanceOf(wallet.address)
-        expect(bal.sub(balPre)).to.equal(expectedOutputAmount)
-
-        balPre = await token0.balanceOf(wallet.address)
-        await token0.transfer(pair.address, expectedOutputAmount)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        tx = await pair.onSwapGivenIn(token0.address, token1.address, wallet.address, overrides)
-        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80439) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EI1", Number(receipt.gasUsed.toString()))
-        bal = await token0.balanceOf(wallet.address)
-        expect(balPre.sub(bal)).to.equal(expectedOutputAmount)
-
-
-        // exact out
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        let inp = await pair.calculateSwapGivenOut(token0.address, token1.address, expectedOutputAmount)
-        balPre = await token0.balanceOf(wallet.address)
-        await token0.transfer(pair.address, inp)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-
-        tx = await pair.onSwapGivenOut(token0.address, token1.address, expectedOutputAmount, wallet.address)
-        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80892) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EO0", Number(receipt.gasUsed.toString()))
-        bal = await token0.balanceOf(wallet.address)
-        expect(balPre.sub(bal)).to.equal(inp)
-
-        // other token
-
-
-
-        inp = await pair.calculateSwapGivenOut(token1.address, token0.address, expectedOutputAmount)
-        balPre = await token1.balanceOf(wallet.address)
-        // await token1.transfer(pair.address, inp)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        // tx = await pair.onSwapGivenOut(token1.address, token0.address, expectedOutputAmount, wallet.address)
-        tx = await router.onSwapTokensForExactTokens([pair.address], [token1.address, token0.address], expectedOutputAmount, maxUint256, wallet.address, maxUint256)
-        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(107177) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EO1Router", Number(receipt.gasUsed.toString()))
-        bal = await token1.balanceOf(wallet.address)
-        expect(balPre.sub(bal)).to.equal(inp)
-
-
-        // exact out Flash
-        inp = await pair.calculateSwapGivenOut(token0.address, token1.address, expectedOutputAmount)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        balPre = await token0.balanceOf(wallet.address)
-        tx = await pair.onFlashSwapGivenOut(repayFlashSwap.address, token0.address, token1.address, expectedOutputAmount, wallet.address, '0x')
-        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99324) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EOF0", Number(receipt.gasUsed.toString()))
-        bal = await token0.balanceOf(wallet.address)
-        expect(balPre.sub(bal)).to.equal(inp)
-
-        // other token
-
-        inp = await pair.calculateSwapGivenOut(token1.address, token0.address, expectedOutputAmount)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        balPre = await token1.balanceOf(wallet.address)
-        tx = await pair.onFlashSwapGivenOut(repayFlashSwap.address, token1.address, token0.address, expectedOutputAmount, wallet.address, '0x')
-        // 		tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99459) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EOF1", Number(receipt.gasUsed.toString()))
-        bal = await token1.balanceOf(wallet.address)
-        expect(balPre.sub(bal)).to.equal(inp)
-
-        // exact in Flash
-        const inputTest = BigNumber.from('32109321090321')
-
-        let outp = await pair.calculateSwapGivenIn(token0.address, token1.address, inputTest)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        balPre = await token1.balanceOf(wallet.address)
-        tx = await router.onSwapExactTokensForTokens([pair.address], [token0.address, token1.address], inputTest, 0, wallet.address, maxUint256)
-        // 		tx = await pair.swap(inputTest, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(101429) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EI0Router", Number(receipt.gasUsed.toString()))
-        bal = await token1.balanceOf(wallet.address)
-        expect(bal.sub(balPre)).to.equal(outp)
-
-
-
-
-        outp = await pair.calculateSwapGivenIn(token0.address, token1.address, inputTest)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        balPre = await token1.balanceOf(wallet.address)
-        tx = await pair.onFlashSwapGivenIn(repayFlashSwap.address, token0.address, token1.address, inputTest, wallet.address, '0x')
-        // 		tx = await pair.swap(inputTest, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99324) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EIF0", Number(receipt.gasUsed.toString()))
-        bal = await token1.balanceOf(wallet.address)
-        expect(bal.sub(balPre)).to.equal(outp)
-
-        // other token
-
-        outp = await pair.calculateSwapGivenIn(token1.address, token0.address, inputTest)
-        await mineBlockTimeStamp(ethers, (await getLatestBlock(ethers)).timestamp + 1)
-        balPre = await token0.balanceOf(wallet.address)
-        tx = await pair.onFlashSwapGivenIn(repayFlashSwap.address, token1.address, token0.address, inputTest, wallet.address, '0x')
-        // 		tx = await pair.swap(inputTest, 0, wallet.address, '0x', overrides)
-
-        receipt = await tx.wait()
-        // expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(80746)
-        expect(Number(receipt.gasUsed.toString())).to.be.lessThanOrEqual(99459) // the special function takes slihgtly more gas than the usual weighted pair
-        console.log("EIF1", Number(receipt.gasUsed.toString()))
-        bal = await token0.balanceOf(wallet.address)
-        expect(bal.sub(balPre)).to.equal(outp)
     })
 
     // it('swap:gas old pair', async () => {
