@@ -833,3 +833,18 @@ describe("Stable Pools", () => {
         await validatePoolBals(wallet, fixture.pool)
     })
 });
+
+// fee state
+// ✓ Allows consistent swap calculation with execution exact in 3
+// exactOut-4 BigNumber { value: "214108" }
+//     ✓ Allows consistent swap calculation with execution exact out 4
+// exactIn-4 BigNumber { value: "187124" }
+//     ✓ Allows consistent swap calculation with execution exact in 4
+//     ✓ Throws errors if insufficient amount sent to pool
+//     ✓ FlashLoan: valid, insufficient fee and reentrant
+//     ✓ FlashSwap: valid, insufficient fee and reentrant
+// exactInFlash BigNumber { value: "185111" }
+// exactInReg BigNumber { value: "150911" }
+// exactOutFlash BigNumber { value: "151778" }
+// exactOutReg BigNumber { value: "151778" }
+//     ✓ FlashSwap: gas cost

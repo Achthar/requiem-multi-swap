@@ -118,16 +118,15 @@ library StablePoolLib {
         uint256 tokenSupply,
         address creator
     ) external returns (uint256 mintAmount) {
-        // uint256 nCoins = self.nTokens;
+        uint256 nCoins = self.nTokens;
         uint256 D1;
-        require(amounts.length == self.nTokens, "arrayError");
-        uint256[] memory fees = new uint256[](self.nTokens);
+        require(amounts.length == nCoins, "arrayError");
+        uint256[] memory fees = new uint256[](nCoins);
         uint256[] memory newBalances;
-        uint256 i;
         if (tokenSupply == 0) {
             require(msg.sender == creator, "can only be inititalized by creator");
-            newBalances = new uint256[](self.nTokens);
-            for (i = 0; i < self.nTokens; i++) {
+            newBalances = new uint256[](nCoins); // fees is in this case not assigned yet
+            for (uint256 i = 0; i < nCoins; i++) {
                 require(amounts[i] > 0, "tokenError");
                 // get real transfer in amount
                 newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
@@ -145,19 +144,20 @@ library StablePoolLib {
 
             uint256 amp = _getAPrecise(self);
 
-            uint256 D0 = _getD(_xp(self.balances, self.tokenMultipliers), amp);
+            // we assign the variable D0 to the mintAmount to void stack to deep errors
+            mintAmount = _getD(_xp(self.balances, self.tokenMultipliers), amp);
 
-            for (i = 0; i < self.nTokens; i++) {
+            for (uint256 i = 0; i < nCoins; i++) {
                 // get real transfer in amount
                 newBalances[i] += _doTransferIn(self.pooledTokens[i], amounts[i]);
             }
 
             D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-            require(D1 > D0); // double check
+            require(D1 > mintAmount); // double check
 
-            // uint256 diff; // = 0;
-            for (i = 0; i < self.nTokens; i++) {
-                uint256 diff = _distance((D1 * self.balances[i]) / D0, newBalances[i]);
+            uint256 diff; // = 0;
+            for (uint256 i = 0; i < nCoins; i++) {
+                diff = _distance((D1 * self.balances[i]) / mintAmount, newBalances[i]);
                 fees[i] = (_fee * diff) / FEE_DENOMINATOR;
                 self.balances[i] = newBalances[i];
                 // deduct swap fee
@@ -166,7 +166,8 @@ library StablePoolLib {
                 self.collectedFees[i] += (fees[i] * self.adminFee) / FEE_DENOMINATOR;
             }
             D1 = _getD(_xp(newBalances, self.tokenMultipliers), amp);
-            mintAmount = (tokenSupply * (D1 - D0)) / D0;
+            // mintAmount caluclation (before we had mintAmount=D0)
+            mintAmount = (tokenSupply * (D1 - mintAmount)) / mintAmount;
 
             require(mintAmount >= minMintAmount, "slippageError");
         }
