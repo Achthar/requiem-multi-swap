@@ -33,11 +33,12 @@ async function main() {
     console.log("Account balance:", ethers.utils.formatEther(await operator.getBalance()).toString());
 
     // deploy the pool
-    const factoryContract = new ethers.Contract(addresses.factories.weighted[chainId], new ethers.utils.Interface(WeihghtedPool.abi), operator)
+    const factoryContract = new ethers.Contract(addresses.weighted[chainId].factory, new ethers.utils.Interface(WeihghtedPool.abi), operator)
 
     console.log("Pool Factory", factoryContract.address)
 
-    const tokens = [addresses.tokens.WETH, addresses.tokens.WBTC, addresses.tokens.USDT].map(tt => tt[chainId])
+    const tokens = [addresses.assets.WETH, addresses.assets.WBTC, addresses.assets.USDT].map(tt => tt[chainId])
+    console.log("Tokens:", chainId, tokens)
     // const amounts = [one18.mul(200), one8.mul(10), one6.mul(200000)]
     const decimals = [18, 8, 6]
     const weights = [zero45, zero25, zero30]

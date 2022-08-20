@@ -1,8 +1,15 @@
 const { ethers } = require('hardhat')
+const registerAbi = require('../deployments/data/register.json')
+const { addresses } = require('../deployments/addresses')
 
 // deployment script for bond depository
 async function main() {
     const [operator] = await ethers.getSigners();
+
+    const chainId = await operator.getChainId()
+
+    const registerAddress = addresses.register[chainId].proxy
+    const registerContract = await ethers.getContractAt(registerAbi, registerAddress)
 
     console.log("Deploying contracts with the account:", operator.address);
 
@@ -21,6 +28,10 @@ async function main() {
     const FactoryFactory = await ethers.getContractFactory('BalancedPoolFactory')
     const factoryContract = await FactoryFactory.deploy()
     console.log("factory address", factoryContract.address)
+
+    console.log("Register::authorize factory")
+    await registerContract.authorize(factoryContract.address)
+
 
     // init factory
     // await factoryContract.initialize(

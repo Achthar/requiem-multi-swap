@@ -4,8 +4,10 @@ pragma solidity ^0.8.15;
 
 import "../interfaces/poolPair/IWeightedPairFactory.sol";
 import "../interfaces/poolPair/IWeightedPairCreator.sol";
+import "../interfaces/poolPair/IWeightedPair.sol";
+import "../interfaces/poolPair/IWeightedPairAdmin.sol";
+import "../interfaces/governance/IVotesRegister.sol";
 import "../libraries/EnumerableSetLite.sol";
-import "./WeightedPair.sol";
 
 // solhint-disable no-inline-assembly
 
