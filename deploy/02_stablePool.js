@@ -33,8 +33,8 @@ async function main() {
 
     console.log("Factory::initialize factory")
     await factoryContract.initialize(
-        operator.address,
         poolCreatorContract.address,
+        operator.address,
         registerAddress
     )
 

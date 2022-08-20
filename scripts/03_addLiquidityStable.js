@@ -31,15 +31,17 @@ async function main() {
     console.log("Account balance:", ethers.utils.formatEther(await operator.getBalance()).toString());
 
     // deploy the pool
-    const poolContract = new ethers.Contract(addresses.pools.stable.classic[chainId], new ethers.utils.Interface(WeihghtedPool.abi), operator)
+    const poolContract = new ethers.Contract(addresses.stable[chainId].pools[0], new ethers.utils.Interface(WeihghtedPool.abi), operator)
 
     console.log("Pool", poolContract.address)
 
-    const amounts = [one18.mul(10000), one6.mul(10000), one6.mul(10000)]
+
+    const multis = await poolContract.getTokenMultipliers()
+    const rawAmounts = [10000, 10000, 10000]
+    const amounts = multis.map((m, i) => one18.mul(rawAmounts[i]).div(m))
 
     const tokens = await poolContract.getPooledTokens()
-    const multi = await poolContract.getTokenMultipliers()
-    console.log("Add", multi.map((m, i) => formatEther(m.mul(amounts[i]))))
+    console.log("Add", multis.map((m, i) => formatEther(m.mul(amounts[i]))))
     console.log("Tokens", tokens)
     for (let i = 0; i < tokens.length; i++) {
         const tokenContract = new ethers.Contract(tokens[i], new ethers.utils.Interface(ERC20.abi), operator)

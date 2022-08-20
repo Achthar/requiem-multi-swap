@@ -176,6 +176,17 @@ const addresses = {
             ]
 
         }
+    },
+    "stable": {
+        42261: {
+            "library": '0xC6f31c0b56b32E24B851FD79C5E852A304FE0c77',
+            "poolCreator": '0x542109224a295aAAd53EF53C2d1030CF656494dB',
+            "factory": '0x910498C01C98f4254a214316e4f5557D05250366',
+            "pools": [
+                "0x9912aafb08f9c018bd0317c673951a5f4967831f" // BUSD-USDC-USDT
+            ]
+
+        }
     }
 }
 
