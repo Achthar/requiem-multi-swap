@@ -2,9 +2,9 @@
 
 pragma solidity >=0.5.16;
 
-import "../poolPair/WeightedPairERC20.sol";
+import "./TestPairERC20.sol";
 
-contract TestERC20 is WeightedPairERC20 {
+contract TestERC20 is TestPairERC20 {
     constructor(uint256 _totalSupply) {
         _mint(msg.sender, _totalSupply);
     }

@@ -26,8 +26,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     address public admin;
     address public token0;
     address public token1;
-    address public votingRegister;
-    address public formula;
+    address private _formula;
     bool private locked;
 
     uint112 private reserve0; // uses single storage slot, accessible via getReserves
@@ -65,6 +64,10 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 
     // ===== views =====
+
+    function formula() external view returns (address) {
+        return _formula;
+    }
 
     /** @notice gets bot reserves and virtual reserves */
     function getReserves() public view override returns (ReserveData memory reserveData) {
@@ -119,10 +122,14 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
      * @param _tokenWeight0 first token weight
      */
     function initialize(
+        address _votesRegister,
         address _token0,
         address _token1,
         uint32 _tokenWeight0
     ) external {
+        // assign register
+        votingRegister = _votesRegister;
+        // initial admin is sender
         admin = msg.sender;
         // sufficient check
         token0 = _token0;
@@ -160,7 +167,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
 
         if (protocolFee > 0 && feeTo != address(0) && (_collectedFee0 > 0 || _collectedFee1 > 0)) {
             uint256 liquidity;
-            liquidity = IWeightedFormula(formula).mintLiquidityFee(
+            liquidity = IWeightedFormula(_formula).mintLiquidityFee(
                 totalSupply,
                 reserveData.vReserve0,
                 reserveData.vReserve1,
@@ -255,8 +262,8 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     ) external view returns (uint256) {
         return
             tokenIn == token0
-                ? IWeightedFormula(formula).getAmountOut(amountIn, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
-                : IWeightedFormula(formula).getAmountOut(amountIn, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
+                ? IWeightedFormula(_formula).getAmountOut(amountIn, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
+                : IWeightedFormula(_formula).getAmountOut(amountIn, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
     }
 
     /**
@@ -271,8 +278,8 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     ) external view returns (uint256) {
         return
             tokenIn == token0
-                ? IWeightedFormula(formula).getAmountIn(amountOut, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
-                : IWeightedFormula(formula).getAmountIn(amountOut, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
+                ? IWeightedFormula(_formula).getAmountIn(amountOut, vReserve0, vReserve1, tokenWeight0, tokenWeight1, swapFee)
+                : IWeightedFormula(_formula).getAmountIn(amountOut, vReserve1, vReserve0, tokenWeight1, tokenWeight0, swapFee);
     }
 
     /**
@@ -394,7 +401,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             collectedFee1 = uint112(uint256(collectedFee1) + amount1InFee);
         }
         // invariant check
-        require(IWeightedFormula(formula).ensureConstantValue(reserveData.vReserve0 * 10000, reserveData.vReserve1 * 10000, balance0Adjusted, balance1Adjusted, tokenWeight0), "REQLP: K");
+        require(IWeightedFormula(_formula).ensureConstantValue(reserveData.vReserve0 * 10000, reserveData.vReserve1 * 10000, balance0Adjusted, balance1Adjusted, tokenWeight0), "REQLP: K");
 
         _update(newReserveData);
         emit Swap(amount0In, amount1In, amount0Out, amount1Out);
@@ -620,7 +627,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 v1
     ) private returns (uint256 amountOut) {
         // calculate output amount
-        amountOut = IWeightedFormula(formula).getAmountOut(amountIn, v0, v1, tokenWeight0, tokenWeight1, swapFee);
+        amountOut = IWeightedFormula(_formula).getAmountOut(amountIn, v0, v1, tokenWeight0, tokenWeight1, swapFee);
 
         // handle fee
         collectedFee0 = uint112(uint256(collectedFee0) + amountIn * swapFee);
@@ -632,7 +639,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 v1
     ) private returns (uint256 amountOut) {
         // calculate output amount
-        amountOut = IWeightedFormula(formula).getAmountOut(amountIn, v1, v0, tokenWeight1, tokenWeight0, swapFee);
+        amountOut = IWeightedFormula(_formula).getAmountOut(amountIn, v1, v0, tokenWeight1, tokenWeight0, swapFee);
 
         // handle fee
         collectedFee1 = uint112(uint256(collectedFee1) + amountIn * swapFee);
@@ -644,7 +651,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 v1
     ) private returns (uint256 amountIn) {
         // calculate input amount
-        amountIn = IWeightedFormula(formula).getAmountIn(amountOut, v0, v1, tokenWeight0, tokenWeight1, swapFee);
+        amountIn = IWeightedFormula(_formula).getAmountIn(amountOut, v0, v1, tokenWeight0, tokenWeight1, swapFee);
 
         // handle fee
         collectedFee0 = uint112(uint256(collectedFee0) + ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn);
@@ -656,7 +663,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
         uint256 v1
     ) private returns (uint256 amountIn) {
         // calculate input amount
-        amountIn = IWeightedFormula(formula).getAmountIn(amountOut, v1, v0, tokenWeight1, tokenWeight0, swapFee);
+        amountIn = IWeightedFormula(_formula).getAmountIn(amountOut, v1, v0, tokenWeight1, tokenWeight0, swapFee);
 
         // handle fee
         collectedFee1 = uint112(uint256(collectedFee1) + ((amountIn * 10000) / (10000 - swapFee) + 1) - amountIn);
@@ -701,11 +708,11 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
     }
 
     /**
-     * @notice Allows admin to change the formula
+     * @notice Allows admin to change the _formula
      * @param _newFormula new amplification parameter to scale virtual reserves
      */
     function setFormula(address _newFormula) external onlyAdmin {
-        formula = _newFormula;
+        _formula = _newFormula;
     }
 
     /**

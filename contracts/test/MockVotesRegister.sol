@@ -15,4 +15,6 @@ contract MockVotesRegister {
         address to,
         uint256 amount
     ) external {}
+
+    function registerToken(address token) external {}
 }

@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 
 import "../interfaces/poolBase/IPoolFactoryManagement.sol";
 import "../interfaces/poolBase/IAdministrable.sol";
+import "../interfaces/governance/IVotesRegister.sol";
 import "../libraries/OwnerPausable.sol";
 
 // solhint-disable max-line-length, no-empty-blocks
@@ -21,6 +22,7 @@ abstract contract PoolFactoryManagement is IPoolFactoryManagement, OwnerPausable
     // default governance address assigned to created pools
     address public poolAdmin;
 
+    // votes register infusing ERC20Votes logic to registered tokens
     address public votesRegister;
 
     // true if pool is deployed through this factory
@@ -78,8 +80,12 @@ abstract contract PoolFactoryManagement is IPoolFactoryManagement, OwnerPausable
         // set values in configuration
         allPools.push(_newPool);
         isPool[_newPool] = true;
+
         // moves admin rights to the admin address set in this contract
         IAdministrable(_newPool).adminInit(poolAdmin);
+
+        // registers token in voting register
+        IVotesRegister(votesRegister).registerToken(_newPool);
     }
 
     function getPools() external view returns (address[] memory _pools) {

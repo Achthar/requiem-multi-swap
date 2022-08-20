@@ -3,10 +3,12 @@
 pragma solidity ^0.8.16;
 
 import "../interfaces/poolPair/IWeightedPairERC20.sol";
+import "../interfaces/governance/IVotesRegister.sol";
 
 // solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
 abstract contract WeightedPairERC20 is IWeightedPairERC20 {
+    address internal votingRegister;
     uint256 public totalSupply;
 
     mapping(address => uint256) public balanceOf;
@@ -26,7 +28,7 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
 
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f, //keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
                 keccak256(bytes("Requiem wPair LP")),
                 keccak256(bytes("1")),
                 chainId,
@@ -49,12 +51,16 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
         totalSupply += value;
         balanceOf[to] += value;
         emit Transfer(address(0), to, value);
+
+        IVotesRegister(votingRegister).onMint(to, value);
     }
 
     function _burn(address from, uint256 value) internal {
         balanceOf[from] -= value;
         totalSupply -= value;
         emit Transfer(from, address(0), value);
+
+        IVotesRegister(votingRegister).onBurn(from, value);
     }
 
     function _approve(
@@ -74,6 +80,8 @@ abstract contract WeightedPairERC20 is IWeightedPairERC20 {
         balanceOf[from] -= value;
         balanceOf[to] += value;
         emit Transfer(from, to, value);
+
+        IVotesRegister(votingRegister).onAfterTokenTransfer(from, to, value);
     }
 
     function approve(address spender, uint256 value) external returns (bool) {

@@ -2,17 +2,12 @@
 
 pragma solidity ^0.8.16;
 
-import "../interfaces/poolBase/IMultiPoolERC20.sol";
-import "../interfaces/governance/IVotesRegister.sol";
+import "../interfaces/poolPair/IWeightedPairERC20.sol";
 
-// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length, reason-string, no-empty-blocks
+// solhint-disable not-rely-on-time, no-inline-assembly, var-name-mixedcase, max-line-length
 
-abstract contract PoolERC20 is IMultiPoolERC20 {
-    address private votingRegister;
+contract TestPairERC20 is IWeightedPairERC20 {
     uint256 public totalSupply;
-
-    string public name;
-    string public symbol;
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -23,57 +18,43 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
 
     mapping(address => uint256) public nonces;
 
-    constructor() {}
-
-    function _poolTokenInit(
-        string memory _name,
-        string memory _symbol,
-        address _register
-    ) internal {
-        name = _name;
-        symbol = _symbol;
-        votingRegister = _register;
-
+    constructor() {
         uint256 chainId;
         assembly {
             chainId := chainid()
         }
 
         DOMAIN_SEPARATOR = keccak256(
-            abi.encode(keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak256(bytes(_name)), keccak256(bytes("1")), chainId, address(this))
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("Requiem wPair LP")),
+                keccak256(bytes("1")),
+                chainId,
+                address(this)
+            )
         );
     }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal virtual {}
-
-    function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: mint to the zero address");
-
-        _beforeTokenTransfer(address(0), account, amount);
-
-        totalSupply += amount;
-        balanceOf[account] += amount;
-        emit Transfer(address(0), account, amount);
-
-        IVotesRegister(votingRegister).onMint(account, amount);
+    /** @notice Name of pair */
+    function name() external pure virtual override returns (string memory) {
+        return "Requiem wPair LP";
     }
 
-    function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: burn from the zero address");
+    /** @notice Symbol of pair */
+    function symbol() external pure virtual override returns (string memory) {
+        return "REQWP";
+    }
 
-        _beforeTokenTransfer(account, address(0), amount);
+    function _mint(address to, uint256 value) internal {
+        totalSupply += value;
+        balanceOf[to] += value;
+        emit Transfer(address(0), to, value);
+    }
 
-        balanceOf[account] -= amount;
-
-        totalSupply -= amount;
-
-        emit Transfer(account, address(0), amount);
-
-        IVotesRegister(votingRegister).onBurn(account, amount);
+    function _burn(address from, uint256 value) internal {
+        balanceOf[from] -= value;
+        totalSupply -= value;
+        emit Transfer(from, address(0), value);
     }
 
     function _approve(
@@ -90,13 +71,9 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
         address to,
         uint256 value
     ) private {
-        require(from != address(0), "ERC20: transfer from the zero address");
-        _beforeTokenTransfer(from, to, value);
         balanceOf[from] -= value;
         balanceOf[to] += value;
         emit Transfer(from, to, value);
-
-        IVotesRegister(votingRegister).onAfterTokenTransfer(from, to, value);
     }
 
     function approve(address spender, uint256 value) external returns (bool) {
@@ -130,7 +107,7 @@ abstract contract PoolERC20 is IMultiPoolERC20 {
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "REQ: EXPIRED");
+        require(deadline >= block.timestamp, "REQ: EXP");
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))));
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == owner, "REQ: IS");

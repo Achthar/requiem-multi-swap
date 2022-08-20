@@ -55,6 +55,7 @@ interface IWeightedPair is IWeightedPairERC20 {
     function initialize(
         address,
         address,
+        address,
         uint32
     ) external;
 }

@@ -17,6 +17,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
     // these governance contracts then can make crucial changes to the pair
     // e.g. change the formula, amplification and swap fee
     address public pairAdmin;
+    address public votingRegister;
     IWeightedPairCreator public pairCreator;
 
     // default formula for swap calculation
@@ -32,12 +33,14 @@ contract RequiemPairFactory is IWeightedPairFactory {
 
     constructor(
         IWeightedPairCreator _creator,
+        address _register,
         address _admin,
         address _formula
     ) {
         pairAdmin = _admin;
         formula = _formula;
         pairCreator = _creator;
+        votingRegister = _register;
     }
 
     // ===== views =====
@@ -94,7 +97,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, tokenWeight0));
         require(!isPair[pair], "RLP: PE");
         // initialize pair configuration
-        IWeightedPair(pair).initialize(token0, token1, tokenWeight0);
+        IWeightedPair(pair).initialize(votingRegister, token0, token1, tokenWeight0);
         IWeightedPair(pair).switchAdmin(pairAdmin);
 
         // handle administrative initiallization
@@ -104,6 +107,7 @@ contract RequiemPairFactory is IWeightedPairFactory {
         _pairSalts[salt] = pair;
         _pairCount += 1;
         isPair[pair] = true;
+        IVotesRegister(votingRegister).registerToken(pair);
         emit PairCreated(token0, token1, pair, tokenWeight0);
     }
 

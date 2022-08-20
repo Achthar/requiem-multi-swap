@@ -44,7 +44,9 @@ import {
     WeightedPairAdmin,
     PoolAdmin,
     RequiemPairCreator__factory,
-    MockVotesRegister__factory
+    MockVotesRegister__factory,
+    // TestERC20__factory,
+    TestERC20
 } from "../../../types";
 import {
     keccak256,
@@ -84,22 +86,23 @@ export async function factoryFixture(signer: SignerWithAddress): Promise<Factory
     return await deployments.createFixture(async () => {
 
         const { formula } = await formulaFixture(signer)
+        const register = await new MockVotesRegister__factory(signer).deploy()
         const creator = await new RequiemPairCreator__factory(signer).deploy()
         const admin = await new WeightedPairAdmin__factory(signer).deploy()
-        const factory = await new RequiemPairFactory__factory(signer).deploy(creator.address, admin.address, formula.address)
+        const factory = await new RequiemPairFactory__factory(signer).deploy(creator.address, register.address, admin.address, formula.address)
         await admin.setFactory(factory.address)
         return { factory, formula, admin }
     })()
 }
 
 interface PairFixture extends FactoryFixture {
-    token0: WeightedPairERC20
+    token0: TestERC20
     tokenWeight0: number
-    token1: WeightedPairERC20
+    token1: TestERC20
     tokenWeight1: number
     pair: RequiemPair
-    tokenA: WeightedPairERC20
-    tokenB: WeightedPairERC20
+    tokenA: TestERC20
+    tokenB: TestERC20
 }
 
 export async function pairFixture(signer: SignerWithAddress): Promise<PairFixture> {
@@ -108,8 +111,9 @@ export async function pairFixture(signer: SignerWithAddress): Promise<PairFixtur
         const { factory, formula, admin } = await factoryFixture(signer)
 
         const tokenA = await new TestERC20__factory(signer).deploy(toWei(10000));
-        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000))
+        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000));
 
+        
         await factory.createPair(tokenA.address, tokenB.address, 50, 30, 10000)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, 50)
         const pair = RequiemPair__factory.connect(pairAddress, signer)
@@ -128,8 +132,9 @@ export async function pairDifferentWeightFixture(signer: SignerWithAddress, toke
 
         const { factory, formula, admin } = await factoryFixture(signer)
 
+
         const tokenA = await new TestERC20__factory(signer).deploy(toWei(10000));
-        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000))
+        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000));
 
         await factory.createPair(tokenA.address, tokenB.address, tokenWeightA, 40, 10000, overrides)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
@@ -156,8 +161,9 @@ export async function pairDifferentWeightAndAmpFixture(signer: SignerWithAddress
 
         const { factory, formula, admin } = await factoryFixture(signer)
 
+
         const tokenA = await new TestERC20__factory(signer).deploy(toWei(10000));
-        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000))
+        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000));
 
         await factory.createPair(tokenA.address, tokenB.address, tokenWeightA, 40, 12500, overrides)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, tokenWeightA)
@@ -180,16 +186,16 @@ export async function pairDifferentWeightAndAmpFixture(signer: SignerWithAddress
 }
 
 interface PairMockFixture extends FactoryFixture {
-    token0: WeightedPairERC20
+    token0: TestERC20
     tokenWeight0: number
-    token1: WeightedPairERC20
+    token1: TestERC20
     tokenWeight1: number
     pair: RequiemPair
-    tokenA: MockERC20
-    tokenB: MockERC20
+    tokenA: TestERC20
+    tokenB: TestERC20
 }
 
-export async function pairTestFixture(signer: SignerWithAddress, token0: MockERC20, token1: MockERC20, tokenWeightA = 80): Promise<PairMockFixture> {
+export async function pairTestFixture(signer: SignerWithAddress, token0: TestERC20, token1: TestERC20, tokenWeightA = 80): Promise<PairMockFixture> {
     return await deployments.createFixture(async () => {
 
         const { factory, formula, admin } = await factoryFixture(signer)
@@ -220,8 +226,9 @@ export async function pairSameWeightAndAmpFixture(signer: SignerWithAddress): Pr
 
         const { factory, formula, admin } = await factoryFixture(signer)
 
+
         const tokenA = await new TestERC20__factory(signer).deploy(toWei(10000));
-        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000))
+        const tokenB = await new TestERC20__factory(signer).deploy(toWei(10000));
 
         await factory.createPair(tokenA.address, tokenB.address, 50, 40, 12500, overrides)
         const pairAddress = await factory.getPair(tokenA.address, tokenB.address, 50)
@@ -246,10 +253,10 @@ export async function pairSameWeightAndAmpFixture(signer: SignerWithAddress): Pr
 
 export interface V2Fixture {
     formula: Contract
-    token0: WeightedPairERC20
-    token1: WeightedPairERC20
-    tokenA: WeightedPairERC20
-    tokenB: WeightedPairERC20
+    token0: TestERC20
+    token1: TestERC20
+    tokenA: TestERC20
+    tokenB: TestERC20
     tokenWeight0: number,
     WETH: WETH9
     WETHPartner: Contract
@@ -391,9 +398,10 @@ export interface SwapRouterFixture {
 
 
 export async function swapRouterFixture(signer: SignerWithAddress): Promise<SwapRouterFixture> {
+    const register = await new MockVotesRegister__factory(signer).deploy()
     const formula = await new WeightedFormula__factory(signer).deploy()
     const weth = await new WETH9__factory(signer).deploy()
-    const factory = await new RequiemPairFactory__factory(signer).deploy(signer.address, formula.address, signer.address)
+    const factory = await new RequiemPairFactory__factory(signer).deploy(signer.address, register.address, formula.address, signer.address)
     const router = await new SwapRouter__factory(signer).deploy(factory.address, weth.address)
     return {
         router,
@@ -406,9 +414,10 @@ export async function swapRouterFixture(signer: SignerWithAddress): Promise<Swap
 
 
 export async function thiefRouterFixture(signer: SignerWithAddress): Promise<ThiefRouter> {
+    const register = await new MockVotesRegister__factory(signer).deploy()
     const formula = await new WeightedFormula__factory(signer).deploy()
     const weth = await new WETH9__factory(signer).deploy()
-    const factory = await new RequiemPairFactory__factory(signer).deploy(signer.address, formula.address, signer.address)
+    const factory = await new RequiemPairFactory__factory(signer).deploy(signer.address, register.address, formula.address, signer.address)
     const router = await new ThiefRouter__factory(signer).deploy(factory.address, weth.address)
     return router
 }
