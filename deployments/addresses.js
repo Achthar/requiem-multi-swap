@@ -5,18 +5,18 @@ const addresses = {
     },
     "bondDepo": {
         43113: "0x2479902372c1cd91e2d9d3c1ebed0940167efca2",
-        42261: "0x5e72a633D544e74f8B80c6a5A8bc4674E3b7a504"
+        42261: "0x628Ef1FE0A45be404c451c613c0B2c901452684f"
     },
     "callBondDepo": {
         43113: "0x37bb1Aa8A339B65aeD51B6354a2518011F668A9B"
     },
     "digitalCallBondDepo": {
         43113: "0xfBE3B3E624a00f9f7BB6bb13b3757848088a583F",
-        42261: "0xA7b5c1Fb20B4886B6C2242f7b1E3D3b423406711"
+        42261: "0xfA56e0AEf409B8D3A497deb1Db64Ae0264DCD420"
     },
     "callableBondDepo": {
         43113: "0xb7879d3bbE48838a0436AE9CE75bEE1F6eb7282E",
-        42261: "0xA3Df8603e964611464297464c25A2815a341FB1D"
+        42261: "0x42cA2a6eD9f519B4aB1E99159cAe370F1fCCC3bc"
     },
     "diamondInitAddress": {
         43113: "0xdb409149AA3C2f2Bb3580994e1637f3e918D5413",
@@ -106,7 +106,7 @@ const addresses = {
         },
         "TreasuryFacet": {
             43113: "0xdad13c4b17b76ac307e35536e6ff89bab4529a9e",
-            42261: "0x3effC2e12D4E10F7cEe599f8D72c8Ae355e09d05"
+            42261: "0x953dbB9940d5B670761A4E923d1b32b143CAA401"
         },
         "ManagementFacet": {
             43113: "0x53f54c22Ae77706bCCC7Ebc2078851EB42f95c17",
@@ -116,11 +116,11 @@ const addresses = {
     "pricers": {
         "STABLE": {
             43113: "0xbA2B783cB21726E454eCa3712CE9E1b5806bAFC5",
-            42261: "0x2D81E7dFe6B20e3ffb75dcfC359920ff8FaBa35e"
+            42261: "0x3b5f0eC8a1249828BC94869eBF1F7a65f19B5601"
         },
         "WEIGHTED": {
             43113: "0x5ad0Dd39cbd3a6Ef4E1f47D3b0Dce9e3A62CEf99",
-            42261: "0x3B362751aB869dC6E71c40c6fb0C02E091F8F6c7"
+            42261: "0x2b9Ca9C976247727457EcA3ce4D0B0488957427b"
         },
         "PAIR": {
             43113: "0x1A5855aAE72411bC19bcAE9c282B5cdBbEAf20aF",
@@ -132,6 +132,9 @@ const addresses = {
         },
         "ABREQ_PAIR": {
             43113: "0xb6111cB73CC8dC4E5e231745c286f60FBb31Ba02"
+        },
+        "ROSE_USDC": {
+            42261: "0xA1FA791BA61C03D84cD8ca7cD44DAB7F89fe3f01"
         }
     },
     "quotes": {
@@ -142,6 +145,9 @@ const addresses = {
         "USDC": {
             43113: "0xCa9eC7085Ed564154a9233e1e7D8fEF460438EEA",
             42261: "0x2AD57C6d4144e218c02760640685cdF6CB58669E"
+        },
+        "BUSD": {
+            42261: "0x8391032ef5654B796A7719D106ee74c2e48e03aa"
         },
         "USDT": {
             43113: "0xffb3ed4960cac85372e6838fbc9ce47bcf2d073e",
@@ -186,6 +192,11 @@ const addresses = {
                 "0x9912aafb08f9c018bd0317c673951a5f4967831f" // BUSD-USDC-USDT
             ]
 
+        }
+    },
+    "pairs": {
+        42261: {
+            "ROSE_USDC": '0x3B2b78e1F16985a77AFbdf63Fa594119E5D7629D'
         }
     }
 }
