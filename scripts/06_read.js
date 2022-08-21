@@ -31,7 +31,7 @@ async function main() {
     console.log("Account balance:", ethers.utils.formatEther(await operator.getBalance()).toString());
 
     // deploy the pool
-    const poolContract = new ethers.Contract(addresses.pools.weighted.classic[chainId], new ethers.utils.Interface(WeihghtedPool.abi), operator)
+    const poolContract = new ethers.Contract(addresses.stable[chainId].pools[0], new ethers.utils.Interface(WeihghtedPool.abi), operator)
 
     console.log("Pool", poolContract.address)
 
