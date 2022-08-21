@@ -12,7 +12,6 @@ import "../interfaces/poolPair/IUniswapV2TypeSwap.sol";
 import "./WeightedPairERC20.sol";
 import "../libraries/Math.sol";
 import "../libraries/SafeERC20.sol";
-import "../libraries/UQ112x112.sol";
 import "../interfaces/ERC20/IERC20.sol";
 import "../interfaces/ERC20/IERC20Metadata.sol";
 import "../interfaces/poolBase/IFlashSwapRecipient.sol";
@@ -21,13 +20,13 @@ import "../interfaces/poolBase/IFlashSwapRecipient.sol";
 
 contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairERC20 {
     using SafeERC20 for IERC20;
-    using UQ112x112 for uint224;
 
     address public admin;
     address public token0;
     address public token1;
     address private _formula;
-    bool private locked;
+    uint256 private constant MAX_UINT112 = 2**112 - 1;
+    uint256 private unlocked;
 
     uint112 private reserve0; // uses single storage slot, accessible via getReserves
     uint112 private reserve1; // uses single storage slot, accessible via getReserves
@@ -52,10 +51,10 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
 
     // custom Reentrancy guard mechanism
     modifier lock() {
-        require(!locked, "REQLP: L");
-        locked = true;
+        require(unlocked == 0, "REQLP: L");
+        unlocked = 1;
         _;
-        locked = false;
+        unlocked = 0;
     }
 
     modifier onlyAdmin() {
@@ -140,14 +139,20 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
 
     /**
      * @dev update reserves and, on the first call per block
-     *  @param data new data to sync with
+     * @param data new data to sync with
      */
     function _update(ReserveData memory data) private {
-        reserve0 = uint112(data.reserve0);
-        reserve1 = uint112(data.reserve1);
-        require(data.vReserve0 >= data.reserve0 && data.vReserve1 >= data.reserve1); // never happen
-        vReserve0 = uint112(data.vReserve0);
-        vReserve1 = uint112(data.vReserve1);
+        uint256 v0 = data.vReserve0;
+        uint256 v1 = data.vReserve1;
+        uint256 r0 = data.reserve0;
+        uint256 r1 = data.reserve1;
+        require(v0 >= r0 && v1 >= r1); // never happen
+        // the following assures that the same also applies to the actual reserves due to the condition above
+        require(v0 * tokenWeight1 <= MAX_UINT112 && v1 * tokenWeight0 <= MAX_UINT112, "REQLP: OVERFLOW");
+        reserve0 = uint112(r0);
+        reserve1 = uint112(r1);
+        vReserve0 = uint112(v0);
+        vReserve1 = uint112(v1);
     }
 
     /**
@@ -585,7 +590,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // fetch post trade balance in
             uint256 balanceIn = IERC20(_token0).balanceOf(address(this));
             // validate trade
-            require(balanceIn >= amountIn + reserveData.reserve0, "insufficient in0");
+            require(balanceIn >= amountIn + reserveData.reserve0, "insufficient in");
 
             // update reserves
             newReserveData.reserve0 = balanceIn;
@@ -604,7 +609,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // fetch post trade balance in
             uint256 balanceIn = IERC20(_token1).balanceOf(address(this));
             // validate trade
-            require(balanceIn >= amountIn + reserveData.reserve1, "insufficient in1");
+            require(balanceIn >= amountIn + reserveData.reserve1, "insufficient in");
 
             // update reserves
             newReserveData.reserve1 = balanceIn;
