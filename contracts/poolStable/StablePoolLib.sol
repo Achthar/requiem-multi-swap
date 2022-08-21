@@ -197,6 +197,8 @@ library StablePoolLib {
         // update balances
         self.balances[i] = balanceIn;
         self.balances[j] -= dy;
+
+        // admin fee is charged on out amount
         self.collectedFees[j] += (dy * self.adminSwapFee) / FEE_DENOMINATOR;
 
         _safeTransfer(self.pooledTokens[j], to, dy);
@@ -245,7 +247,7 @@ library StablePoolLib {
         self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
 
-        // collect admin fee
+        // admin fee is charged on out amount
         self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         emit TokenExchange(i, inAmount, j, outAmount);
@@ -276,7 +278,7 @@ library StablePoolLib {
         self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
 
-        // collect admin fee
+        // admin fee is charged on out amount
         self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         // finally transfer the tokens
@@ -324,7 +326,7 @@ library StablePoolLib {
         self.balances[i] = balanceIn;
         self.balances[j] -= outAmount;
 
-        // collect admin fee
+        // admin fee is charged on out amount
         self.collectedFees[j] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         emit TokenExchange(i, inAmount, j, outAmount);

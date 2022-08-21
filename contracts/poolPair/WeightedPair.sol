@@ -449,7 +449,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // update reserves
             newReserveData.reserve0 = balanceIn;
             newReserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
-            require(balanceIn >= amountIn + r0, "insufficient in");
+            require(balanceIn >= amountIn + r0, "REQLP: II");
 
             emit Swap(amountIn, 0, 0, amountOut);
         } else if (tokenIn == _token1) {
@@ -469,7 +469,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             newReserveData.reserve1 = balanceIn;
             newReserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
 
-            require(balanceIn >= amountIn + r1, "insufficient in");
+            require(balanceIn >= amountIn + r1, "REQLP: II");
 
             emit Swap(0, amountIn, amountOut, 0);
         } else {
@@ -523,7 +523,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // update reserveData
             newReserveData.reserve0 = balanceIn;
             newReserveData.reserve1 = IERC20(_token1).balanceOf(address(this));
-            require(balanceIn >= amountIn + reserveData.reserve0, "insufficient in");
+            require(balanceIn >= amountIn + reserveData.reserve0, "REQLP: II");
 
             emit Swap(amountIn, 0, 0, amountOut);
         } else if (tokenIn == _token1) {
@@ -541,7 +541,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             newReserveData.reserve1 = balanceIn;
             newReserveData.reserve0 = IERC20(_token0).balanceOf(address(this));
 
-            require(balanceIn >= amountIn + reserveData.reserve1, "insufficient in");
+            require(balanceIn >= amountIn + reserveData.reserve1, "REQLP: II");
 
             emit Swap(0, amountIn, amountOut, 0);
         } else {
@@ -590,7 +590,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // fetch post trade balance in
             uint256 balanceIn = IERC20(_token0).balanceOf(address(this));
             // validate trade
-            require(balanceIn >= amountIn + reserveData.reserve0, "insufficient in");
+            require(balanceIn >= amountIn + reserveData.reserve0, "REQLP: II");
 
             // update reserves
             newReserveData.reserve0 = balanceIn;
@@ -609,7 +609,7 @@ contract RequiemPair is ISwap, IUniswapV2TypeSwap, IWeightedPair, WeightedPairER
             // fetch post trade balance in
             uint256 balanceIn = IERC20(_token1).balanceOf(address(this));
             // validate trade
-            require(balanceIn >= amountIn + reserveData.reserve1, "insufficient in");
+            require(balanceIn >= amountIn + reserveData.reserve1, "REQLP: II");
 
             // update reserves
             newReserveData.reserve1 = balanceIn;

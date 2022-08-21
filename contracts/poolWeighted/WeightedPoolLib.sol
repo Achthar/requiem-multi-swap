@@ -141,8 +141,10 @@ library WeightedPoolLib {
         // fetch in balance
         uint256 balanceIn = IERC20(self.pooledTokens[inIndex]).balanceOf(address(this));
 
+        uint256 balanceInPreTrade = self.balances[inIndex];
+
         // calculate amount sent
-        uint256 inAmount = (balanceIn - self.balances[inIndex]) * inMultiplier;
+        uint256 inAmount = (balanceIn - balanceInPreTrade) * inMultiplier;
 
         // respect fee on in amount
         uint256 amountInWithFee = (inAmount * (FEE_DENOMINATOR - self.fee)) / FEE_DENOMINATOR;
@@ -150,7 +152,7 @@ library WeightedPoolLib {
         // get out amount denormalized
         outAmount =
             WeightedMath._calcOutGivenIn(
-                self.balances[inIndex] * inMultiplier,
+                balanceInPreTrade * inMultiplier,
                 self.normalizedWeights[inIndex],
                 self.balances[outIndex] * outMultiplier,
                 self.normalizedWeights[outIndex],
@@ -230,12 +232,15 @@ library WeightedPoolLib {
     ) external returns (uint256 inAmount) {
         uint256 inMultiplier = self.tokenMultipliers[inIndex];
         uint256 outMultiplier = self.tokenMultipliers[outIndex];
+
+        uint256 preTradeInBalance = self.balances[inIndex];
+
         // get actual new in balance
         uint256 balanceIn = IERC20(self.pooledTokens[inIndex]).balanceOf(address(this));
 
         // calculate in amount with upscaled balances
         inAmount = WeightedMath._calcInGivenOut(
-            self.balances[inIndex] * inMultiplier,
+            preTradeInBalance * inMultiplier,
             self.normalizedWeights[inIndex],
             self.balances[outIndex] * outMultiplier,
             self.normalizedWeights[outIndex],
@@ -248,7 +253,7 @@ library WeightedPoolLib {
         self.collectedFees[outIndex] += (outAmount * self.adminSwapFee) / FEE_DENOMINATOR;
 
         // validate trade
-        require(inAmount <= balanceIn - self.balances[inIndex], "insufficient in");
+        require(inAmount <= balanceIn - preTradeInBalance, "insufficient in");
 
         //send tokens
         _safeTransfer(self.pooledTokens[outIndex], to, outAmount);

@@ -858,3 +858,19 @@ describe("Weighted Pools", () => {
 
 
 });
+
+
+// ✓ Allows consistent swap calculation with execution exact in 3
+// exactOut-4 BigNumber { value: "208745" }
+//     ✓ Allows consistent swap calculation with execution exact out 4
+// exactIn-4 BigNumber { value: "183431" }
+//     ✓ Allows consistent swap calculation with execution exact in 4
+//     ✓ Throws errors if insufficient amount sent to pool
+//     ✓ FlashLoan: valid, insufficient fee and reentrant
+//     ✓ FlashSwap: valid, insufficient fee and reentrant
+// exactInFlash BigNumber { value: "181611" }
+// exactInReg BigNumber { value: "147411" }
+// exactOutFlash BigNumber { value: "147265" }
+// exactOutReg BigNumber { value: "147265" }
+//     ✓ FlashSwap: gas cost
+
