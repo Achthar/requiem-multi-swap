@@ -158,7 +158,7 @@ const addresses = {
         42261: {
             "admin": "0x619359d5E5a96878CF2515794dB2E4C3b17bC9Eb",
             "logic": "0xf95c9041cccdfe27f06da7be62257b50994d0fd1",
-            "proxy": "0x98d64e2457cB508630e38A3b9e700e6985F49fAd"
+            "proxy": "0x22F3dfc6c8830DDb3140158B9f9a9d3a1134EE9C"
         }
     },
     "pair": {
@@ -199,6 +199,6 @@ const addresses = {
             "ROSE_USDC": '0x3B2b78e1F16985a77AFbdf63Fa594119E5D7629D'
         }
     }
-}
+}   
 
 module.exports = { addresses }
