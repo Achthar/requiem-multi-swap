@@ -86,7 +86,7 @@ describe("RequiemPair:Amplified:EqualWeight", () => {
         let receipt = await tx.wait()
         console.log(Number(receipt.gasUsed.toString()))
         // expect(receipt.gasUsed).to.eq(78909)
-        expect(receipt.gasUsed).to.eq(80579)
+        expect(receipt.gasUsed).to.eq(80597)
 
 
         let balPre = await token0.balanceOf(wallet.address)

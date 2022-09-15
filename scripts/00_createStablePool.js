@@ -33,9 +33,9 @@ async function main() {
 
     console.log("Pool Factory", factoryContract.address)
 
-    const tokens = [addresses.assets.BUSD, addresses.assets.USDC, addresses.assets.USDT].map(tt => tt[chainId])
+    const tokens = [addresses.assets.BUSD, addresses.assets.DAI, addresses.assets.USDC].map(tt => tt[chainId])
     // const amounts = [one18.mul(200), one8.mul(10), one6.mul(200000)]
-    const decimals = [18, 6, 6]
+    const decimals = [18, 18, 6]
     const fee = one14.mul(15).div(10)
     const flashFee = one14.mul(5)
     const withdrawFee = one14.mul(5)
@@ -44,8 +44,8 @@ async function main() {
     await factoryContract.createPool(
         tokens, // address[] memory _pooledTokens,
         decimals, // uint8[] memory decimals,
-        "REQ Tri Stable Oasis",  // string memory lpTokenName,
-        "REQ3USD", // string memory lpTokenSymbol,
+        "REQ Tri Stable Thunder Core",  // string memory lpTokenName,
+        "REQ3USDTT", // string memory lpTokenSymbol,
         a, // uint256 _A
         fee, // uint256 _fee,
         flashFee,// uint256 _flashFee,

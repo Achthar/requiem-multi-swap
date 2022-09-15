@@ -38,15 +38,10 @@ async function main() {
     console.log("PairAdmin::setFactory", factoryContract.address)
     await pairAdminContract.setFactory(factoryContract.address)
 
-    const weth = {
-        43113: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c',
-        42261: '0x792296e2a15e6ceb5f5039decae7a1f25b00b0b0'
-    }
-
     console.log("Deploy router")
     const Router = await ethers.getContractFactory("SwapRouter")
-    console.log("Router with args", factoryContract.address, weth[chainId])
-    const routerContract = await Router.deploy(factoryContract.address, weth[chainId])
+    console.log("Router with args", factoryContract.address, addresses.assets.WNCCY[chainId])
+    const routerContract = await Router.deploy(factoryContract.address, addresses.assets.WNCCY[chainId])
 
     console.log("addresses", {
         admin: pairAdminContract.address,

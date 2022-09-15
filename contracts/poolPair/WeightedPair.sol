@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.17;
 
 import "../interfaces/poolPair/IWeightedPair.sol";
 import "../interfaces/poolPair/IWeightedPairERC20.sol";

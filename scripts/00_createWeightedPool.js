@@ -37,7 +37,7 @@ async function main() {
 
     console.log("Pool Factory", factoryContract.address)
 
-    const tokens = [addresses.assets.WETH, addresses.assets.WBTC, addresses.assets.USDT].map(tt => tt[chainId])
+    const tokens = [addresses.assets.WETH, addresses.assets.WBTC, addresses.assets.USDC].map(tt => tt[chainId])
     console.log("Tokens:", chainId, tokens)
     // const amounts = [one18.mul(200), one8.mul(10), one6.mul(200000)]
     const decimals = [18, 8, 6]
@@ -51,8 +51,8 @@ async function main() {
         tokens, // address[] memory _pooledTokens,
         decimals, // uint8[] memory decimals,
         weights, // uint256[] memory normalizedWeights,
-        "REQ 3 Crypto",  // string memory lpTokenName,
-        "REQ3C", // string memory lpTokenSymbol,
+        "REQ 3 Crypto Thunder Core",  // string memory lpTokenName,
+        "REQ3CTT", // string memory lpTokenSymbol,
         fee, // uint256 _fee,
         flashFee,// uint256 _flashFee,
         withdrawFee // uint256 _withdrawFee

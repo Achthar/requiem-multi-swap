@@ -4,7 +4,7 @@ import "../interfaces/poolPair/IPairGovernance.sol";
 import "../interfaces/poolPair/IWeightedPair.sol";
 import "../interfaces/poolPair/IWeightedPairFactory.sol";
 
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.17;
 
 abstract contract WeightedPairGovernance is IPairGovernance {
     uint256 public currentVotingPeriod = 5 days;
